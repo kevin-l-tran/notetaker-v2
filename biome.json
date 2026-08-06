@@ -48,11 +48,11 @@
 	"linter": {
 		"enabled": true,
 		"domains": {
-			"react": "all",
-			"project": "all",
-			"test": "all",
-			"playwright": "all",
-			"types": "all"
+			"react": "recommended",
+			"project": "recommended",
+			"test": "recommended",
+			"playwright": "recommended",
+			"types": "recommended"
 		},
 		"rules": {
 			"preset": "recommended",
