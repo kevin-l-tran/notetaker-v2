@@ -1,14 +1,17 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import App from "./app/App.tsx";
 import "./index.css";
-import App from "./App.tsx";
+import "./tokens.css";
 
-const container = document.getElementById("root");
-if (container) {
-    const root = createRoot(container);
-    root.render(
-        <StrictMode>
-            <App />
-        </StrictMode>,
-    );
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+	throw new Error("Failed to find the root element");
 }
+
+createRoot(rootElement).render(
+	<StrictMode>
+		<App />
+	</StrictMode>,
+);
