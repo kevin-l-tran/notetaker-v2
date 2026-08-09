@@ -23,7 +23,6 @@
 		"check": "biome check .",
 		"check:ci": "biome ci .",
 		"check:fix": "biome check --write .",
-
 		"db:down": "docker compose down",
 		"db:generate": "pnpm --dir apps/backend db:generate",
 		"db:logs": "docker compose logs -f postgres",
@@ -34,29 +33,24 @@
 		"db:stop": "docker compose stop postgres",
 		"db:studio": "pnpm --dir apps/backend db:studio",
 		"db:up": "docker compose up -d postgres",
-
 		"dev": "pnpm --parallel --filter \"./apps/*\" dev",
 		"dev:backend": "pnpm --dir apps/backend dev",
 		"dev:frontend": "pnpm --dir apps/frontend dev",
-
 		"format": "biome format --write .",
 		"format:check": "biome format .",
 		"lint": "biome lint .",
 		"lint:fix": "biome lint --write .",
-
 		"test": "pnpm --recursive --if-present test",
 		"test:e2e": "playwright test",
 		"test:e2e:debug": "playwright test --debug",
 		"test:e2e:report": "playwright show-report",
 		"test:e2e:ui": "playwright test --ui",
 		"test:watch": "pnpm --parallel --recursive --if-present test:watch",
-
 		"typecheck": "pnpm --recursive --if-present typecheck",
-
 		"validate": "pnpm check:ci && pnpm typecheck && pnpm test && pnpm build"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.5.6",
+		"@biomejs/biome": "2.5.7",
 		"@playwright/test": "^1.62.1"
 	}
 }
