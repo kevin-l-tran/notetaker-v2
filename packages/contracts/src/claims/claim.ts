@@ -1,8 +1,10 @@
 import z from "zod";
-import { BaseNode } from "../baseNodes/baseNode.js";
+import { BaseNodeSchema } from "../baseNodes/baseNode.ts";
 
-export const Claim = z.object({
-    ...BaseNode.shape,
+export type Claim = z.infer<typeof ClaimSchema>
+
+export const ClaimSchema = z.object({
+    ...BaseNodeSchema.shape,
     type: z.literal("claim"),
     predicateSource: z.string(),
     resultSource: z.string(),
