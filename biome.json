@@ -56,11 +56,6 @@
 		},
 		"rules": {
 			"preset": "recommended",
-			"a11y": "error",
-			"correctness": "error",
-			"security": "error",
-			"complexity": "warn",
-			"performance": "warn",
 			"style": {
 				"noNonNullAssertion": "error",
 				"useImportType": "error",

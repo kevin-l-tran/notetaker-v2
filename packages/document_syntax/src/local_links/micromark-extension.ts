@@ -1,137 +1,127 @@
 /** biome-ignore-all lint/complexity/noExcessiveLinesPerFunction: <state machine is long> */
 import { codes } from "micromark-util-symbol";
-import type {
-    Code,
-    Construct,
-    Extension,
-    State,
-    Tokenizer,
-} from "micromark-util-types";
+import type { Code, Construct, Extension, State, Tokenizer } from "micromark-util-types";
 
 import { localLinkTokens } from "./tokens.ts";
 
 const tokenizelocalLink: Tokenizer = (effects, ok, nok) => {
-    function start(code: Code): State | undefined {
-        if (code !== codes.leftSquareBracket) {
-            return nok(code);
-        }
+	function start(code: Code): State | undefined {
+		if (code !== codes.leftSquareBracket) {
+			return nok(code);
+		}
 
-        effects.enter(localLinkTokens.link);
-        effects.enter(localLinkTokens.marker);
+		effects.enter(localLinkTokens.link);
+		effects.enter(localLinkTokens.marker);
 
-        effects.consume(code);
+		effects.consume(code);
 
-        return secondOpeningBracket;
-    }
+		return secondOpeningBracket;
+	}
 
-    function secondOpeningBracket(code: Code): State | undefined {
-        if (code !== codes.leftSquareBracket) {
-            return nok(code);
-        }
+	function secondOpeningBracket(code: Code): State | undefined {
+		if (code !== codes.leftSquareBracket) {
+			return nok(code);
+		}
 
-        effects.consume(code);
-        effects.exit(localLinkTokens.marker);
+		effects.consume(code);
+		effects.exit(localLinkTokens.marker);
 
-        effects.enter(localLinkTokens.label);
+		effects.enter(localLinkTokens.label);
 
-        return labelStart;
-    }
+		return labelStart;
+	}
 
-    function labelStart(code: Code): State | undefined {
-        if (isEnd(code) || code === codes.verticalBar) {
-            return nok(code);
-        }
+	function labelStart(code: Code): State | undefined {
+		if (isEnd(code) || code === codes.verticalBar) {
+			return nok(code);
+		}
 
-        return label(code);
-    }
+		return label(code);
+	}
 
-    function label(code: Code): State | undefined {
-        if (isEnd(code)) {
-            return nok(code);
-        }
+	function label(code: Code): State | undefined {
+		if (isEnd(code)) {
+			return nok(code);
+		}
 
-        if (code === codes.verticalBar) {
-            effects.exit(localLinkTokens.label);
+		if (code === codes.verticalBar) {
+			effects.exit(localLinkTokens.label);
 
-            effects.enter(localLinkTokens.marker);
-            effects.consume(code);
-            effects.exit(localLinkTokens.marker);
+			effects.enter(localLinkTokens.marker);
+			effects.consume(code);
+			effects.exit(localLinkTokens.marker);
 
-            effects.enter(localLinkTokens.target);
+			effects.enter(localLinkTokens.target);
 
-            return targetStart;
-        }
+			return targetStart;
+		}
 
-        effects.consume(code);
+		effects.consume(code);
 
-        return label;
-    }
+		return label;
+	}
 
-    function targetStart(code: Code): State | undefined {
-        if (
-            isEnd(code) ||
-            code === codes.rightSquareBracket ||
-            code === codes.verticalBar
-        ) {
-            return nok(code);
-        }
+	function targetStart(code: Code): State | undefined {
+		if (isEnd(code) || code === codes.rightSquareBracket || code === codes.verticalBar) {
+			return nok(code);
+		}
 
-        return target(code);
-    }
+		return target(code);
+	}
 
-    function target(code: Code): State | undefined {
-        if (isEnd(code) || code === codes.verticalBar) {
-            return nok(code);
-        }
+	function target(code: Code): State | undefined {
+		if (isEnd(code) || code === codes.verticalBar) {
+			return nok(code);
+		}
 
-        if (code === codes.rightSquareBracket) {
-            effects.exit(localLinkTokens.target);
+		if (code === codes.rightSquareBracket) {
+			effects.exit(localLinkTokens.target);
 
-            effects.enter(localLinkTokens.marker);
-            effects.consume(code);
+			effects.enter(localLinkTokens.marker);
+			effects.consume(code);
 
-            return secondClosingBracket;
-        }
+			return secondClosingBracket;
+		}
 
-        effects.consume(code);
+		effects.consume(code);
 
-        return target;
-    }
+		return target;
+	}
 
-    function secondClosingBracket(code: Code): State | undefined {
-        if (code !== codes.rightSquareBracket) {
-            return nok(code);
-        }
+	function secondClosingBracket(code: Code): State | undefined {
+		if (code !== codes.rightSquareBracket) {
+			return nok(code);
+		}
 
-        effects.consume(code);
+		effects.consume(code);
 
-        effects.exit(localLinkTokens.marker);
-        effects.exit(localLinkTokens.link);
+		effects.exit(localLinkTokens.marker);
+		effects.exit(localLinkTokens.link);
 
-        return ok;
-    }
+		return ok;
+	}
 
-    return start;
+	return start;
 };
 
 function isEnd(code: Code): boolean {
-    return (
-        code === codes.eof ||
-        code === codes.carriageReturn ||
-        code === codes.lineFeed ||
-        code === codes.carriageReturnLineFeed
-    );
+	return (
+		code === codes.eof ||
+		code === codes.carriageReturn ||
+		code === codes.lineFeed ||
+		code === codes.carriageReturnLineFeed
+	);
 }
 
 const localLinkConstruct: Construct = {
-    name: "localLink",
-    tokenize: tokenizelocalLink,
+	name: "localLink",
+	tokenize: tokenizelocalLink,
 };
 
 export function localLinkSyntax(): Extension {
-    return {
-        text: {
-            [codes.leftSquareBracket]: localLinkConstruct,
-        },
-    };
+	return {
+		text: {
+			[codes.leftSquareBracket]: localLinkConstruct,
+		},
+	};
 }

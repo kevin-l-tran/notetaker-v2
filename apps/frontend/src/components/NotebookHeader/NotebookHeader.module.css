@@ -1,9 +1,9 @@
 .header {
-    background-color: var(--surface-1)
+	background-color: var(--surface-1);
 }
 
 .navigation {
-    display: flex;
-    align-items: center;
-    gap: var(--space-8)
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
 }

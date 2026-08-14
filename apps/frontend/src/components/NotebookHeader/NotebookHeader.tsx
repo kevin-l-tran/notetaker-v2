@@ -1,6 +1,6 @@
 import Logo from "../Logo/Logo";
 import NotebookTabs from "../NotebookTabs/NotebookTabs";
-import styles from "./NotebookHeader.module.css"
+import styles from "./NotebookHeader.module.css";
 
 export default function NotebookHeader() {
 	return (
