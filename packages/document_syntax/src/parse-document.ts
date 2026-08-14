@@ -6,8 +6,8 @@ import { localLinkFromMarkdown } from "./local_links/mdast-extension.ts";
 import { localLinkSyntax } from "./local_links/micromark-extension.ts";
 
 export function parseDocument(source: string): Root {
-	return fromMarkdown(source, {
-		extensions: [math(), localLinkSyntax()],
-		mdastExtensions: [mathFromMarkdown(), localLinkFromMarkdown()],
-	});
+    return fromMarkdown(source, {
+        extensions: [math(), localLinkSyntax()],
+        mdastExtensions: [mathFromMarkdown(), localLinkFromMarkdown()],
+    });
 }
