@@ -1,5 +1,5 @@
 import z from "zod";
-import { BaseNodeSchema } from "../baseNodes/baseNode.ts";
+import { BaseNodeSchema } from "../base_nodes/baseNode.ts";
 
 export type Claim = z.infer<typeof ClaimSchema>
 
