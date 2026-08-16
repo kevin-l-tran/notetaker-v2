@@ -5,7 +5,7 @@ import { parseDocument } from "../src/parse-document.ts";
 
 describe("parse document", () => {
     describe("valid local link syntax", () => {
-        it("parses a basic local link", () => {
+        it("parses a manual local link", () => {
             const tree = parseDocument("See [[label|target]].");
 
             const paragraph = getOnlyParagraph(tree);
@@ -16,6 +16,41 @@ describe("parse document", () => {
 
             expect(link).toMatchObject({
                 type: "localLink",
+                mode: "manual",
+                value: "label",
+                target: "target",
+            });
+        });
+
+        it("parses an automatic local link", () => {
+            const tree = parseDocument("See [[~label|target]].");
+
+            const paragraph = getOnlyParagraph(tree);
+
+            expect(paragraph.children).toHaveLength(3);
+
+            const link = paragraph.children[1];
+
+            expect(link).toMatchObject({
+                type: "localLink",
+                mode: "automatic",
+                value: "label",
+                target: "target",
+            });
+        });
+
+        it("parses a suppressed local link", () => {
+            const tree = parseDocument("See [[!label|target]].");
+
+            const paragraph = getOnlyParagraph(tree);
+
+            expect(paragraph.children).toHaveLength(3);
+
+            const link = paragraph.children[1];
+
+            expect(link).toMatchObject({
+                type: "localLink",
+                mode: "suppressed",
                 value: "label",
                 target: "target",
             });
@@ -469,7 +504,7 @@ describe("parse document", () => {
                 target: "target",
             });
         });
-        
+
         it("parses valid link -> malformed link", () => {
             const tree = parseDocument(
                 "[[label|target]][[malformed|malformed]",
