@@ -1,488 +1,406 @@
+import type { Nodes, Root } from "mdast";
 import { describe, expect, it } from "vitest";
-
+import type { LocalLink } from "../src/local_links/types.ts";
 import { parseDocument } from "../src/parse-document.ts";
 
-describe("local links", () => {
-    it("parses a basic local link", () => {
-        const tree = parseDocument("See [[label|target]].");
+describe("parse document", () => {
+	describe("local links", () => {
+		describe("valid syntax", () => {
+			it("parses a basic local link", () => {
+				const tree = parseDocument("See [[label|target]].");
 
-        const paragraph = tree.children[0];
+				const paragraph = getOnlyParagraph(tree);
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				expect(paragraph.children).toHaveLength(3);
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				const link = paragraph.children[1];
 
-        expect(paragraph.children).toHaveLength(3);
+				expect(link).toMatchObject({
+					type: "localLink",
+					value: "label",
+					target: "target",
+				});
+			});
 
-        const link = paragraph.children[1];
+			it("preserves text before and after a local link", () => {
+				const tree = parseDocument("text before[[label|target]]text after");
 
-        expect(link).toMatchObject({
-            type: "localLink",
-            value: "label",
-            target: "target",
-        });
-    });
+				const paragraph = getOnlyParagraph(tree);
 
-    it("preserves text before and after a local link", () => {
-        const tree = parseDocument("text before[[label|target]]text after");
+				expect(paragraph.children).toHaveLength(3);
 
-        const paragraph = tree.children[0];
+				const textBefore = paragraph.children[0];
+				const textAfter = paragraph.children[2];
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				expect(textBefore).toMatchObject({ value: "text before" });
+				expect(textAfter).toMatchObject({ value: "text after" });
+			});
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+			it("parses two adjacent local links", () => {
+				const tree = parseDocument("[[link1|link1]][[link2|link2]]");
 
-        expect(paragraph.children).toHaveLength(3);
+				const paragraph = getOnlyParagraph(tree);
 
-        const textBefore = paragraph.children[0];
-        const textAfter = paragraph.children[2];
+				expect(paragraph.children).toHaveLength(2);
 
-        expect(textBefore).toMatchObject({ value: "text before" });
-        expect(textAfter).toMatchObject({ value: "text after" });
-    });
+				const link1 = paragraph.children[0];
+				const link2 = paragraph.children[1];
 
-    it("parses two adjacent local links", () => {
-        const tree = parseDocument("[[link1|link1]][[link2|link2]]");
+				expect(link1).toMatchObject({
+					type: "localLink",
+					value: "link1",
+					target: "link1",
+				});
+				expect(link2).toMatchObject({
+					type: "localLink",
+					value: "link2",
+					target: "link2",
+				});
+			});
 
-        const paragraph = tree.children[0];
+			it("parses two local links separated by prose", () => {
+				const tree = parseDocument("[[link1|link1]]prose[[link2|link2]]");
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				const paragraph = getOnlyParagraph(tree);
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				expect(paragraph.children).toHaveLength(3);
 
-        expect(paragraph.children).toHaveLength(2);
+				const link1 = paragraph.children[0];
+				const link2 = paragraph.children[2];
 
-        const link1 = paragraph.children[0];
-        const link2 = paragraph.children[1];
+				expect(link1).toMatchObject({
+					type: "localLink",
+					value: "link1",
+					target: "link1",
+				});
+				expect(link2).toMatchObject({
+					type: "localLink",
+					value: "link2",
+					target: "link2",
+				});
+			});
+		});
 
-        expect(link1).toMatchObject({
-            type: "localLink",
-            value: "link1",
-            target: "link1",
-        });
-        expect(link2).toMatchObject({
-            type: "localLink",
-            value: "link2",
-            target: "link2",
-        });
-    });
+		describe("label syntax", () => {
+			it("allows spaces in the label", () => {
+				const tree = parseDocument("[[  label with space  |target]]");
 
-    it("parses two local links separated by prose", () => {
-        const tree = parseDocument("[[link1|link1]]prose[[link2|link2]]");
+				const paragraph = getOnlyParagraph(tree);
 
-        const paragraph = tree.children[0];
+				expect(paragraph.children).toHaveLength(1);
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				const link = paragraph.children[0];
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				expect(link).toMatchObject({
+					type: "localLink",
+					value: "  label with space  ",
+					target: "target",
+				});
+			});
 
-        expect(paragraph.children).toHaveLength(3);
+			it("allows punctuation in the label", () => {
+				const tree = parseDocument("[[punctuations :,.;'\"!()-_?|target]]");
 
-        const link1 = paragraph.children[0];
-        const link2 = paragraph.children[2];
+				const paragraph = getOnlyParagraph(tree);
 
-        expect(link1).toMatchObject({
-            type: "localLink",
-            value: "link1",
-            target: "link1",
-        });
-        expect(link2).toMatchObject({
-            type: "localLink",
-            value: "link2",
-            target: "link2",
-        });
-    });
+				expect(paragraph.children).toHaveLength(1);
 
-    it("allows spaces in the label", () => {
-        const tree = parseDocument("[[  label with space  |target]]");
+				const link = paragraph.children[0];
 
-        const paragraph = tree.children[0];
+				expect(link).toMatchObject({
+					type: "localLink",
+					value: "punctuations :,.;'\"!()-_?",
+					target: "target",
+				});
+			});
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+			it("preserves capitalization in the label", () => {
+				const tree = parseDocument("[[Label|target]]");
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				const paragraph = getOnlyParagraph(tree);
 
-        expect(paragraph.children).toHaveLength(1);
+				expect(paragraph.children).toHaveLength(1);
 
-        const link = paragraph.children[0];
+				const link = paragraph.children[0];
 
-        expect(link).toMatchObject({
-            type: "localLink",
-            value: "  label with space  ",
-            target: "target",
-        });
-    });
+				expect(link).toMatchObject({
+					type: "localLink",
+					value: "Label",
+					target: "target",
+				});
+			});
+		});
 
-    it("allows punctuation in the label", () => {
-        const tree = parseDocument("[[punctuations :,.;'\"!()-_?|target]]");
+		describe("target syntax", () => {
+			it("allows spaces in the target", () => {
+				const tree = parseDocument("[[label|  target with space  ]]");
 
-        const paragraph = tree.children[0];
+				const paragraph = getOnlyParagraph(tree);
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				expect(paragraph.children).toHaveLength(1);
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				const link = paragraph.children[0];
 
-        expect(paragraph.children).toHaveLength(1);
+				expect(link).toMatchObject({
+					type: "localLink",
+					value: "label",
+					target: "  target with space  ",
+				});
+			});
 
-        const link = paragraph.children[0];
+			it("allows punctuation in the target", () => {
+				const tree = parseDocument("[[label|punctuations :,.;'\"!()-_?]]");
 
-        expect(link).toMatchObject({
-            type: "localLink",
-            value: "punctuations :,.;'\"!()-_?",
-            target: "target",
-        });
-    });
+				const paragraph = getOnlyParagraph(tree);
 
-    it("preserves capitalization in the label", () => {
-        const tree = parseDocument("[[Label|target]]");
+				expect(paragraph.children).toHaveLength(1);
 
-        const paragraph = tree.children[0];
+				const link = paragraph.children[0];
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				expect(link).toMatchObject({
+					type: "localLink",
+					value: "label",
+					target: "punctuations :,.;'\"!()-_?",
+				});
+			});
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+			it("preserves capitalization in the target", () => {
+				const tree = parseDocument("[[label|Target]]");
 
-        expect(paragraph.children).toHaveLength(1);
+				const paragraph = getOnlyParagraph(tree);
 
-        const link = paragraph.children[0];
+				expect(paragraph.children).toHaveLength(1);
 
-        expect(link).toMatchObject({
-            type: "localLink",
-            value: "Label",
-            target: "target",
-        });
-    });
+				const link = paragraph.children[0];
 
-    it("allows spaces in the target", () => {
-        const tree = parseDocument("[[label|  target with space  ]]");
+				expect(link).toMatchObject({
+					type: "localLink",
+					value: "label",
+					target: "Target",
+				});
+			});
+		});
 
-        const paragraph = tree.children[0];
+		describe("invalid syntax", () => {
+			it('does not parse "[[" as a local link', () => {
+				const tree = parseDocument("[[");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				const paragraph = getOnlyParagraph(tree);
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				expect(paragraph.children).toHaveLength(1);
 
-        expect(paragraph.children).toHaveLength(1);
+				const text = paragraph.children[0];
 
-        const link = paragraph.children[0];
+				expect(text).toMatchObject({
+					value: "[[",
+				});
+			});
 
-        expect(link).toMatchObject({
-            type: "localLink",
-            value: "label",
-            target: "  target with space  ",
-        });
-    });
+			it('does not parse "[[label" as a local link', () => {
+				const tree = parseDocument("[[label");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-    it("allows punctuation in the target", () => {
-        const tree = parseDocument("[[label|punctuations :,.;'\"!()-_?]]");
+				const paragraph = getOnlyParagraph(tree);
 
-        const paragraph = tree.children[0];
+				expect(paragraph.children).toHaveLength(1);
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				const text = paragraph.children[0];
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				expect(text).toMatchObject({
+					value: "[[label",
+				});
+			});
 
-        expect(paragraph.children).toHaveLength(1);
+			it('does not parse "[[label|" as a local link', () => {
+				const tree = parseDocument("[[label|");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        const link = paragraph.children[0];
+				const paragraph = getOnlyParagraph(tree);
 
-        expect(link).toMatchObject({
-            type: "localLink",
-            value: "label",
-            target: "punctuations :,.;'\"!()-_?",
-        });
-    });
+				expect(paragraph.children).toHaveLength(1);
 
-    it("preserves capitalization in the target", () => {
-        const tree = parseDocument("[[label|Target]]");
+				const text = paragraph.children[0];
 
-        const paragraph = tree.children[0];
+				expect(text).toMatchObject({
+					value: "[[label|",
+				});
+			});
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+			it('does not parse "[[label|target" as a local link', () => {
+				const tree = parseDocument("[[label|target");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				const paragraph = getOnlyParagraph(tree);
 
-        expect(paragraph.children).toHaveLength(1);
+				expect(paragraph.children).toHaveLength(1);
 
-        const link = paragraph.children[0];
+				const text = paragraph.children[0];
 
-        expect(link).toMatchObject({
-            type: "localLink",
-            value: "label",
-            target: "Target",
-        });
-    });
+				expect(text).toMatchObject({
+					value: "[[label|target",
+				});
+			});
 
-    it('does not parse "[[" as a local link', () => {
-        const tree = parseDocument("[[");
+			it('does not parse "[[label|target]" as a local link', () => {
+				const tree = parseDocument("[[label|target]");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        const paragraph = tree.children[0];
+				const paragraph = getOnlyParagraph(tree);
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				expect(paragraph.children).toHaveLength(1);
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				const text = paragraph.children[0];
 
-        expect(paragraph.children).toHaveLength(1);
+				expect(text).toMatchObject({
+					value: "[[label|target]",
+				});
+			});
 
-        const text = paragraph.children[0];
+			it("does not parse a local link with an empty label", () => {
+				const tree = parseDocument("[[|target]]");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        expect(text).toMatchObject({
-            value: "[[",
-        });
-    });
+				const paragraph = getOnlyParagraph(tree);
 
-    it('does not parse "[[label" as a local link', () => {
-        const tree = parseDocument("[[label");
+				expect(paragraph.children).toHaveLength(1);
 
-        const paragraph = tree.children[0];
+				const text = paragraph.children[0];
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				expect(text).toMatchObject({
+					value: "[[|target]]",
+				});
+			});
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+			it("does not parse a local link with an empty target", () => {
+				const tree = parseDocument("[[label|]]");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        expect(paragraph.children).toHaveLength(1);
+				const paragraph = getOnlyParagraph(tree);
 
-        const text = paragraph.children[0];
+				expect(paragraph.children).toHaveLength(1);
 
-        expect(text).toMatchObject({
-            value: "[[label",
-        });
-    });
+				const text = paragraph.children[0];
 
-    it('does not parse "[[label|" as a local link', () => {
-        const tree = parseDocument("[[label|");
+				expect(text).toMatchObject({
+					value: "[[label|]]",
+				});
+			});
 
-        const paragraph = tree.children[0];
+			it("does not parse a local link with extra separators", () => {
+				const tree = parseDocument("[[label|label|target]]");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				const paragraph = getOnlyParagraph(tree);
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				expect(paragraph.children).toHaveLength(1);
 
-        expect(paragraph.children).toHaveLength(1);
+				const text = paragraph.children[0];
 
-        const text = paragraph.children[0];
+				expect(text).toMatchObject({
+					value: "[[label|label|target]]",
+				});
+			});
+		});
 
-        expect(text).toMatchObject({
-            value: "[[label|",
-        });
-    });
+		describe("markdown contexts", () => {
+			it("does not parse local link syntax inside inline code", () => {
+				const tree = parseDocument("`[[label|target]]`");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-    it('does not parse "[[label|target" as a local link', () => {
-        const tree = parseDocument("[[label|target");
+				const paragraph = getOnlyParagraph(tree);
 
-        const paragraph = tree.children[0];
+				expect(paragraph.children).toHaveLength(1);
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+				const code = paragraph.children[0];
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				expect(code?.type).not.toBe("localLink");
+			});
 
-        expect(paragraph.children).toHaveLength(1);
+			it("does not parse local link syntax inside block code", () => {
+				const tree = parseDocument(`\`\`\`\n[[label|target]]\n\`\`\``);
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        const text = paragraph.children[0];
+				const node = tree.children[0];
 
-        expect(text).toMatchObject({
-            value: "[[label|target",
-        });
-    });
+				expect.assert.isDefined(node);
+				expect(node.type).toBe("code");
 
-    it('does not parse "[[label|target]" as a local link', () => {
-        const tree = parseDocument("[[label|target]");
+				if (node.type !== "code") {
+					throw new Error("Expected code block");
+				}
 
-        const paragraph = tree.children[0];
+				expect(node.value).toBe("[[label|target]]");
+			});
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+			it("does not parse local links inside inline math", () => {
+				const tree = parseDocument("$[[label|target]]$");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				const paragraph = getOnlyParagraph(tree);
 
-        expect(paragraph.children).toHaveLength(1);
+				expect(paragraph.children).toHaveLength(1);
 
-        const text = paragraph.children[0];
+				const math = paragraph.children[0];
 
-        expect(text).toMatchObject({
-            value: "[[label|target]",
-        });
-    });
+				expect.assert.isDefined(math);
+				expect(math.type).toBe("inlineMath");
 
-    it("does not parse a local link with an empty label", () => {
-        const tree = parseDocument("[[|target]]");
+				if (math.type !== "inlineMath") {
+					throw new Error("Expected inline math");
+				}
 
-        const paragraph = tree.children[0];
+				expect(math.value).toBe("[[label|target]]");
+			});
 
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
+			it("does not parse local links inside block math", () => {
+				const tree = parseDocument(`$$\n[[label|target]]\n$$`);
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
+				const math = tree.children[0];
 
-        expect(paragraph.children).toHaveLength(1);
+				expect.assert.isDefined(math);
+				expect(math.type).toBe("math");
 
-        const text = paragraph.children[0];
+				if (math.type !== "math") {
+					throw new Error("Expected math block");
+				}
 
-        expect(text).toMatchObject({
-            value: "[[|target]]",
-        });
-    });
-
-    it("does not parse a local link with an empty target", () => {
-        const tree = parseDocument("[[label|]]");
-
-        const paragraph = tree.children[0];
-
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
-
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
-
-        expect(paragraph.children).toHaveLength(1);
-
-        const text = paragraph.children[0];
-
-        expect(text).toMatchObject({
-            value: "[[label|]]",
-        });
-    });
-
-    it("does not parse a local link with extra separators", () => {
-        const tree = parseDocument("[[label|label|target]]");
-
-        const paragraph = tree.children[0];
-
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
-
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
-
-        expect(paragraph.children).toHaveLength(1);
-
-        const text = paragraph.children[0];
-
-        expect(text).toMatchObject({
-            value: "[[label|label|target]]",
-        });
-    });
-
-    it("does not parse local link syntax inside inline code", () => {
-        const tree = parseDocument("`[[label|target]]`");
-
-        const paragraph = tree.children[0];
-
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
-
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
-
-        expect(paragraph.children).toHaveLength(1);
-
-        const code = paragraph.children[0];
-
-        expect(code?.type).not.toBe("localLink");
-    });
-
-    it("does not parse local link syntax inside block code", () => {
-        const tree = parseDocument(`\`\`\`\n[[label|target]]\n\`\`\``);
-
-        const node = tree.children[0];
-
-        expect.assert.isDefined(node);
-        expect(node.type).toBe("code");
-
-        if (node.type !== "code") {
-            throw new Error("Expected code block");
-        }
-
-        expect(node.value).toBe("[[label|target]]");
-    });
-
-    it("does not parse local links inside inline math", () => {
-        const tree = parseDocument("$[[label|target]]$");
-
-        const paragraph = tree.children[0];
-
-        expect.assert.isDefined(paragraph);
-        expect(paragraph.type).toBe("paragraph");
-
-        if (paragraph.type !== "paragraph") {
-            throw new Error("Expected paragraph");
-        }
-
-        expect(paragraph.children).toHaveLength(1);
-
-        const math = paragraph.children[0];
-
-        expect.assert.isDefined(math);
-        expect(math.type).toBe("inlineMath");
-
-        if (math.type !== "inlineMath") {
-            throw new Error("Expected inline math");
-        }
-
-        expect(math.value).toBe("[[label|target]]");
-    });
-
-    it("does not parse local links inside block math", () => {
-        const tree = parseDocument(`$$\n[[label|target]]\n$$`);
-
-        const math = tree.children[0];
-
-        expect.assert.isDefined(math);
-        expect(math.type).toBe("math");
-
-        if (math.type !== "math") {
-            throw new Error("Expected math block");
-        }
-
-        expect(math.value).toBe("[[label|target]]");
-    });
+				expect(math.value).toBe("[[label|target]]");
+			});
+		});
+	});
 });
+
+function getOnlyParagraph(tree: Root) {
+	const paragraph = tree.children[0];
+
+	expect.assert.isDefined(paragraph);
+	expect(paragraph.type).toBe("paragraph");
+
+	if (paragraph.type !== "paragraph") {
+		throw new Error("Expected paragraph");
+	}
+
+	return paragraph;
+}
+
+function getLocalLinks(tree: Root) {
+	const links: LocalLink[] = [];
+
+	function visit(node: Nodes): void {
+		if (node.type === "localLink") {
+			links.push(node);
+		}
+
+		if ("children" in node) {
+			for (const child of node.children) {
+				visit(child);
+			}
+		}
+	}
+
+	visit(tree);
+
+	return links;
+}
