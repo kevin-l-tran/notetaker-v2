@@ -74,7 +74,7 @@ const exitLocalLinkTarget: Handle = function (token) {
 	let isNextEscaped = false;
 	for (const char of target) {
 		if (isNextEscaped) {
-			if (ESCAPABLE_TOKENS.includes(char)) newTarget += "//";
+			if (!ESCAPABLE_TOKENS.includes(char)) newTarget += "\\";
 
 			newTarget += char;
 			isNextEscaped = false;

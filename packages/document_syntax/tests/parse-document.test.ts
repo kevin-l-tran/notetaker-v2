@@ -249,94 +249,460 @@ describe("parse document", () => {
 		});
 	});
 
-
 	describe("local link modifier edge cases", () => {
-		// [[foo!bar|target]] -> manual link with label "foo!bar".
-		it.todo("treats ! outside the modifier position as ordinary label text");
+		it("treats ! outside the modifier position as ordinary label text", () => {
+			const tree = parseDocument("[[foo!bar|target]]");
 
-		// [[foo~bar|target]] -> manual link with label "foo~bar".
-		it.todo("treats ~ outside the modifier position as ordinary label text");
+			const paragraph = getOnlyParagraph(tree);
 
-		// [[!!label|target]] -> suppressed link with label "!label".
-		it.todo("treats a second ! after the modifier as label text");
+			expect(paragraph.children).toHaveLength(1);
 
-		// [[~~label|target]] -> automatic link with label "~label".
-		it.todo("treats a second ~ after the modifier as label text");
+			const link = paragraph.children[0];
 
-		// [[!~label|target]] -> suppressed link with label "~label".
-		it.todo("uses only the first modifier when ! is followed by ~");
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "manual",
+				value: "foo!bar",
+				target: "target",
+			});
+		});
 
-		// [[~!label|target]] -> automatic link with label "!label".
-		it.todo("uses only the first modifier when ~ is followed by !");
+		it("treats ~ outside the modifier position as ordinary label text", () => {
+			const tree = parseDocument("[[foo~bar|target]]");
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const link = paragraph.children[0];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "manual",
+				value: "foo~bar",
+				target: "target",
+			});
+		});
+
+		it("treats a second ! after the modifier as label text", () => {
+			const tree = parseDocument("[[!!label|target]]");
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const link = paragraph.children[0];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "suppressed",
+				value: "!label",
+				target: "target",
+			});
+		});
+
+		it("treats a second ~ after the modifier as label text", () => {
+			const tree = parseDocument("[[~~label|target]]");
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const link = paragraph.children[0];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "automatic",
+				value: "~label",
+				target: "target",
+			});
+		});
+
+		it("uses only the first modifier when ! is followed by ~", () => {
+			const tree = parseDocument("[[!~label|target]]");
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const link = paragraph.children[0];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "suppressed",
+				value: "~label",
+				target: "target",
+			});
+		});
+
+		it("uses only the first modifier when ~ is followed by !", () => {
+			const tree = parseDocument("[[~!label|target]]");
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const link = paragraph.children[0];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "automatic",
+				value: "!label",
+				target: "target",
+			});
+		});
 	});
 
 	describe("local link escape syntax", () => {
 		describe("label escapes", () => {
-			// [[foo\\bar|target]] -> label "foo\bar".
-			it.todo("unescapes an escaped backslash in the label");
+			it("unescapes an escaped backslash in the label", () => {
+				const tree = parseDocument("[[foo\\\\bar|target]]"); // parses "[[foo\\bar|target]]"
 
-			// [[foo\|bar|target]] -> label "foo|bar".
-			it.todo("allows an escaped separator in the label");
+				const paragraph = getOnlyParagraph(tree);
 
-			// [[foo\[bar|target]] -> label "foo[bar".
-			it.todo("unescapes an escaped opening bracket in the label");
+				expect(paragraph.children).toHaveLength(1);
 
-			// [[foo\]bar|target]] -> label "foo]bar".
-			it.todo("unescapes an escaped closing bracket in the label");
+				const link = paragraph.children[0];
 
-			// [[foo\!bar|target]] -> manual link with label "foo!bar".
-			it.todo("unescapes ! inside the label without changing the mode");
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "foo\\bar", // expects "foo\bar"
+					target: "target",
+				});
+			});
 
-			// [[foo\~bar|target]] -> manual link with label "foo~bar".
-			it.todo("unescapes ~ inside the label without changing the mode");
+			it("allows an escaped separator in the label", () => {
+				const tree = parseDocument("[[foo\\|bar|target]]");
 
-			// [[foo\qbar|target]] -> label "foo\qbar".
-			it.todo("preserves an unknown label escape literally");
+				const paragraph = getOnlyParagraph(tree);
 
-			// [[foo\\|target]] -> label "foo\" and target "target".
-			it.todo("decodes adjacent escapes exactly once in the label");
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "foo|bar",
+					target: "target",
+				});
+			});
+
+			it("unescapes an escaped opening bracket in the label", () => {
+				const tree = parseDocument("[[foo\\[bar|target]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "foo[bar",
+					target: "target",
+				});
+			});
+
+			it("unescapes an escaped closing bracket in the label", () => {
+				const tree = parseDocument("[[foo\\]bar|target]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "foo]bar",
+					target: "target",
+				});
+			});
+
+			it("unescapes ! inside the label without changing the mode", () => {
+				const tree = parseDocument("[[foo\\!bar|target]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "foo!bar",
+					target: "target",
+				});
+			});
+
+			it("unescapes ~ inside the label without changing the mode", () => {
+				const tree = parseDocument("[[foo\\~bar|target]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "foo~bar",
+					target: "target",
+				});
+			});
+
+			it("preserves an unknown label escape literally", () => {
+				const tree = parseDocument("[[foo\\qbar|target]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "foo\\qbar",
+					target: "target",
+				});
+			});
+
+			it("decodes adjacent escapes exactly once in the label", () => {
+				const tree = parseDocument("[[foo\\\\!bar|target]]"); // parses "[[foo\\!bar|target]]"
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "foo\\!bar", // expects "[[foo\!bar|target]]"
+					target: "target",
+				});
+			});
 		});
 
 		describe("target escapes", () => {
-			// [[label|foo\\bar]] -> target "foo\bar".
-			it.todo("unescapes an escaped backslash in the target");
+			it("unescapes an escaped backslash in the target", () => {
+				const tree = parseDocument("[[label|foo\\\\bar]]");
 
-			// [[label|foo\|bar]] -> target "foo|bar".
-			it.todo("allows an escaped separator in the target");
+				const paragraph = getOnlyParagraph(tree);
 
-			// [[label|foo\[bar]] -> target "foo[bar".
-			it.todo("unescapes an escaped opening bracket in the target");
+				expect(paragraph.children).toHaveLength(1);
 
-			// [[label|foo\]bar]] -> target "foo]bar" without closing the link early.
-			it.todo("allows an escaped closing bracket in the target");
+				const link = paragraph.children[0];
 
-			// [[label|foo\!bar]] -> target "foo!bar".
-			it.todo("unescapes ! in the target");
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "label",
+					target: "foo\\bar",
+				});
+			});
 
-			// [[label|foo\~bar]] -> target "foo~bar".
-			it.todo("unescapes ~ in the target");
+			it("allows an escaped separator in the target", () => {
+				const tree = parseDocument("[[label|foo\\|bar]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "label",
+					target: "foo|bar",
+				});
+			});
+
+			it("unescapes an escaped opening bracket in the target", () => {
+				const tree = parseDocument("[[label|foo\\[bar]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "label",
+					target: "foo[bar",
+				});
+			});
+
+			it("allows an escaped closing bracket in the target", () => {
+				const tree = parseDocument("[[label|foo\\]bar]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "label",
+					target: "foo]bar",
+				});
+			});
+
+			it("unescapes ! in the target", () => {
+				const tree = parseDocument("[[label|foo\\!bar]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "label",
+					target: "foo!bar",
+				});
+			});
+
+			it("unescapes ~ in the target", () => {
+				const tree = parseDocument("[[label|foo\\~bar]]");
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "label",
+					target: "foo~bar",
+				});
+			});
 
 			// [[label|foo\qbar]] -> target "foo\qbar".
-			it.todo("preserves an unknown target escape literally");
+			it("preserves an unknown target escape literally", () => {
+				const tree = parseDocument("[[label|foo\\qbar]]");
 
-			// [[label|foo\\]] -> target "foo\".
-			it.todo("decodes adjacent escapes exactly once in the target");
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "label",
+					target: "foo\\qbar",
+				});
+			});
+
+			it("decodes adjacent escapes exactly once in the target", () => {
+				const tree = parseDocument("[[label|foo\\\\!bar]]"); // parses "[[label|foo\\!bar]]"
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const link = paragraph.children[0];
+
+				expect(link).toMatchObject({
+					type: "localLink",
+					mode: "manual",
+					value: "label",
+					target: "foo\\!bar", // expects "foo\!bar"
+				});
+			});
 		});
 
 		describe("incomplete escapes", () => {
-			// [[label\ -> incomplete label escape; parse as literal text.
-			it.todo("does not parse a local link ending during a label escape");
+			it("does not parse a local link ending during a label escape", () => {
+				const tree = parseDocument("[[label\\");
+				expect(getLocalLinks(tree)).toHaveLength(0);
 
-			// [[label|target\ -> incomplete target escape; parse as literal text.
-			it.todo("does not parse a local link ending during a target escape");
+				const paragraph = getOnlyParagraph(tree);
 
-			// [[label\
-			// |target]] -> escape cannot continue across a line ending.
-			it.todo("does not allow a label escape to cross a line ending");
+				expect(paragraph.children).toHaveLength(1);
 
-			// [[label|target\
-			// ]] -> escape cannot continue across a line ending.
-			it.todo("does not allow a target escape to cross a line ending");
+				const text = paragraph.children[0];
+
+				expect(text).toMatchObject({
+					value: "[[label\\",
+				});
+			});
+
+			it("does not parse a local link ending during a target escape", () => {
+				const tree = parseDocument("[[label|target\\");
+				expect(getLocalLinks(tree)).toHaveLength(0);
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(1);
+
+				const text = paragraph.children[0];
+
+				expect(text).toMatchObject({
+					value: "[[label|target\\",
+				});
+			});
+
+			it("does not allow a label escape to cross a line ending", () => {
+				const tree = parseDocument("[[label\\\n|target]]"); // parses "[[label\<newline>|target]]"
+				expect(getLocalLinks(tree)).toHaveLength(0);
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(3);
+
+				const startText = paragraph.children[0];
+				const lineBreak = paragraph.children[1];
+				const endText = paragraph.children[2];
+
+				expect(startText).toMatchObject({
+					value: "[[label",
+				});
+				expect(lineBreak?.type).toBe("break");
+				expect(endText).toMatchObject({
+					value: "|target]]",
+				});
+			});
+
+			it("does not allow a target escape to cross a line ending", () => {
+				const tree = parseDocument("[[label|target\\\n]]"); // parses "[[label|target\<newline>]]"
+				expect(getLocalLinks(tree)).toHaveLength(0);
+
+				const paragraph = getOnlyParagraph(tree);
+
+				expect(paragraph.children).toHaveLength(3);
+
+				const startText = paragraph.children[0];
+				const lineBreak = paragraph.children[1];
+				const endText = paragraph.children[2];
+
+				expect(startText).toMatchObject({
+					value: "[[label|target",
+				});
+				expect(lineBreak?.type).toBe("break");
+				expect(endText).toMatchObject({
+					value: "]]",
+				});
+			});
 		});
 	});
 
@@ -462,43 +828,154 @@ describe("parse document", () => {
 		});
 	});
 
-
 	describe("invalid modifier syntax", () => {
-		// [[~|target]] -> automatic modifier followed by an empty label.
-		it.todo("does not parse an automatic local link with an empty label");
+		it("does not parse an automatic local link with an empty label", () => {
+			const tree = parseDocument("[[~|target]]");
+			expect(getLocalLinks(tree)).toHaveLength(0);
 
-		// [[!|target]] -> suppressed modifier followed by an empty label.
-		it.todo("does not parse a suppressed local link with an empty label");
+			const paragraph = getOnlyParagraph(tree);
 
-		// [[~label|]] -> automatic local link with an empty target.
-		it.todo("does not parse an automatic local link with an empty target");
+			expect(paragraph.children).toHaveLength(1);
 
-		// [[!label|]] -> suppressed local link with an empty target.
-		it.todo("does not parse a suppressed local link with an empty target");
+			const text = paragraph.children[0];
 
-		// [[~label|target|extra]] -> automatic local link with an extra separator.
-		it.todo("does not parse an automatic local link with extra separators");
+			expect(text).toMatchObject({
+				value: "[[~|target]]",
+			});
+		});
 
-		// [[!label|target|extra]] -> suppressed local link with an extra separator.
-		it.todo("does not parse a suppressed local link with extra separators");
+		it("does not parse a suppressed local link with an empty label", () => {
+			const tree = parseDocument("[[!|target]]");
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const text = paragraph.children[0];
+
+			expect(text).toMatchObject({
+				value: "[[!|target]]",
+			});
+		});
+
+		it("does not parse an automatic local link with an empty target", () => {
+			const tree = parseDocument("[[~label|]]");
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const text = paragraph.children[0];
+
+			expect(text).toMatchObject({
+				value: "[[~label|]]",
+			});
+		});
+
+		it("does not parse a suppressed local link with an empty target", () => {
+			const tree = parseDocument("[[!label|]]");
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const text = paragraph.children[0];
+
+			expect(text).toMatchObject({
+				value: "[[!label|]]",
+			});
+		});
+
+		it("does not parse an automatic local link with extra separators", () => {
+			const tree = parseDocument("[[~label|target|extra]]");
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const text = paragraph.children[0];
+
+			expect(text).toMatchObject({
+				value: "[[~label|target|extra]]",
+			});
+		});
+
+		it("does not parse a suppressed local link with extra separators", () => {
+			const tree = parseDocument("[[!label|target|extra]]");
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const text = paragraph.children[0];
+
+			expect(text).toMatchObject({
+				value: "[[!label|target|extra]]",
+			});
+		});
 	});
 
 	describe("line boundary syntax", () => {
-		// [[label
-		// |target]] -> local links are single-line constructs.
-		it.todo("does not parse a local link whose label crosses a line ending");
+		it("does not parse a local link whose label crosses a line ending", () => {
+			const tree = parseDocument("[[label\n|target]]");
 
-		// [[label|target
-		// ]] -> local links are single-line constructs.
-		it.todo("does not parse a local link whose target crosses a line ending");
+			expect(getLocalLinks(tree)).toHaveLength(0);
 
-		// [[~label
-		// |target]] -> modifiers do not change the single-line rule.
-		it.todo("does not parse an automatic local link across a line ending");
+			const paragraph = getOnlyParagraph(tree);
+			const text = paragraph.children[0];
 
-		// [[!label|target
-		// ]] -> modifiers do not change the single-line rule.
-		it.todo("does not parse a suppressed local link across a line ending");
+			expect(text).toMatchObject({
+				type: "text",
+				value: "[[label\n|target]]",
+			});
+		});
+
+		it("does not parse a local link whose target crosses a line ending", () => {
+			const tree = parseDocument("[[label|target\n]]");
+
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+			const text = paragraph.children[0];
+
+			expect(text).toMatchObject({
+				type: "text",
+				value: "[[label|target\n]]",
+			});
+		});
+
+		it("does not parse an automatic local link across a line ending", () => {
+			const tree = parseDocument("[[~label\n|target]]");
+
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+			const text = paragraph.children[0];
+
+			expect(text).toMatchObject({
+				type: "text",
+				value: "[[~label\n|target]]",
+			});
+		});
+
+		it("does not parse a suppressed local link across a line ending", () => {
+			const tree = parseDocument("[[!label|target\n]]");
+
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+			const text = paragraph.children[0];
+
+			expect(text).toMatchObject({
+				type: "text",
+				value: "[[!label|target\n]]",
+			});
+		});
 	});
 
 	describe("mixed Markdown parsing", () => {
@@ -644,39 +1121,279 @@ describe("parse document", () => {
 		});
 	});
 
-
 	describe("local links in Markdown phrasing contexts", () => {
-		// # See [[label|target]]
-		it.todo("parses a local link inside a heading");
+		it("parses a local link inside a heading", () => {
+			const tree = parseDocument("# See [[label|target]]");
 
-		// *See [[label|target]]*
-		it.todo("parses a local link inside emphasis");
+			expect(getLocalLinks(tree)).toHaveLength(1);
 
-		// **See [[label|target]]**
-		it.todo("parses a local link inside strong emphasis");
+			const heading = tree.children[0];
 
-		// > See [[label|target]]
-		it.todo("parses a local link inside a block quote");
+			expect.assert.isDefined(heading);
+			expect(heading.type).toBe("heading");
 
-		// - See [[label|target]]
-		it.todo("parses a local link inside a list item");
+			if (heading.type !== "heading") {
+				throw new Error("Expected heading");
+			}
+
+			expect(heading.children).toHaveLength(2);
+
+			const link = heading.children[1];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "manual",
+				value: "label",
+				target: "target",
+			});
+		});
+
+		it("parses a local link inside emphasis", () => {
+			const tree = parseDocument("*See [[label|target]]*");
+
+			expect(getLocalLinks(tree)).toHaveLength(1);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const emphasis = paragraph.children[0];
+
+			expect.assert.isDefined(emphasis);
+			expect(emphasis.type).toBe("emphasis");
+
+			if (emphasis.type !== "emphasis") {
+				throw new Error("Expected emphasis");
+			}
+
+			expect(emphasis.children).toHaveLength(2);
+
+			const link = emphasis.children[1];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "manual",
+				value: "label",
+				target: "target",
+			});
+		});
+
+		it("parses a local link inside strong emphasis", () => {
+			const tree = parseDocument("**See [[label|target]]**");
+
+			expect(getLocalLinks(tree)).toHaveLength(1);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const strong = paragraph.children[0];
+
+			expect.assert.isDefined(strong);
+			expect(strong.type).toBe("strong");
+
+			if (strong.type !== "strong") {
+				throw new Error("Expected strong");
+			}
+
+			expect(strong.children).toHaveLength(2);
+
+			const link = strong.children[1];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "manual",
+				value: "label",
+				target: "target",
+			});
+		});
+
+		it("parses a local link inside a block quote", () => {
+			const tree = parseDocument("> See [[label|target]]");
+
+			expect(getLocalLinks(tree)).toHaveLength(1);
+
+			const blockquote = tree.children[0];
+
+			expect.assert.isDefined(blockquote);
+			expect(blockquote.type).toBe("blockquote");
+
+			if (blockquote.type !== "blockquote") {
+				throw new Error("Expected block quote");
+			}
+
+			expect(blockquote.children).toHaveLength(1);
+
+			const paragraph = blockquote.children[0];
+
+			expect.assert.isDefined(paragraph);
+			expect(paragraph.type).toBe("paragraph");
+
+			if (paragraph.type !== "paragraph") {
+				throw new Error("Expected paragraph");
+			}
+
+			expect(paragraph.children).toHaveLength(2);
+
+			const link = paragraph.children[1];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "manual",
+				value: "label",
+				target: "target",
+			});
+		});
+
+		it("parses a local link inside a list item", () => {
+			const tree = parseDocument("- See [[label|target]]");
+
+			expect(getLocalLinks(tree)).toHaveLength(1);
+
+			const list = tree.children[0];
+
+			expect.assert.isDefined(list);
+			expect(list.type).toBe("list");
+
+			if (list.type !== "list") {
+				throw new Error("Expected list");
+			}
+
+			const item = list.children[0];
+
+			expect.assert.isDefined(item);
+			expect(item.type).toBe("listItem");
+
+			if (item.type !== "listItem") {
+				throw new Error("Expected list item");
+			}
+
+			const paragraph = item.children[0];
+
+			expect.assert.isDefined(paragraph);
+			expect(paragraph.type).toBe("paragraph");
+
+			if (paragraph.type !== "paragraph") {
+				throw new Error("Expected paragraph");
+			}
+
+			expect(paragraph.children).toHaveLength(2);
+
+			const link = paragraph.children[1];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "manual",
+				value: "label",
+				target: "target",
+			});
+		});
 	});
 
 	describe("local links in protected Markdown contexts", () => {
-		// \[[label|target]] -> escaped opening delimiter remains literal text.
-		it.todo("does not parse an escaped local link opening");
+		it("does not parse an escaped local link opening", () => {
+			const tree = parseDocument("\\[[label|target]]");
 
-		// [See [[label|target]]](https://example.com) -> do not create a nested local link.
-		it.todo("does not parse local link syntax inside a Markdown link label");
+			expect(getLocalLinks(tree)).toHaveLength(0);
 
-		// [text](https://example.com/[[label|target]]) -> destination remains Markdown link syntax.
-		it.todo("does not parse local link syntax inside a Markdown link destination");
+			const paragraph = getOnlyParagraph(tree);
 
-		// ![[label|target]](https://example.com/image.png) -> image syntax owns its alt text.
-		it.todo("does not parse local link syntax inside Markdown image alt text");
+			expect(paragraph.children).toHaveLength(1);
 
-		// <span data-value="[[label|target]]"></span> -> HTML attributes remain HTML.
-		it.todo("does not parse local link syntax inside raw HTML attributes");
+			const text = paragraph.children[0];
+
+			expect(text).toMatchObject({
+				type: "text",
+				value: "[[label|target]]",
+			});
+		});
+
+		it("does not parse local link syntax inside a Markdown link label", () => {
+			const tree = parseDocument("[See [[label|target]]](https://example.com)");
+
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const link = paragraph.children[0];
+
+			expect.assert.isDefined(link);
+			expect(link.type).toBe("link");
+
+			if (link.type !== "link") {
+				throw new Error("Expected Markdown link");
+			}
+
+			expect(link.url).toBe("https://example.com");
+		});
+
+		it("does not parse local link syntax inside a Markdown link destination", () => {
+			const tree = parseDocument("[text](https://example.com/[[label|target]])");
+
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const link = paragraph.children[0];
+
+			expect.assert.isDefined(link);
+			expect(link.type).toBe("link");
+
+			if (link.type !== "link") {
+				throw new Error("Expected Markdown link");
+			}
+
+			expect(link.url).toBe("https://example.com/[[label|target]]");
+		});
+
+		it("does not parse local link syntax inside Markdown image alt text", () => {
+			const tree = parseDocument("![[label|target]](https://example.com/image.png)");
+
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(1);
+
+			const image = paragraph.children[0];
+
+			expect.assert.isDefined(image);
+			expect(image.type).toBe("image");
+
+			if (image.type !== "image") {
+				throw new Error("Expected image");
+			}
+
+			expect(image.alt).toBe("[label|target]");
+			expect(image.url).toBe("https://example.com/image.png");
+		});
+
+		it("does not parse local link syntax inside raw HTML attributes", () => {
+			const tree = parseDocument('<span data-value="[[label|target]]"></span>');
+
+			expect(getLocalLinks(tree)).toHaveLength(0);
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(2);
+
+			const openingTag = paragraph.children[0];
+			const closingTag = paragraph.children[1];
+
+			expect(openingTag).toMatchObject({
+				type: "html",
+				value: '<span data-value="[[label|target]]">',
+			});
+
+			expect(closingTag).toMatchObject({
+				type: "html",
+				value: "</span>",
+			});
+		});
 	});
 
 	describe("local link parser failure recovery", () => {
@@ -720,16 +1437,65 @@ describe("parse document", () => {
 			});
 		});
 
-		// [[bad|target
-		// [[label|target]] -> malformed first line must not consume the valid link on the next line.
-		it.todo("recovers from a malformed local link before a valid link on the next line");
+		it("recovers from a malformed local link before a valid link on the next line", () => {
+			const tree = parseDocument("[[bad|target\n[[label|target]]");
 
-		// [[label|target]][[bad\ -> valid first link remains valid when the following escape is incomplete.
-		it.todo("preserves a valid link before a malformed link with an incomplete escape");
+			const paragraph = getOnlyParagraph(tree);
 
-		// [[bad\q|broken][[label|target]] -> failed escape-containing construct must not hide the next valid opener.
-		it.todo("recovers from malformed escaped syntax before a valid local link");
+			expect(paragraph.children).toHaveLength(2);
 
+			const text = paragraph.children[0];
+			const link = paragraph.children[1];
+
+			expect(text).toMatchObject({
+				value: "[[bad|target\n",
+			});
+			expect(link).toMatchObject({
+				type: "localLink",
+				value: "label",
+				target: "target",
+			});
+		});
+
+		it("preserves a valid link before a malformed link with an incomplete escape", () => {
+			const tree = parseDocument("[[label|target]][[bad\\");
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(2);
+
+			const link = paragraph.children[0];
+			const text = paragraph.children[1];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				value: "label",
+				target: "target",
+			});
+			expect(text).toMatchObject({
+				value: "[[bad\\",
+			});
+		});
+
+		it("recovers from malformed escaped syntax before a valid local link", () => {
+			const tree = parseDocument("[[bad\\q|broken][[label|target]]");
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(2);
+
+			const text = paragraph.children[0];
+			const link = paragraph.children[1];
+
+			expect(text).toMatchObject({
+				value: "[[bad\\q|broken]",
+			});
+			expect(link).toMatchObject({
+				type: "localLink",
+				value: "label",
+				target: "target",
+			});
+		});
 	});
 });
 
