@@ -56,6 +56,40 @@ describe("parse document", () => {
 			});
 		});
 
+		it("parses a manual local link with an escaped ~", () => {
+			const tree = parseDocument("See [[\\~label|target]].");
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(3);
+
+			const link = paragraph.children[1];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "manual",
+				value: "~label",
+				target: "target",
+			});
+		});
+
+		it("parses a manual local link with an escaped !", () => {
+			const tree = parseDocument("See [[\\!label|target]].");
+
+			const paragraph = getOnlyParagraph(tree);
+
+			expect(paragraph.children).toHaveLength(3);
+
+			const link = paragraph.children[1];
+
+			expect(link).toMatchObject({
+				type: "localLink",
+				mode: "manual",
+				value: "!label",
+				target: "target",
+			});
+		});
+
 		it("preserves text before and after a local link", () => {
 			const tree = parseDocument("text before[[label|target]]text after");
 

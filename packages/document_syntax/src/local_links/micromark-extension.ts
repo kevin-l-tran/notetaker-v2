@@ -49,12 +49,25 @@ const tokenizelocalLink: Tokenizer = (effects, ok, nok) => {
 		return label(code);
 	}
 
+	function labelEscape(code: Code): State | undefined {
+		if (isEnd(code)) {
+			return nok(code);
+		}
+
+		effects.consume(code);
+
+		return label;
+	}
+
 	function label(code: Code): State | undefined {
 		if (isEnd(code)) {
 			return nok(code);
 		}
 
-		if (code === codes.verticalBar) {
+		if (code === codes.backslash) {
+			effects.consume(code);
+			return labelEscape;
+		} else if (code === codes.verticalBar) {
 			effects.exit(localLinkTokens.label);
 
 			effects.enter(localLinkTokens.marker);
@@ -79,12 +92,25 @@ const tokenizelocalLink: Tokenizer = (effects, ok, nok) => {
 		return target(code);
 	}
 
+	function targetEscape(code: Code): State | undefined {
+		if (isEnd(code)) {
+			return nok(code);
+		}
+
+		effects.consume(code);
+
+		return target;
+	}
+
 	function target(code: Code): State | undefined {
 		if (isEnd(code) || code === codes.verticalBar) {
 			return nok(code);
 		}
 
-		if (code === codes.rightSquareBracket) {
+		if (code === codes.backslash) {
+			effects.consume(code);
+			return targetEscape;
+		} else if (code === codes.rightSquareBracket) {
 			effects.exit(localLinkTokens.target);
 
 			effects.enter(localLinkTokens.marker);

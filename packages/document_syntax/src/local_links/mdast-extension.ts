@@ -4,6 +4,8 @@ import type { Node } from "unist";
 import { localLinkTokens } from "./tokens.ts";
 import type { LocalLink } from "./types.ts";
 
+const ESCAPABLE_TOKENS = ["\\", "|", "[", "]", "!", "~"];
+
 export function localLinkFromMarkdown(): Extension {
 	return {
 		enter: {
@@ -43,13 +45,23 @@ const exitLocalLinkMarker: Handle = function (token) {
 const exitLocalLinkLabel: Handle = function (token) {
 	const node = currentLocalLink(this);
 
-	node.value = this.sliceSerialize(token);
+	let label = this.sliceSerialize(token);
+	for (const escapable of ESCAPABLE_TOKENS) {
+		label = label.replaceAll(`\\${escapable}`, escapable);
+	}
+
+	node.value = label;
 };
 
 const exitLocalLinkTarget: Handle = function (token) {
 	const node = currentLocalLink(this);
 
-	node.target = this.sliceSerialize(token);
+	let target = this.sliceSerialize(token);
+	for (const escapable of ESCAPABLE_TOKENS) {
+		target = target.replaceAll(`\\${escapable}`, escapable);
+	}
+
+	node.target = target;
 };
 
 const exitLocalLink: Handle = function (token) {
