@@ -45,23 +45,47 @@ const exitLocalLinkMarker: Handle = function (token) {
 const exitLocalLinkLabel: Handle = function (token) {
 	const node = currentLocalLink(this);
 
-	let label = this.sliceSerialize(token);
-	for (const escapable of ESCAPABLE_TOKENS) {
-		label = label.replaceAll(`\\${escapable}`, escapable);
+	const label = this.sliceSerialize(token);
+
+	let newLabel = "";
+	let isNextEscaped = false;
+	for (const char of label) {
+		if (isNextEscaped) {
+			if (!ESCAPABLE_TOKENS.includes(char)) newLabel += "\\";
+
+			newLabel += char;
+			isNextEscaped = false;
+		} else if (!isNextEscaped && char === "\\") {
+			isNextEscaped = true;
+		} else {
+			newLabel += char;
+		}
 	}
 
-	node.value = label;
+	node.value = newLabel;
 };
 
 const exitLocalLinkTarget: Handle = function (token) {
 	const node = currentLocalLink(this);
 
-	let target = this.sliceSerialize(token);
-	for (const escapable of ESCAPABLE_TOKENS) {
-		target = target.replaceAll(`\\${escapable}`, escapable);
+	const target = this.sliceSerialize(token);
+
+	let newTarget = "";
+	let isNextEscaped = false;
+	for (const char of target) {
+		if (isNextEscaped) {
+			if (ESCAPABLE_TOKENS.includes(char)) newTarget += "//";
+
+			newTarget += char;
+			isNextEscaped = false;
+		} else if (!isNextEscaped && char === "\\") {
+			isNextEscaped = true;
+		} else {
+			newTarget += char;
+		}
 	}
 
-	node.target = target;
+	node.target = newTarget;
 };
 
 const exitLocalLink: Handle = function (token) {

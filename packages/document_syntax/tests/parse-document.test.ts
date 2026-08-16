@@ -249,6 +249,97 @@ describe("parse document", () => {
 		});
 	});
 
+
+	describe("local link modifier edge cases", () => {
+		// [[foo!bar|target]] -> manual link with label "foo!bar".
+		it.todo("treats ! outside the modifier position as ordinary label text");
+
+		// [[foo~bar|target]] -> manual link with label "foo~bar".
+		it.todo("treats ~ outside the modifier position as ordinary label text");
+
+		// [[!!label|target]] -> suppressed link with label "!label".
+		it.todo("treats a second ! after the modifier as label text");
+
+		// [[~~label|target]] -> automatic link with label "~label".
+		it.todo("treats a second ~ after the modifier as label text");
+
+		// [[!~label|target]] -> suppressed link with label "~label".
+		it.todo("uses only the first modifier when ! is followed by ~");
+
+		// [[~!label|target]] -> automatic link with label "!label".
+		it.todo("uses only the first modifier when ~ is followed by !");
+	});
+
+	describe("local link escape syntax", () => {
+		describe("label escapes", () => {
+			// [[foo\\bar|target]] -> label "foo\bar".
+			it.todo("unescapes an escaped backslash in the label");
+
+			// [[foo\|bar|target]] -> label "foo|bar".
+			it.todo("allows an escaped separator in the label");
+
+			// [[foo\[bar|target]] -> label "foo[bar".
+			it.todo("unescapes an escaped opening bracket in the label");
+
+			// [[foo\]bar|target]] -> label "foo]bar".
+			it.todo("unescapes an escaped closing bracket in the label");
+
+			// [[foo\!bar|target]] -> manual link with label "foo!bar".
+			it.todo("unescapes ! inside the label without changing the mode");
+
+			// [[foo\~bar|target]] -> manual link with label "foo~bar".
+			it.todo("unescapes ~ inside the label without changing the mode");
+
+			// [[foo\qbar|target]] -> label "foo\qbar".
+			it.todo("preserves an unknown label escape literally");
+
+			// [[foo\\|target]] -> label "foo\" and target "target".
+			it.todo("decodes adjacent escapes exactly once in the label");
+		});
+
+		describe("target escapes", () => {
+			// [[label|foo\\bar]] -> target "foo\bar".
+			it.todo("unescapes an escaped backslash in the target");
+
+			// [[label|foo\|bar]] -> target "foo|bar".
+			it.todo("allows an escaped separator in the target");
+
+			// [[label|foo\[bar]] -> target "foo[bar".
+			it.todo("unescapes an escaped opening bracket in the target");
+
+			// [[label|foo\]bar]] -> target "foo]bar" without closing the link early.
+			it.todo("allows an escaped closing bracket in the target");
+
+			// [[label|foo\!bar]] -> target "foo!bar".
+			it.todo("unescapes ! in the target");
+
+			// [[label|foo\~bar]] -> target "foo~bar".
+			it.todo("unescapes ~ in the target");
+
+			// [[label|foo\qbar]] -> target "foo\qbar".
+			it.todo("preserves an unknown target escape literally");
+
+			// [[label|foo\\]] -> target "foo\".
+			it.todo("decodes adjacent escapes exactly once in the target");
+		});
+
+		describe("incomplete escapes", () => {
+			// [[label\ -> incomplete label escape; parse as literal text.
+			it.todo("does not parse a local link ending during a label escape");
+
+			// [[label|target\ -> incomplete target escape; parse as literal text.
+			it.todo("does not parse a local link ending during a target escape");
+
+			// [[label\
+			// |target]] -> escape cannot continue across a line ending.
+			it.todo("does not allow a label escape to cross a line ending");
+
+			// [[label|target\
+			// ]] -> escape cannot continue across a line ending.
+			it.todo("does not allow a target escape to cross a line ending");
+		});
+	});
+
 	describe("invalid local link syntax", () => {
 		it('does not parse "[[" as a local link', () => {
 			const tree = parseDocument("[[");
@@ -369,6 +460,45 @@ describe("parse document", () => {
 				value: "[[label|label|target]]",
 			});
 		});
+	});
+
+
+	describe("invalid modifier syntax", () => {
+		// [[~|target]] -> automatic modifier followed by an empty label.
+		it.todo("does not parse an automatic local link with an empty label");
+
+		// [[!|target]] -> suppressed modifier followed by an empty label.
+		it.todo("does not parse a suppressed local link with an empty label");
+
+		// [[~label|]] -> automatic local link with an empty target.
+		it.todo("does not parse an automatic local link with an empty target");
+
+		// [[!label|]] -> suppressed local link with an empty target.
+		it.todo("does not parse a suppressed local link with an empty target");
+
+		// [[~label|target|extra]] -> automatic local link with an extra separator.
+		it.todo("does not parse an automatic local link with extra separators");
+
+		// [[!label|target|extra]] -> suppressed local link with an extra separator.
+		it.todo("does not parse a suppressed local link with extra separators");
+	});
+
+	describe("line boundary syntax", () => {
+		// [[label
+		// |target]] -> local links are single-line constructs.
+		it.todo("does not parse a local link whose label crosses a line ending");
+
+		// [[label|target
+		// ]] -> local links are single-line constructs.
+		it.todo("does not parse a local link whose target crosses a line ending");
+
+		// [[~label
+		// |target]] -> modifiers do not change the single-line rule.
+		it.todo("does not parse an automatic local link across a line ending");
+
+		// [[!label|target
+		// ]] -> modifiers do not change the single-line rule.
+		it.todo("does not parse a suppressed local link across a line ending");
 	});
 
 	describe("mixed Markdown parsing", () => {
@@ -514,6 +644,41 @@ describe("parse document", () => {
 		});
 	});
 
+
+	describe("local links in Markdown phrasing contexts", () => {
+		// # See [[label|target]]
+		it.todo("parses a local link inside a heading");
+
+		// *See [[label|target]]*
+		it.todo("parses a local link inside emphasis");
+
+		// **See [[label|target]]**
+		it.todo("parses a local link inside strong emphasis");
+
+		// > See [[label|target]]
+		it.todo("parses a local link inside a block quote");
+
+		// - See [[label|target]]
+		it.todo("parses a local link inside a list item");
+	});
+
+	describe("local links in protected Markdown contexts", () => {
+		// \[[label|target]] -> escaped opening delimiter remains literal text.
+		it.todo("does not parse an escaped local link opening");
+
+		// [See [[label|target]]](https://example.com) -> do not create a nested local link.
+		it.todo("does not parse local link syntax inside a Markdown link label");
+
+		// [text](https://example.com/[[label|target]]) -> destination remains Markdown link syntax.
+		it.todo("does not parse local link syntax inside a Markdown link destination");
+
+		// ![[label|target]](https://example.com/image.png) -> image syntax owns its alt text.
+		it.todo("does not parse local link syntax inside Markdown image alt text");
+
+		// <span data-value="[[label|target]]"></span> -> HTML attributes remain HTML.
+		it.todo("does not parse local link syntax inside raw HTML attributes");
+	});
+
 	describe("local link parser failure recovery", () => {
 		it("parses malformed link -> valid link", () => {
 			const tree = parseDocument("[[malformed|malformed][[label|target]]");
@@ -554,6 +719,17 @@ describe("parse document", () => {
 				value: "[[malformed|malformed]",
 			});
 		});
+
+		// [[bad|target
+		// [[label|target]] -> malformed first line must not consume the valid link on the next line.
+		it.todo("recovers from a malformed local link before a valid link on the next line");
+
+		// [[label|target]][[bad\ -> valid first link remains valid when the following escape is incomplete.
+		it.todo("preserves a valid link before a malformed link with an incomplete escape");
+
+		// [[bad\q|broken][[label|target]] -> failed escape-containing construct must not hide the next valid opener.
+		it.todo("recovers from malformed escaped syntax before a valid local link");
+
 	});
 });
 
