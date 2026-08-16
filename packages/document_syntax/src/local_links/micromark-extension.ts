@@ -1,5 +1,14 @@
-import { codes } from "micromark-util-symbol";
-import type { Code, Construct, Extension, State, Tokenizer } from "micromark-util-types";
+import { codes, types } from "micromark-util-symbol";
+import type {
+	Code,
+	Construct,
+	Event,
+	Extension,
+	Resolver,
+	State,
+	Token,
+	Tokenizer,
+} from "micromark-util-types";
 
 import { localLinkTokens } from "./tokens.ts";
 
@@ -140,6 +149,63 @@ const tokenizelocalLink: Tokenizer = (effects, ok, nok) => {
 	return start;
 };
 
+const resolveLocalLinksInMedia: Resolver = (events) => {
+	const resolved: Event[] = [];
+
+	let mediaDepth = 0;
+	let index = 0;
+
+	while (index < events.length) {
+		const event = events[index];
+		if (event === undefined) throw "Expected event to be defined";
+
+		const direction = event[0];
+		const token = event[1];
+
+		if (direction === "enter" && token.type === localLinkTokens.link && mediaDepth > 0) {
+			let endIndex = index + 1;
+			let innerEvent = events[endIndex];
+
+			do {
+				innerEvent = events[endIndex];
+				if (innerEvent === undefined) throw "Expected event to be defined";
+
+				endIndex++;
+			} while (endIndex < events.length && !(innerEvent[0] === "exit" && innerEvent[1] === token));
+
+			index = endIndex;
+
+			const dataToken: Token = {
+				type: types.data,
+				start: { ...token.start },
+				end: { ...token.end },
+			};
+
+			resolved.push(["enter", dataToken, event[2]], ["exit", dataToken, event[2]]);
+
+			continue;
+		}
+
+		if (direction === "enter" && (token.type === types.link || token.type === types.image)) {
+			mediaDepth++;
+		} else if (direction === "exit" && (token.type === types.link || token.type === types.image)) {
+			mediaDepth--;
+		}
+
+		resolved.push(event);
+
+		index++;
+	}
+
+	// resolver must mutate the original events array to persist changes
+	events.splice(0);
+	for (const e of resolved) {
+		events.push(e);
+	}
+
+	return events;
+};
+
 function isEnd(code: Code): boolean {
 	return (
 		code === codes.eof ||
@@ -152,6 +218,7 @@ function isEnd(code: Code): boolean {
 const localLinkConstruct: Construct = {
 	name: "localLink",
 	tokenize: tokenizelocalLink,
+	resolveAll: resolveLocalLinksInMedia,
 };
 
 export function localLinkSyntax(): Extension {
