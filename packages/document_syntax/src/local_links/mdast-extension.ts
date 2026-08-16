@@ -4,7 +4,7 @@ import type { Node } from "unist";
 import { localLinkTokens } from "./tokens.ts";
 import type { LocalLink } from "./types.ts";
 
-const ESCAPABLE_TOKENS = ["\\", "|", "[", "]", "!", "~"];
+export const ESCAPABLE_TOKENS = ["\\", "|", "[", "]", "!", "~"];
 
 export function localLinkFromMarkdown(): Extension {
 	return {
