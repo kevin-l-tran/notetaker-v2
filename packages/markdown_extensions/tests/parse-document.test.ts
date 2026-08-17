@@ -1,7 +1,7 @@
 import type { Nodes, Root } from "mdast";
 import { describe, expect, it } from "vitest";
 import type { LocalLink } from "../src/local_links/types.ts";
-import { parseDocument } from "../src/parse-document.ts";
+import parseDocument from "../src/parse-document.ts";
 
 describe("parse document", () => {
 	describe("valid local link syntax", () => {

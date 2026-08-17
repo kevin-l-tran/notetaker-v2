@@ -157,7 +157,7 @@ const resolveLocalLinksInMedia: Resolver = (events) => {
 
 	while (index < events.length) {
 		const event = events[index];
-		if (event === undefined) throw "Expected event to be defined";
+		if (event === undefined) throw new Error("Expected event to be defined");
 
 		const direction = event[0];
 		const token = event[1];
@@ -168,7 +168,7 @@ const resolveLocalLinksInMedia: Resolver = (events) => {
 
 			do {
 				innerEvent = events[endIndex];
-				if (innerEvent === undefined) throw "Expected event to be defined";
+				if (innerEvent === undefined) throw new Error("Expected event to be defined");
 
 				endIndex++;
 			} while (endIndex < events.length && !(innerEvent[0] === "exit" && innerEvent[1] === token));

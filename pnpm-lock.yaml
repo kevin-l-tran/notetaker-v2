@@ -40,7 +40,7 @@ importers:
         version: 6.1.1
       '@notetaker-v2/contracts':
         specifier: workspace:*
-        version: link:../../packages/document_syntax
+        version: link:../../packages/contracts
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -86,7 +86,7 @@ importers:
     dependencies:
       '@notetaker-v2/contracts':
         specifier: workspace:*
-        version: link:../../packages/document_syntax
+        version: link:../../packages/contracts
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
@@ -159,7 +159,23 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(jsdom@30.0.1)(vite@8.2.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.5)(yaml@2.9.0))
 
-  packages/document_syntax:
+  packages/linking:
+    dependencies:
+      '@notetaker-v2/markdown_extensions':
+        specifier: workspace:*
+        version: link:../markdown_extensions
+    devDependencies:
+      '@types/mdast':
+        specifier: 4.0.4
+        version: 4.0.4
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(jsdom@30.0.1)(vite@8.2.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.5)(yaml@2.9.0))
+
+  packages/markdown_extensions:
     dependencies:
       '@types/mdast':
         specifier: 4.0.4
@@ -182,9 +198,6 @@ importers:
       micromark-util-symbol:
         specifier: 2.0.1
         version: 2.0.1
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
     devDependencies:
       micromark-util-types:
         specifier: ^2.0.2

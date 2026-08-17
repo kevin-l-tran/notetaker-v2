@@ -1,5 +1,5 @@
 {
-	"name": "@notetaker-v2/document-syntax",
+	"name": "@notetaker-v2/markdown_extensions",
 	"version": "1.0.0",
 	"private": true,
 	"description": "",
@@ -7,7 +7,9 @@
 	"license": "MIT",
 	"author": "",
 	"type": "module",
-	"main": "index.js",
+	"exports": {
+		".": "./src/index.ts"
+	},
 	"scripts": {
 		"test": "vitest"
 	},
@@ -18,8 +20,7 @@
 		"mdast-util-math": "3.0.0",
 		"micromark": "^4.0.2",
 		"micromark-extension-math": "3.1.0",
-		"micromark-util-symbol": "2.0.1",
-		"zod": "^4.4.3"
+		"micromark-util-symbol": "2.0.1"
 	},
 	"devDependencies": {
 		"micromark-util-types": "^2.0.2",

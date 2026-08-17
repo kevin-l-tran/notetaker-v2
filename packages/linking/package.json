@@ -1,5 +1,5 @@
 {
-	"name": "@notetaker-v2/contracts",
+	"name": "@notetaker-v2/linking",
 	"version": "1.0.0",
 	"private": true,
 	"description": "",
@@ -8,11 +8,14 @@
 	"author": "",
 	"type": "module",
 	"main": "index.js",
-	"scripts": {},
+	"scripts": {
+		"test": "vitest"
+	},
 	"dependencies": {
-		"zod": "^4.4.3"
+		"@notetaker-v2/markdown_extensions": "workspace:*"
 	},
 	"devDependencies": {
+		"@types/mdast": "4.0.4",
 		"typescript": "^7.0.2",
 		"vitest": "^4.1.10"
 	}
