@@ -13,3 +13,10 @@ export type SearchableRegion = {
 	start: number;
 	end: number;
 };
+
+export type TextToken = {
+	value: string;
+	normalized: string;
+	start: number;
+	end: number;
+};
