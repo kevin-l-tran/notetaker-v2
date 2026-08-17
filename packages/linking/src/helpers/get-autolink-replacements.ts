@@ -1,8 +1,8 @@
 import { type LocalLink, parseDocument } from "@notetaker-v2/markdown_extensions";
 import type { Nodes } from "mdast";
-import type { LinkTargets, SourceEdit } from "../types.ts";
+import type { LinkTarget, SourceEdit } from "../types.ts";
 
-export default function getAutolinkReplacements(text: string, targets: LinkTargets): SourceEdit[] {
+export default function getAutolinkReplacements(text: string, targets: LinkTarget[]): SourceEdit[] {
 	const localLinks = getLocalLinks(parseDocument(text));
 	const targetIds = new Set(targets.map((t) => t.targetId));
 	const edits: SourceEdit[] = [];
