@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import tokenize from "../../src/matchers/tokenizer.ts";
+import tokenize from "../../src/matchers/tokenize.ts";
 
 describe("tokenize", () => {
 	it("tokenizes ordinary words and preserves source offsets", () => {
