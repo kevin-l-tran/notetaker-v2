@@ -104,6 +104,8 @@ describe("getAutolinkReplacements", () => {
 		const text = "[[~should not show backslash: \\!|t1]]";
 		const replacements = getAutolinkReplacements(text, targets);
 
-		expect(replacements).toStrictEqual([{ start: 0, end: 37, replacement: "should not show backslash: !" }]);
+		expect(replacements).toStrictEqual([
+			{ start: 0, end: 37, replacement: "should not show backslash: !" },
+		]);
 	});
 });

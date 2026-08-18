@@ -39,6 +39,43 @@ describe("tokenize", () => {
 		]);
 	});
 
+	it("tokenizes entire text when no region is supplied", () => {
+		const source = "Every compact space is useful.";
+
+		expect(tokenize(source)).toEqual([
+			{
+				value: "Every",
+				normalized: "every",
+				start: 0,
+				end: 5,
+			},
+			{
+				value: "compact",
+				normalized: "compact",
+				start: 6,
+				end: 13,
+			},
+			{
+				value: "space",
+				normalized: "space",
+				start: 14,
+				end: 19,
+			},
+			{
+				value: "is",
+				normalized: "is",
+				start: 20,
+				end: 22,
+			},
+			{
+				value: "useful",
+				normalized: "useful",
+				start: 23,
+				end: 29,
+			},
+		]);
+	});
+
 	it("only tokenizes text within the supplied region", () => {
 		const source = "Ignore this compact space and this";
 		const start = source.indexOf("compact");

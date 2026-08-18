@@ -2,7 +2,10 @@ import type { SearchableRegion, TextToken } from "../types.ts";
 
 const WORD_CHARACTER = /[\p{L}\p{N}\p{M}]/u;
 
-export default function tokenize(source: string, region: SearchableRegion): TextToken[] {
+export default function tokenize(
+	source: string,
+	region: SearchableRegion = { start: 0, end: source.length },
+): TextToken[] {
 	const tokens: TextToken[] = [];
 
 	let tokenStart: number | undefined;
