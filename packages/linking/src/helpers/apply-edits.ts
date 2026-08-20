@@ -1,7 +1,7 @@
 import type { SourceEdit } from "../types.ts";
 
 export default function applyEdits(text: string, edits: SourceEdit[]) {
-	const sorted = edits.toSorted((a, b) => a.end - b.start);
+	const sorted = edits.toSorted((a, b) => a.start - b.start);
 
 	let previous: SourceEdit | undefined;
 	let current: SourceEdit | undefined;
