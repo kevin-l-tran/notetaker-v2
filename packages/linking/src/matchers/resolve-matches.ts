@@ -17,7 +17,7 @@ export default function resolveMatches(matches: AhoCorasickMatch[], reservedTarg
 
 	const overlapping: AhoCorasickMatch[] = [];
 	let previous = matches[0];
-	for (const match of matches) {
+	for (const match of matches.slice(1)) {
 		if (!previous) break;
 
 		if (match.start < previous.end) {
