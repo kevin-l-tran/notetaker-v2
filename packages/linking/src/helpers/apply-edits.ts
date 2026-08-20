@@ -1,14 +1,21 @@
 import type { SourceEdit } from "../types.ts";
 
 export default function applyEdits(text: string, edits: SourceEdit[]) {
-	const endSorted = edits.toSorted((a, b) => a.end - b.end);
-	const beginSorted = edits.toSorted((a, b) => b.start - a.start);
+	const sorted = edits.toSorted((a, b) => a.end - b.start);
 
-	if (JSON.stringify(endSorted) !== JSON.stringify(beginSorted)) {
-		throw new Error("Overlapping edits found");
+	let previous: SourceEdit | undefined;
+	let current: SourceEdit | undefined;
+	for (const edit of sorted) {
+		if (!previous) {
+			previous = edit;
+		} else if (!current) {
+			current = edit;
+		} else if (current.start < previous.end) {
+			throw new Error("Overlapping edits found");
+		}
 	}
 
-	for (const edit of endSorted) {
+	for (const edit of sorted.reverse()) {
 		text = text.slice(0, edit.start) + edit.replacement + text.slice(edit.end);
 	}
 
