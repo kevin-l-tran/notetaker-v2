@@ -1,13 +1,12 @@
-import type { LinkTarget, SourceEdit } from "../types.ts";
+import type { SourceEdit } from "../types.ts";
 import getLocalLinksFromNode from "./get-local-links.ts";
 
-export default function getAutolinkReplacements(text: string, targets: LinkTarget[]): SourceEdit[] {
+export default function getAutolinkReplacements(text: string): SourceEdit[] {
 	const localLinks = getLocalLinksFromNode(text);
-	const targetIds = new Set(targets.map((t) => t.targetId));
 	const edits: SourceEdit[] = [];
 
 	for (const link of localLinks) {
-		if (targetIds.has(link.target) && link.mode === "automatic") {
+		if (link.mode === "automatic") {
 			if (
 				link.position === undefined ||
 				link.position.start.offset === undefined ||
