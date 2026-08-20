@@ -4,13 +4,14 @@ export default function applyEdits(text: string, edits: SourceEdit[]) {
 	const sorted = edits.toSorted((a, b) => a.start - b.start);
 
 	let previous: SourceEdit | undefined;
-	let current: SourceEdit | undefined;
-	for (const edit of sorted) {
-		if (!previous) {
-			previous = edit;
-		} else if (!current) {
-			current = edit;
-		} else if (current.start < previous.end) {
+	let current = sorted[0];
+	for (const edit of sorted.slice(1)) {
+		if (!current) break;
+
+		previous = current;
+		current = edit;
+
+		if (current.start < previous.end) {
 			throw new Error("Overlapping edits found");
 		}
 	}
