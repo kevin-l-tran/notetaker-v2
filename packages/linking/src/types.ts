@@ -20,3 +20,15 @@ export type TextToken = {
 	start: number;
 	end: number;
 };
+
+export type AhoCorasickPattern = {
+	targetId: string;
+	phrase: string;
+	tokens: string[];
+};
+
+export type AhoCorasickMatch = {
+	pattern: AhoCorasickPattern;
+	start: number;
+	end: number;
+};

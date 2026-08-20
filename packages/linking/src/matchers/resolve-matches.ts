@@ -1,4 +1,4 @@
-import type { AhoCorasickMatch } from "./aho-corasick-automaton.ts";
+import type { AhoCorasickMatch } from "../types.ts";
 
 export default function resolveMatches(matches: AhoCorasickMatch[], reservedTargetIds: string[]) {
 	const resolvedMatches: AhoCorasickMatch[] = [];

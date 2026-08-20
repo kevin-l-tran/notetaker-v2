@@ -1,16 +1,4 @@
-import type { TextToken } from "../types.ts";
-
-export type AhoCorasickPattern = {
-	targetId: string;
-	phrase: string;
-	tokens: [string, ...string[]];
-};
-
-export type AhoCorasickMatch = {
-	pattern: AhoCorasickPattern;
-	start: number;
-	end: number;
-};
+import type { AhoCorasickMatch, AhoCorasickPattern, TextToken } from "../types.ts";
 
 class AhoCorasickNode {
 	readonly next = new Map<string, AhoCorasickNode>();
@@ -40,12 +28,7 @@ export class AhoCorasickAutomaton {
 			queue.push(firstDescendents);
 		}
 
-		while (queue.length) {
-			const parent = queue.shift();
-			if (!parent) {
-				throw new Error("Expected queue to not be empty");
-			}
-
+		for (const parent of queue) {
 			for (const [transition, child] of parent.next.entries()) {
 				let fallback = parent.suffix;
 
@@ -67,12 +50,7 @@ export class AhoCorasickAutomaton {
 		const matches: AhoCorasickMatch[] = [];
 		let state = this.root;
 
-		for (let i = 0; i < tokens.length; i++) {
-			const token = tokens[i];
-			if (token === undefined) {
-				throw new Error("Expected tokens[i] to be defined");
-			}
-
+		for (const [i, token] of tokens.entries()) {
 			const transition = token.normalized;
 
 			while (state !== this.root && !state.next.get(transition)) {
