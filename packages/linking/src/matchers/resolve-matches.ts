@@ -7,7 +7,9 @@ export default function resolveMatches(matches: AhoCorasickMatch[], reservedTarg
 
 	const subsumed: AhoCorasickMatch[] = [];
 	for (const match of matches) {
-		subsumed.push(...matches.filter((m) => m.start >= match.start && m.end <= match.end));
+		subsumed.push(
+			...matches.filter((m) => m !== match && m.start >= match.start && m.end <= match.end),
+		);
 	}
 	matches = matches.filter((m) => !subsumed.includes(m));
 
