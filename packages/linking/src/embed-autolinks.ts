@@ -11,24 +11,20 @@ export default function embedAutolinks(text: string, matcher: AhoCorasickAutomat
 	const replacements = getAutolinkReplacements(text);
 	text = applyEdits(text, replacements);
 
-	// get searchable regions
 	const searchableRegions = getSearchableRegions(text);
 
-	// search over tokenized text with ac-automaton
 	const rawMatches: AhoCorasickMatch[] = [];
 	for (const region of searchableRegions) {
 		const tokens = tokenize(text, region);
 		rawMatches.push(...matcher.search(tokens));
 	}
 
-	// resolve overlaps
 	const manualLinkTargets = getLocalLinks(text)
 		.filter((link) => link.mode === "manual")
 		.map((link) => link.target);
 
 	const matches = resolveMatches(rawMatches, manualLinkTargets);
 
-	// apply link replacements to text based on search results
 	const edits = matches.map((match) => ({
 		start: match.start,
 		end: match.end,
