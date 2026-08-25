@@ -1,7 +1,11 @@
-export default function Logo() {
+import { VectorSquare } from "lucide-react";
+import styles from "./Logo.module.css";
+
+export default function Logo({ showText = false }: { showText: boolean }) {
 	return (
-		<div>
-			<h1>Logo here</h1>
+		<div className={styles.logoContainer}>
+			<VectorSquare className={styles.logoIcon} />
+			{showText && "Notetaker v2"}
 		</div>
 	);
 }
