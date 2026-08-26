@@ -36,10 +36,7 @@ jobs:
           version: 11
           runtime: node@26
           cache: true
-          install: false
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          install: true
 
       - name: Run Biome checks
         run: pnpm check:ci
@@ -69,10 +66,7 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
           runtime: node@${{ env.NODE_VERSION }}
           cache: true
-          install: false
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          install: true
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
