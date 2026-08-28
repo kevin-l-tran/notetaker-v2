@@ -1,6 +1,6 @@
 .header {
 	background-color: var(--surface-1);
-	border: var(--border-width-1) solid;
+	border-bottom: var(--border-width-1) solid;
 }
 
 .navigation {
