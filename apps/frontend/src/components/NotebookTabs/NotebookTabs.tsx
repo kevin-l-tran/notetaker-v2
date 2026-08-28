@@ -1,5 +1,12 @@
+import { Separator } from "@base-ui/react/separator";
 import styles from "./NotebookTabs.module.css";
 
 export default function NotebookTabs() {
-	return <nav className={styles.tabs}>Workspace | Editor</nav>;
+	return (
+		<div className={styles.tabs}>
+			<nav>Workspace</nav>
+			<Separator orientation="vertical" className={styles.separator} />
+			<nav>Editor</nav>
+		</div>
+	);
 }

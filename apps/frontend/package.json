@@ -10,6 +10,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@base-ui/react": "^1.7.0",
 		"@notetaker-v2/contracts": "workspace:*",
 		"@tanstack/react-query": "^5.101.4",
 		"lucide-react": "^1.33.0",
