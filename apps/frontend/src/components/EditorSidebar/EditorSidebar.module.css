@@ -1,0 +1,13 @@
+.sidebar {
+	box-sizing: border-box;
+	width: var(--space-18);
+	padding-right: var(--space-4);
+	border-right: var(--border-width-1) solid;
+	height: 100%;
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
