@@ -4,12 +4,12 @@ import { EditorView, keymap } from "@codemirror/view";
 import { basicSetup } from "codemirror";
 import { useEffect, useRef } from "react";
 
-interface TextEditorProps {
+interface DocumentEditorProps {
 	initialValue: string;
 	onChange: (value: string) => void;
 }
 
-export default function TextEditor({ initialValue, onChange }: TextEditorProps) {
+export default function DocumentEditor({ initialValue, onChange }: DocumentEditorProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const onChangeRef = useRef(onChange);
 
