@@ -1,7 +1,7 @@
 import { Tabs } from "@base-ui/react";
 import { Check, Pencil } from "lucide-react";
-import styles from "./NodeEditor.module.css";
 import NodeContentPanel from "../NodeContentPanel/NodeContentPanel";
+import styles from "./NodeEditor.module.css";
 
 /*
  *  Note: add semantic HTML later
@@ -13,7 +13,6 @@ interface NodeEditorProps {
 }
 
 export default function NodeEditor({ description = "" }: NodeEditorProps) {
-
 	return (
 		<div className="page">
 			<div className={styles.header}>
