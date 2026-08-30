@@ -1,0 +1,18 @@
+.header {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	gap: var(--space-6);
+}
+
+.nodeTitle {
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-4);
+}
+
+.publishStatus {
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-2);
+}
