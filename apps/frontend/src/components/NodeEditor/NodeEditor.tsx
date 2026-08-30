@@ -1,5 +1,6 @@
 import { Tabs } from "@base-ui/react";
 import { Check, Pencil } from "lucide-react";
+import TextEditor from "../TextEditor/TextEditor";
 import styles from "./NodeEditor.module.css";
 
 /*
@@ -26,7 +27,9 @@ export default function NodeEditor() {
 					<Tabs.Tab value="content">Content</Tabs.Tab>
 					<Tabs.Tab value="links">Links</Tabs.Tab>
 				</Tabs.List>
-				<Tabs.Panel value="content">Content</Tabs.Panel>
+				<Tabs.Panel value="content">
+					<TextEditor initialValue="" onChange={(v) => console.log(v)} />
+				</Tabs.Panel>
 				<Tabs.Panel value="links">Links</Tabs.Panel>
 			</Tabs.Root>
 		</div>
