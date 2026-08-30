@@ -1,9 +1,7 @@
 import { Tabs } from "@base-ui/react";
 import { Check, Pencil } from "lucide-react";
-import { useState } from "react";
-import DocumentEditor from "../DocumentEditor/DocumentEditor";
-import DocumentRenderer from "../DocumentRenderer/DocumentRenderer";
 import styles from "./NodeEditor.module.css";
+import NodeContentPanel from "../NodeContentPanel/NodeContentPanel";
 
 /*
  *  Note: add semantic HTML later
@@ -15,7 +13,6 @@ interface NodeEditorProps {
 }
 
 export default function NodeEditor({ description = "" }: NodeEditorProps) {
-	const [source, setSource] = useState<string>(description);
 
 	return (
 		<div className="page">
@@ -36,8 +33,7 @@ export default function NodeEditor({ description = "" }: NodeEditorProps) {
 					<Tabs.Tab value="links">Links</Tabs.Tab>
 				</Tabs.List>
 				<Tabs.Panel value="content" className={styles.contentPanel}>
-					<DocumentEditor initialValue={description} onChange={setSource} />
-					<DocumentRenderer source={source} />
+					<NodeContentPanel description={description} />
 				</Tabs.Panel>
 				<Tabs.Panel value="links">Links</Tabs.Panel>
 			</Tabs.Root>
