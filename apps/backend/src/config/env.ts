@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/style/useNamingConvention: for .env constants */
 import "dotenv/config";
 import { z } from "zod";
 
