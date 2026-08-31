@@ -3,11 +3,11 @@ import { buildApp } from "./app.ts";
 const app = buildApp();
 
 try {
-  await app.listen({
-    port: 3000,
-    host: "0.0.0.0",
-  });
+	await app.listen({
+		port: 3000,
+		host: "0.0.0.0",
+	});
 } catch (error) {
-  app.log.error(error);
-  process.exit(1);
+	app.log.error(error);
+	process.exit(1);
 }
