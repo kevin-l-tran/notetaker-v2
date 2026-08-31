@@ -1,5 +1,5 @@
+import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { env } from "../../config/env.ts";
 import { db } from "../../database/client.ts";
 
