@@ -45,6 +45,12 @@ jobs:
         run: pnpm typecheck
 
       - name: Run unit and integration tests
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://notetaker-ci:password@localhost:5432/notetaker-v2
+          BETTER_AUTH_SECRET: some-long-random-secret-at-least-32-characters
+          BETTER_AUTH_URL: http://localhost:3000
+          FRONTEND_URL: http://localhost:5173
         run: pnpm exec vitest run
 
       - name: Build production packages
