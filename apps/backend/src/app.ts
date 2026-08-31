@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance } from "fastify";
+import authRoutes from "./modules/auth/auth.routes.ts";
 import healthRoutes from "./modules/health/health.routes.ts";
 
 export function buildApp(): FastifyInstance {
@@ -7,6 +8,10 @@ export function buildApp(): FastifyInstance {
 	});
 
 	app.register(healthRoutes, {
+		prefix: "/api",
+	});
+
+	app.register(authRoutes, {
 		prefix: "/api",
 	});
 
