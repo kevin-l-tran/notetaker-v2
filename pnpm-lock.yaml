@@ -57,7 +57,7 @@ importers:
         specifier: 1.0.0-rc.4
         version: 1.0.0-rc.4(@types/pg@8.23.1)(pg@8.23.0)(zod@4.4.3)
       fastify:
-        specifier: ^5.11.2
+        specifier: ^5.12.1
         version: 5.12.1
       fastify-type-provider-zod:
         specifier: ^7.0.0
