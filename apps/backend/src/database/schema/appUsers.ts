@@ -2,6 +2,7 @@ import { pgEnum, primaryKey, snakeCase, text, timestamp, uuid, varchar } from "d
 import { user } from "./auth.ts";
 
 export const authProviderEnum = pgEnum("auth_provider", ["better-auth"]);
+export type AuthProviders = typeof authProviderEnum.enumValues;
 
 export const authIdentities = snakeCase.table(
 	"auth_identities",
@@ -17,6 +18,8 @@ export const authIdentities = snakeCase.table(
 	},
 	(table) => [primaryKey({ columns: [table.provider, table.providerSubject] })],
 );
+export type AuthIdentity = typeof authIdentities.$inferSelect;
+export type NewAuthIdentity = typeof authIdentities.$inferInsert;
 
 export const appUsers = snakeCase.table("app_users", {
 	id: uuid().defaultRandom().primaryKey(),
@@ -27,3 +30,5 @@ export const appUsers = snakeCase.table("app_users", {
 		.$onUpdate(() => new Date())
 		.notNull(),
 });
+export type AppUser = typeof appUsers.$inferSelect;
+export type NewAppUser = typeof appUsers.$inferInsert;
