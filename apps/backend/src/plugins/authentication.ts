@@ -1,11 +1,11 @@
 import type { User } from "@notetaker-v2/contracts";
 import { fromNodeHeaders } from "better-auth/node";
 import type { FastifyPluginCallback, FastifyReply, FastifyRequest } from "fastify";
+import fp from "fastify-plugin";
 import { db } from "../database/client.ts";
 import auth from "../modules/auth/auth.ts";
 import { toUserDTO } from "../modules/users/user.mapper.ts";
 import { createUserService } from "../modules/users/user.service.ts";
-import fp from "fastify-plugin";
 
 declare module "fastify" {
 	interface FastifyRequest {
