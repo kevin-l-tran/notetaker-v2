@@ -5,37 +5,40 @@ import { createAuthIdentityRepository } from "../auth_identities/authIdentity.re
 import { createUserRepository } from "./user.repository.ts";
 
 export function createUserService(database: Database) {
+	const userRepo = createUserRepository(database);
+	const authIdentityRepo = createAuthIdentityRepository(database);
+
 	return {
 		async resolveAuthenticatedUser(input: {
 			provider: AuthProviders;
 			subject: AuthIdentity["providerSubject"];
 			displayName?: AppUser["displayName"];
 		}) {
-			return await database.transaction(async (tx) => {
-				const userRepo = createUserRepository(tx);
-				const authIdentityRepo = createAuthIdentityRepository(tx);
+			const authIdentity = await authIdentityRepo.findByProviderSubject({
+				provider: input.provider,
+				providerSubject: input.subject,
+			});
 
-				const authIdentity = await authIdentityRepo.findByProviderSubject({
-					provider: input.provider,
-					providerSubject: input.subject,
-				});
-
-				if (authIdentity === undefined) {
-					const newUser = await userRepo.create({ displayName: input.displayName ?? null });
-
-					await authIdentityRepo.create({
-						appUserId: newUser.id,
-						provider: input.provider,
-						providerSubject: input.subject,
-					});
-
-					return newUser;
-				}
-
+			if (authIdentity !== undefined) {
 				const user = await userRepo.findById({ id: authIdentity.appUserId });
 
 				if (!user) throw new Error("Could not find user.");
 				return user;
+			}
+
+			return database.transaction(async (tx) => {
+				const txUserRepo = createUserRepository(tx);
+				const txAuthIdentityRepo = createAuthIdentityRepository(tx);
+
+				const newUser = await txUserRepo.create({ displayName: input.displayName ?? null });
+
+				await txAuthIdentityRepo.create({
+					appUserId: newUser.id,
+					provider: input.provider,
+					providerSubject: input.subject,
+				});
+
+				return newUser;
 			});
 		},
 	};

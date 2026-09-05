@@ -1,9 +1,14 @@
 import { fromNodeHeaders } from "better-auth/node";
 import type { FastifyPluginCallback } from "fastify";
-import auth from "./auth.client.ts";
+import { db } from "../../database/client.ts";
+import { toUserDTO } from "../users/user.mapper.ts";
+import { createUserService } from "../users/user.service.ts";
+import auth from "./auth.ts";
 
 const meRoutes: FastifyPluginCallback = (app, _options, done) => {
-	app.get("/api/me", async (request, reply) => {
+	const userService = createUserService(db);
+
+	app.get("/me", async (request, reply) => {
 		const session = await auth.api.getSession({
 			headers: fromNodeHeaders(request.headers),
 		});
@@ -12,7 +17,17 @@ const meRoutes: FastifyPluginCallback = (app, _options, done) => {
 			return reply.status(401).send({ error: "Unauthorized" });
 		}
 
-		return reply.send(session);
+		const user = await userService.resolveAuthenticatedUser({
+			provider: "better-auth",
+			subject: session.user.id,
+		});
+
+		return reply.send(
+			toUserDTO({
+				appUser: user,
+				email: session.user.email,
+			}),
+		);
 	});
 
 	done();

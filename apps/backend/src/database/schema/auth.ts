@@ -13,6 +13,7 @@ export const user = pgTable("user", {
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
 });
+export type AuthUser = typeof user.$inferSelect;
 
 export const session = pgTable(
 	"session",
