@@ -2,7 +2,7 @@ import { pgEnum, primaryKey, snakeCase, text, timestamp, uuid } from "drizzle-or
 import { appUsers } from "./appUsers.ts";
 import { user } from "./auth.ts";
 
-export const authProviderEnum = pgEnum("auth_provider", ["better-auth", "test"]);
+export const authProviderEnum = pgEnum("auth_provider", ["better-auth"]);
 export type AuthProviders = (typeof authProviderEnum.enumValues)[number];
 
 export const authIdentities = snakeCase.table(
