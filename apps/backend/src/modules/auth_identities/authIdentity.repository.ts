@@ -1,13 +1,13 @@
 import { and, eq } from "drizzle-orm";
-import type { db } from "../../database/client.ts";
 import type { AppUser } from "../../database/schema/appUsers.ts";
 import {
 	type AuthIdentity,
 	type AuthProviders,
 	authIdentities,
 } from "../../database/schema/authIdentities.ts";
+import type { DatabaseExecutor } from "../../database/types.ts";
 
-export function createAuthIdentityRepository(database: typeof db) {
+export function createAuthIdentityRepository(database: DatabaseExecutor) {
 	return {
 		async findByProviderSubject(input: {
 			provider: AuthProviders;

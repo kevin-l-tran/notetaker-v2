@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
-import type { db } from "../../database/client.ts";
 import { type AppUser, appUsers } from "../../database/schema/appUsers.ts";
+import type { DatabaseExecutor } from "../../database/types.ts";
 
-export function createUserRepository(database: typeof db) {
+export function createUserRepository(database: DatabaseExecutor) {
 	return {
 		async findById(input: { id: AppUser["id"] }) {
 			const res = await database.select().from(appUsers).where(eq(appUsers.id, input.id)).limit(1);
@@ -16,7 +16,10 @@ export function createUserRepository(database: typeof db) {
 				.values({ displayName: input.displayName })
 				.returning();
 
-			return res[0];
+			const newUser = res[0];
+			if (!newUser) throw new Error("User creation failed.");
+
+			return newUser;
 		},
 	};
 }
