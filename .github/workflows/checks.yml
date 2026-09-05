@@ -26,6 +26,28 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: notetaker_ci
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: notetaker_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U notetaker_ci -d notetaker_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://notetaker_ci:password@localhost:5432/notetaker_test
+      BETTER_AUTH_SECRET: some-long-random-secret-at-least-32-characters
+      BETTER_AUTH_URL: http://localhost:3000
+      FRONTEND_URL: http://localhost:5173
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -44,13 +66,10 @@ jobs:
       - name: Type-check workspaces
         run: pnpm typecheck
 
+      - name: Run database migrations
+        run: pnpm --filter @notetaker-v2/backend db:migrate
+
       - name: Run unit and integration tests
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgresql://notetaker-ci:password@localhost:5432/notetaker-v2
-          BETTER_AUTH_SECRET: some-long-random-secret-at-least-32-characters
-          BETTER_AUTH_URL: http://localhost:3000
-          FRONTEND_URL: http://localhost:5173
         run: pnpm exec vitest run
 
       - name: Build production packages
