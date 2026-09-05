@@ -1,6 +1,6 @@
 import { fromNodeHeaders } from "better-auth/node";
 import type { FastifyPluginCallback } from "fastify";
-import auth from "./auth.ts";
+import auth from "./betterAuth.ts";
 
 const authRoutes: FastifyPluginCallback = (app, _options, done) => {
 	app.route({

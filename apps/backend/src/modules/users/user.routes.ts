@@ -1,7 +1,7 @@
 import type { FastifyPluginCallback } from "fastify";
-import { getAuthenticatedUser } from "../../shared/auth/getAuthenticatedUser.ts";
+import { getAuthenticatedUser } from "../auth/authenticatedUser.ts";
 
-const meRoutes: FastifyPluginCallback = (app, _options, done) => {
+const userRoutes: FastifyPluginCallback = (app, _options, done) => {
 	app.get("/me", { preHandler: app.requireAuthentication }, (request, _reply) => {
 		return getAuthenticatedUser(request);
 	});
@@ -9,4 +9,4 @@ const meRoutes: FastifyPluginCallback = (app, _options, done) => {
 	done();
 };
 
-export default meRoutes;
+export default userRoutes;

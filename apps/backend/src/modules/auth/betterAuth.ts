@@ -3,9 +3,9 @@ import { betterAuth } from "better-auth";
 import { env } from "../../config/env.ts";
 import { db } from "../../database/client.ts";
 import * as authSchema from "../../database/schema/auth.ts";
-import { createUserService } from "../users/user.service.ts";
+import { createAuthService } from "./auth.service.ts";
 
-const userService = createUserService(db);
+const userService = createAuthService(db);
 
 const auth = betterAuth({
 	database: drizzleAdapter(db, {

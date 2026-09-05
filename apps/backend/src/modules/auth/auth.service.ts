@@ -1,9 +1,9 @@
 import type { AuthIdentity, AuthProviders } from "../../database/schema/authIdentities.ts";
 import type { Database } from "../../database/types.ts";
-import { createAuthIdentityRepository } from "../auth_identities/authIdentity.repository.ts";
-import { createUserRepository } from "./user.repository.ts";
+import { createUserRepository } from "../users/user.repository.ts";
+import { createAuthIdentityRepository } from "./authIdentity.repository.ts";
 
-export function createUserService(database: Database) {
+export function createAuthService(database: Database) {
 	const userRepo = createUserRepository(database);
 	const authIdentityRepo = createAuthIdentityRepository(database);
 
