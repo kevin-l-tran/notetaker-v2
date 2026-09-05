@@ -10,11 +10,8 @@ export function createUserRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
-		async create(input: { displayName: AppUser["displayName"] }) {
-			const res = await database
-				.insert(appUsers)
-				.values({ displayName: input.displayName })
-				.returning();
+		async create() {
+			const res = await database.insert(appUsers).values({}).returning();
 
 			const newUser = res[0];
 			if (!newUser) throw new Error("User creation failed.");

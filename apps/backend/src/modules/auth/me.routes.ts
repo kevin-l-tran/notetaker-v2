@@ -17,7 +17,7 @@ const meRoutes: FastifyPluginCallback = (app, _options, done) => {
 			return reply.status(401).send({ error: "Unauthorized" });
 		}
 
-		const user = await userService.resolveAuthenticatedUser({
+		const user = await userService.getAuthenticatedUser({
 			provider: "better-auth",
 			subject: session.user.id,
 		});
