@@ -75,10 +75,9 @@ describe("authentication routes", () => {
 		});
 
 		expect(meResponse.statusCode).toBe(200);
-		expect(meResponse.json()).toMatchObject({
-			id: applicationUsers[0]?.id,
-			email: "test@example.com",
-		});
+		expect(meResponse.json().id).toBe(applicationUsers[0]?.id);
+		expect(meResponse.json().createdAt).toBeDefined();
+		expect(meResponse.json().updatedAt).toBeDefined();
 
 		const signOutResponse = await app.inject({
 			method: "POST",
