@@ -21,3 +21,48 @@ export class AppError extends Error {
 		this.name = new.target.name;
 	}
 }
+
+export class BadRequestError extends AppError {
+	constructor(
+		code: (typeof ERROR_CODES)[number],
+		message: string,
+		details?: Record<string, unknown>,
+		options?: ErrorOptions,
+	) {
+		super(code, message, 400, details, options);
+	}
+}
+
+export class UnauthorizedError extends AppError {
+	constructor(message: string, details?: Record<string, unknown>, options?: ErrorOptions) {
+		super("UNAUTHORIZED", message, 401, details, options);
+	}
+}
+
+export class ForbiddenError extends AppError {
+	constructor(message: string, details?: Record<string, unknown>, options?: ErrorOptions) {
+		super("FORBIDDEN", message, 403, details, options);
+	}
+}
+
+export class NotFoundError extends AppError {
+	constructor(
+		code: (typeof ERROR_CODES)[number],
+		message: string,
+		details?: Record<string, unknown>,
+		options?: ErrorOptions,
+	) {
+		super(code, message, 404, details, options);
+	}
+}
+
+export class ConflictError extends AppError {
+	constructor(
+		code: (typeof ERROR_CODES)[number],
+		message: string,
+		details?: Record<string, unknown>,
+		options?: ErrorOptions,
+	) {
+		super(code, message, 409, details, options);
+	}
+}
