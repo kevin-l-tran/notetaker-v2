@@ -1,15 +1,15 @@
-import type { User } from "@notetaker-v2/contracts";
 import { fromNodeHeaders } from "better-auth/node";
 import type { FastifyPluginCallback, FastifyReply, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
 import { db } from "../../database/client.ts";
-import { toUserDTO } from "../users/user.mapper.ts";
+import type { AppUser } from "../../database/schema/appUsers.ts";
+import { createServiceContext } from "../../shared/services/serviceContext.ts";
 import { createAuthService } from "./auth.service.ts";
 import auth from "./betterAuth.ts";
 
 declare module "fastify" {
 	interface FastifyRequest {
-		authenticatedUser: User | null;
+		authenticatedUser: AppUser | null;
 	}
 
 	interface FastifyInstance {
@@ -18,7 +18,8 @@ declare module "fastify" {
 }
 
 const authentication: FastifyPluginCallback = (app, _options, done) => {
-	const userService = createAuthService(db);
+	const serviceContext = createServiceContext(db);
+	const authService = createAuthService(serviceContext);
 
 	app.decorateRequest("authenticatedUser", null);
 
@@ -34,12 +35,10 @@ const authentication: FastifyPluginCallback = (app, _options, done) => {
 			return;
 		}
 
-		const appUser = await userService.getAuthenticatedUser({
+		request.authenticatedUser = await authService.getAuthenticatedUser({
 			provider: "better-auth",
 			subject: session.user.id,
 		});
-
-		request.authenticatedUser = toUserDTO({ appUser });
 	});
 
 	done();

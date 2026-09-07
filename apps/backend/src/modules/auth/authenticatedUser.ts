@@ -1,7 +1,7 @@
-import type { User } from "@notetaker-v2/contracts";
 import type { FastifyRequest } from "fastify";
+import type { AppUser } from "../../database/schema/appUsers.ts";
 
-export function getAuthenticatedUser(request: FastifyRequest): User {
+export function getAuthenticatedUser(request: FastifyRequest): AppUser {
 	if (!request.authenticatedUser) {
 		throw new Error("Expected authenticated request.");
 	}

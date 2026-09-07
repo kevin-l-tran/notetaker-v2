@@ -1,11 +1,11 @@
 import type { AuthIdentity, AuthProviders } from "../../database/schema/authIdentities.ts";
-import type { Database } from "../../database/types.ts";
-import { createUserRepository } from "../users/user.repository.ts";
+import type { ServiceContext } from "../../shared/services/serviceContext.ts";
+import { createUserService } from "../users/user.service.ts";
 import { createAuthIdentityRepository } from "./authIdentity.repository.ts";
 
-export function createAuthService(database: Database) {
-	const userRepo = createUserRepository(database);
-	const authIdentityRepo = createAuthIdentityRepository(database);
+export function createAuthService(context: ServiceContext) {
+	const userService = createUserService(context);
+	const authIdentityRepo = createAuthIdentityRepository(context.database);
 
 	return {
 		async ensureAuthenticatedUser(input: {
@@ -18,11 +18,11 @@ export function createAuthService(database: Database) {
 			});
 
 			if (authIdentity === undefined) {
-				await database.transaction(async (tx) => {
-					const txUserRepo = createUserRepository(tx);
-					const txAuthIdentityRepo = createAuthIdentityRepository(tx);
+				await context.transaction(async (transactionContext) => {
+					const txUserService = createUserService(transactionContext);
+					const txAuthIdentityRepo = createAuthIdentityRepository(transactionContext.database);
 
-					const newUser = await txUserRepo.create();
+					const newUser = await txUserService.createUser();
 
 					await txAuthIdentityRepo.create({
 						appUserId: newUser.id,
@@ -43,10 +43,11 @@ export function createAuthService(database: Database) {
 			});
 			if (!authIdentity) throw new Error("Expected auth identity to exist.");
 
-			const user = await userRepo.findById({ id: authIdentity.appUserId });
-			if (!user) throw new Error("Could not find user.");
-
-			return user;
+			try {
+				return await userService.getUserById({ id: authIdentity.appUserId });
+			} catch {
+				throw new Error("Expected user to exist."); // db invariant violation
+			}
 		},
 	};
 }

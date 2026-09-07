@@ -3,9 +3,11 @@ import { betterAuth } from "better-auth";
 import { env } from "../../config/env.ts";
 import { db } from "../../database/client.ts";
 import * as authSchema from "../../database/schema/auth.ts";
+import { createServiceContext } from "../../shared/services/serviceContext.ts";
 import { createAuthService } from "./auth.service.ts";
 
-const userService = createAuthService(db);
+const serviceContext = createServiceContext(db);
+const authService = createAuthService(serviceContext);
 
 const auth = betterAuth({
 	database: drizzleAdapter(db, {
@@ -16,7 +18,7 @@ const auth = betterAuth({
 		session: {
 			create: {
 				before: async (session) => {
-					await userService.ensureAuthenticatedUser({
+					await authService.ensureAuthenticatedUser({
 						provider: "better-auth",
 						subject: session.userId,
 					});
