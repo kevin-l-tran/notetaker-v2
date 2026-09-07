@@ -5,7 +5,6 @@ export const ERROR_CODES = [
 	"VALIDATION_ERROR",
 	"UNAUTHORIZED",
 	"FORBIDDEN",
-	"CONFLICT",
 	"INTERNAL_SERVER_ERROR",
 
 	// user errors
@@ -15,6 +14,6 @@ export const ERROR_CODES = [
 export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;
 export const ApiErrorResponseSchema = z.object({
 	code: z.enum(ERROR_CODES),
-	message: z.string().optional(),
+	message: z.string(),
 	details: z.record(z.string(), z.unknown()).optional(),
 });
