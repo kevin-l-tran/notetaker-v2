@@ -1,4 +1,5 @@
 import type { AuthIdentity, AuthProviders } from "../../database/schema/authIdentities.ts";
+import { InvariantError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { createUserService } from "../users/user.service.ts";
 import { createAuthIdentityRepository } from "./authIdentity.repository.ts";
@@ -41,13 +42,17 @@ export function createAuthService(context: ServiceContext) {
 				provider: input.provider,
 				providerSubject: input.subject,
 			});
-			if (!authIdentity) throw new Error("Expected auth identity to exist.");
+			if (!authIdentity)
+				throw new InvariantError(
+					"Authenticated identity does not have an application identity mapping.",
+				);
 
-			try {
-				return await userService.getUserById({ id: authIdentity.appUserId });
-			} catch {
-				throw new Error("Expected user to exist."); // db invariant violation
+			const user = await userService.findUserById({ id: authIdentity.appUserId });
+			if (!user) {
+				throw new InvariantError("Authentication identity does not have a user mapping.");
 			}
+
+			return user;
 		},
 	};
 }

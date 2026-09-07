@@ -34,8 +34,8 @@ export class BadRequestError extends AppError {
 }
 
 export class UnauthorizedError extends AppError {
-	constructor(message: string, details?: Record<string, unknown>, options?: ErrorOptions) {
-		super("UNAUTHORIZED", message, 401, details, options);
+	constructor(details?: Record<string, unknown>, options?: ErrorOptions) {
+		super("UNAUTHORIZED", "Authentication required.", 401, details, options);
 	}
 }
 
@@ -64,5 +64,11 @@ export class ConflictError extends AppError {
 		options?: ErrorOptions,
 	) {
 		super(code, message, 409, details, options);
+	}
+}
+
+export class InvariantError extends AppError {
+	constructor(message: string, details?: Record<string, unknown>, options?: ErrorOptions) {
+		super("INTERNAL_SERVER_ERROR", message, 500, details, options);
 	}
 }

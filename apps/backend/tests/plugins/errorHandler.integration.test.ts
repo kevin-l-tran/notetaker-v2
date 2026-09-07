@@ -17,7 +17,7 @@ describe("errorHandler", () => {
 		});
 
 		app.get("/unauthorized", () => {
-			throw new UnauthorizedError("Authentication required.");
+			throw new UnauthorizedError();
 		});
 
 		app.post(

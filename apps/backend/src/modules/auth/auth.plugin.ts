@@ -1,11 +1,16 @@
 import { fromNodeHeaders } from "better-auth/node";
-import type { FastifyPluginCallback, FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyPluginCallback, FastifyReply } from "fastify";
 import fp from "fastify-plugin";
-import { db } from "../../database/client.ts";
 import type { AppUser } from "../../database/schema/appUsers.ts";
-import { createServiceContext } from "../../shared/services/serviceContext.ts";
+import { UnauthorizedError } from "../../shared/errors/appError.ts";
+import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { createAuthService } from "./auth.service.ts";
-import auth from "./betterAuth.ts";
+import type { Auth } from "./createAuth.ts";
+
+interface AuthenticationOptions {
+	serviceContext: ServiceContext;
+	auth: Auth;
+}
 
 declare module "fastify" {
 	interface FastifyRequest {
@@ -17,22 +22,18 @@ declare module "fastify" {
 	}
 }
 
-const authentication: FastifyPluginCallback = (app, _options, done) => {
-	const serviceContext = createServiceContext(db);
-	const authService = createAuthService(serviceContext);
+const authentication: FastifyPluginCallback<AuthenticationOptions> = (app, options, done) => {
+	const authService = createAuthService(options.serviceContext);
 
 	app.decorateRequest("authenticatedUser", null);
 
-	app.decorate("requireAuthentication", async (request: FastifyRequest, reply: FastifyReply) => {
-		const session = await auth.api.getSession({
+	app.decorate("requireAuthentication", async (request, _reply) => {
+		const session = await options.auth.api.getSession({
 			headers: fromNodeHeaders(request.headers),
 		});
 
 		if (!session) {
-			await reply.status(401).send({
-				error: "Unauthorized",
-			});
-			return;
+			throw new UnauthorizedError();
 		}
 
 		request.authenticatedUser = await authService.getAuthenticatedUser({
