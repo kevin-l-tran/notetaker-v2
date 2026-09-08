@@ -27,6 +27,7 @@
 		"db:generate": "pnpm --dir apps/backend db:generate",
 		"db:logs": "docker compose logs -f postgres",
 		"db:migrate": "pnpm --dir apps/backend db:migrate",
+		"db:migrate:test": "pnpm --dir apps/backend db:migrate:test",
 		"db:reset": "docker compose down -v && docker compose up -d postgres",
 		"db:restart": "docker compose restart postgres",
 		"db:status": "docker compose ps",
@@ -51,7 +52,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.7",
-		"@playwright/test": "^1.62.1",
+		"@playwright/test": "^1.63.0",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.11"
 	}
