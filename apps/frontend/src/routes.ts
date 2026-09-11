@@ -5,6 +5,6 @@ export default [
 	route("login", "./pages/LoginPage/LoginPage.tsx"),
 
 	layout("./layouts/AuthenticatedLayout/AuthenticatedLayout.tsx", [
-		route("edit", "./pages/EditorPage/EditorPage.tsx"),
+		route("notebooks", "./pages/NotebooksPage/NotebooksPage.tsx"),
 	]),
 ] satisfies RouteConfig;
