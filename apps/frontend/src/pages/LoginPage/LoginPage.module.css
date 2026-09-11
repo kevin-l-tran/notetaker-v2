@@ -50,6 +50,8 @@
 }
 
 .error {
+	margin-top: var(--space-2);
+	font-weight: var(--font-weight-regular);
 	color: var(--text-warning);
 }
 
