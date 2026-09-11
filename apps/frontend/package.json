@@ -8,6 +8,7 @@
 		"dev": "react-router dev",
 		"lint": "oxlint",
 		"preview": "vite preview",
+		"test": "vitest run",
 		"typecheck": "react-router typegen && tsc -b"
 	},
 	"dependencies": {

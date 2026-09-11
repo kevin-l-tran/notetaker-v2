@@ -15,6 +15,7 @@ export default function LoginPage() {
 	const onSubmit = async ({ email, password }: { email: string; password: string }) => {
 		setIsSubmitting(true);
 		setErrors({});
+		setFormError("");
 
 		try {
 			const result = await authClient.signIn.email({ email, password });
