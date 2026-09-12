@@ -11,6 +11,9 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
+		minPasswordLength: 8,
+		maxPasswordLength: 128,
+		autoSignIn: true,
 	},
 
 	baseURL: env.BETTER_AUTH_URL,

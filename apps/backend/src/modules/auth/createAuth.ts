@@ -29,6 +29,9 @@ export function createAuth(input: { database: Database; context: ServiceContext 
 		},
 		emailAndPassword: {
 			enabled: true,
+			minPasswordLength: 8,
+			maxPasswordLength: 128,
+			autoSignIn: true,
 		},
 
 		baseURL: env.BETTER_AUTH_URL,
