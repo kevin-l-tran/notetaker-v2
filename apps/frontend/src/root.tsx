@@ -1,5 +1,8 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { ReactNode } from "react";
 import { Outlet, Scripts, ScrollRestoration } from "react-router";
+import queryClient from "./data/queryClient";
 import "./index.css";
 import "./tokens.css";
 
@@ -26,5 +29,10 @@ export function HydrateFallback() {
 }
 
 export default function Root() {
-	return <Outlet />;
+	return (
+		<QueryClientProvider client={queryClient}>
+			<Outlet />
+			<ReactQueryDevtools initialIsOpen={false} />
+		</QueryClientProvider>
+	);
 }
