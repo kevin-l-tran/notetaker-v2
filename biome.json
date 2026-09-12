@@ -52,6 +52,7 @@
 			"react": "recommended",
 			"project": "recommended",
 			"test": "recommended",
+			"drizzle": "recommended",
 			"playwright": "recommended",
 			"types": "recommended"
 		},
