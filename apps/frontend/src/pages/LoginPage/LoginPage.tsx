@@ -1,9 +1,19 @@
 import { Button, Field, Form } from "@base-ui/react";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { redirect, useNavigate } from "react-router";
 import { authClient } from "../../data/auth/authClient";
 import { mapAuthError } from "../../data/auth/authErrors";
 import styles from "./LoginPage.module.css";
+
+export async function clientLoader() {
+	const { data: session } = await authClient.getSession();
+
+	if (session) {
+		return redirect("/notebooks");
+	}
+
+	return null;
+}
 
 export default function LoginPage() {
 	const [errors, setErrors] = useState<Form.Props["errors"]>({});
