@@ -1,0 +1,74 @@
+.page {
+	min-height: 100vh;
+	display: grid;
+	place-items: center;
+	background: var(--background);
+}
+
+.card {
+	box-sizing: border-box;
+	width: min(100%, 26rem);
+	padding: var(--space-11);
+	background: var(--surface-1);
+	border: var(--border-width-1) solid var(--border-default);
+	border-radius: var(--radius-6);
+	box-shadow: var(--shadow-2);
+}
+
+.header {
+	margin-bottom: var(--space-10);
+}
+
+.subtitle {
+	color: var(--text-muted);
+	font-size: var(--font-size-2);
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-7);
+	font-size: var(--font-size-2);
+	font-weight: var(--font-weight-medium);
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+}
+
+.label {
+	color: var(--text-primary);
+	margin-bottom: var(--space-4);
+}
+
+.input {
+	border: 1px solid var(--border-default);
+	border-radius: var(--radius-3);
+	padding: var(--space-4);
+	font-weight: var(--font-weight-regular);
+}
+
+.error {
+	margin-top: var(--space-2);
+	font-weight: var(--font-weight-regular);
+	color: var(--text-warning);
+}
+
+.submit {
+	margin-top: var(--space-5);
+	background: var(--primary-background);
+	color: var(--primary-text);
+	border: 0;
+	border-radius: var(--radius-3);
+	padding: var(--space-5);
+	cursor: pointer;
+}
+
+.submit:hover {
+	background: var(--primary-background-hover);
+}
+
+.submit:active {
+	background: var(--primary-background-active);
+}

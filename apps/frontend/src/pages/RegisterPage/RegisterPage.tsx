@@ -2,8 +2,8 @@ import { Button, Field, Form } from "@base-ui/react";
 import { useState } from "react";
 import { replace, useNavigate } from "react-router";
 import { authClient } from "../../data/auth/authClient";
-import { mapSignInError } from "../../data/auth/authErrors";
-import styles from "./LoginPage.module.css";
+import { mapSignUpError } from "../../data/auth/authErrors";
+import styles from "./RegisterPage.module.css";
 
 export async function clientLoader() {
 	const { data: session } = await authClient.getSession();
@@ -15,7 +15,7 @@ export async function clientLoader() {
 	return null;
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
 	const [formError, setFormError] = useState<string>("");
 	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -26,16 +26,16 @@ export default function LoginPage() {
 		setFormError("");
 
 		try {
-			const result = await authClient.signIn.email({ email, password });
+			const result = await authClient.signUp.email({ email, password, name: email });
 
 			if (result.error) {
-				const mappedError = mapSignInError(result.error);
+				const mappedError = mapSignUpError(result.error);
 				setFormError(mappedError.message);
 			} else {
 				navigate("/notebooks", { replace: true });
 			}
 		} catch {
-			setFormError("Unable to sign in. Please try again.");
+			setFormError("Unable to create an account. Please try again.");
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -45,8 +45,8 @@ export default function LoginPage() {
 		<main className={styles.page}>
 			<div className={styles.card}>
 				<header className={styles.header}>
-					<h1>Sign in</h1>
-					<p className={styles.subtitle}>Continue to your notebooks.</p>
+					<h1>Create an account</h1>
+					<p className={styles.subtitle}>Start creating notebooks.</p>
 				</header>
 
 				<Form onFormSubmit={onSubmit} className={styles.form}>
@@ -60,7 +60,9 @@ export default function LoginPage() {
 						<Field.Label className={styles.label}>Password</Field.Label>
 						<Field.Control
 							type="password"
-							autoComplete="current-password"
+							autoComplete="new-password"
+							minLength={8}
+							maxLength={128}
 							required
 							className={styles.input}
 						/>
@@ -74,7 +76,7 @@ export default function LoginPage() {
 					)}
 
 					<Button type="submit" disabled={isSubmitting} className={styles.submit}>
-						{isSubmitting ? "Signing in..." : "Sign in"}
+						{isSubmitting ? "Creating account..." : "Create account"}
 					</Button>
 				</Form>
 			</div>
