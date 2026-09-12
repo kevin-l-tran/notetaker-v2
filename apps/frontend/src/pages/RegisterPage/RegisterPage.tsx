@@ -1,6 +1,6 @@
 import { Button, Field, Form } from "@base-ui/react";
 import { useState } from "react";
-import { replace, useNavigate } from "react-router";
+import { Link, replace, useNavigate } from "react-router";
 import { authClient } from "../../data/auth/authClient";
 import { mapSignUpError } from "../../data/auth/authErrors";
 import styles from "./RegisterPage.module.css";
@@ -79,6 +79,13 @@ export default function RegisterPage() {
 						{isSubmitting ? "Creating account..." : "Create account"}
 					</Button>
 				</Form>
+
+				<p className={styles.disclaimer}>
+					Already have an account?{" "}
+					<Link to="/login" className={styles.link}>
+						Log in
+					</Link>
+				</p>
 			</div>
 		</main>
 	);

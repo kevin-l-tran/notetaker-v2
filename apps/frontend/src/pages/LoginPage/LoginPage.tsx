@@ -1,6 +1,6 @@
 import { Button, Field, Form } from "@base-ui/react";
 import { useState } from "react";
-import { replace, useNavigate } from "react-router";
+import { Link, replace, useNavigate } from "react-router";
 import { authClient } from "../../data/auth/authClient";
 import { mapSignInError } from "../../data/auth/authErrors";
 import styles from "./LoginPage.module.css";
@@ -77,6 +77,13 @@ export default function LoginPage() {
 						{isSubmitting ? "Signing in..." : "Sign in"}
 					</Button>
 				</Form>
+
+				<p className={styles.disclaimer}>
+					Don't have an account?{" "}
+					<Link to="/register" className={styles.link}>
+						Register
+					</Link>
+				</p>
 			</div>
 		</main>
 	);

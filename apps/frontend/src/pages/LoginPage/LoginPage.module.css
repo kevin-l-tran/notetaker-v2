@@ -72,3 +72,13 @@
 .submit:active {
 	background: var(--primary-background-active);
 }
+
+.disclaimer {
+	margin-top: var(--space-4);
+	text-align: center;
+	color: var(--text-muted);
+}
+
+.link {
+	color: var(--text-primary);
+}
