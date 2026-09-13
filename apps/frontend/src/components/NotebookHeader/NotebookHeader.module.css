@@ -1,6 +1,10 @@
 .header {
 	background-color: var(--surface-1);
 	border-bottom: var(--border-width-1) solid;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-inline: var(--space-4);
 }
 
 .navigation {
@@ -8,4 +12,12 @@
 	align-items: center;
 	gap: var(--space-14);
 	margin-block: var(--space-4);
+}
+
+.logout {
+	font-size: var(--font-size-3);
+	margin-block: var(--space-4);
+	background: none;
+	border: none;
+	cursor: pointer;
 }

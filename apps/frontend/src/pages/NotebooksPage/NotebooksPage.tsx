@@ -1,3 +1,10 @@
+import NotebookHeader from "../../components/NotebookHeader/NotebookHeader";
+
 export default function NotebooksPage() {
-	return <div>Notebooks page</div>;
+	return (
+		<div>
+			<NotebookHeader />
+			Notebooks page
+		</div>
+	);
 }
