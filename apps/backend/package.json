@@ -16,6 +16,7 @@
 		"db:migrate:test": "dotenv -e .env.test -- drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
 		"dev": "tsx watch --env-file=.env src/server.ts",
+		"e2e": "tsx watch --env-file=.env.test src/server.ts",
 		"start": "node dist/server.js",
 		"test": "vitest run",
 		"test:watch": "vitest",
