@@ -17,7 +17,7 @@
 			"!!**/.vite",
 			"!!**/.react-router",
 			"!!**/playwright-report",
-			"!!**/test-results"
+			"!!**/test_results"
 		]
 	},
 	"formatter": {
