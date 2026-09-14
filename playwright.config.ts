@@ -35,7 +35,7 @@ export default defineConfig({
 	webServer: [
 		{
 			name: "Backend",
-			command: "pnpm --filter @notetaker-v2/backend e2e",
+			command: "pnpm --filter @notetaker-v2/backend dev:e2e",
 			url: "http://localhost:3000/api/health",
 			reuseExistingServer: !process.env.CI,
 			timeout: 120000,
