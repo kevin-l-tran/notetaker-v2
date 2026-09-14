@@ -6,6 +6,8 @@
 	"scripts": {
 		"build": "react-router build",
 		"dev": "react-router dev",
+		"dev:e2e": "dotenv -e .env.e2e -- react-router dev --mode e2e --port 5174",
+		"dev:test": "dotenv -e .env.test -- react-router dev --mode test --port 5175",
 		"lint": "oxlint",
 		"preview": "vite preview",
 		"test": "vitest run",
@@ -47,6 +49,7 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.4",
 		"babel-plugin-react-compiler": "^1.0.0",
+		"dotenv-cli": "^11.0.0",
 		"jsdom": "^30.0.1",
 		"typescript": "^6.0.3",
 		"typescript-plugin-css-modules": "^5.2.0",

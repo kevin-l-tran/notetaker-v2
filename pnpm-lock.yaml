@@ -17,6 +17,15 @@ importers:
       '@types/node':
         specifier: ^26.5.1
         version: 26.5.1
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
+      dotenv-cli:
+        specifier: ^11.0.0
+        version: 11.0.0
+      pg:
+        specifier: ^8.23.0
+        version: 8.23.0
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -205,6 +214,9 @@ importers:
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
+      dotenv-cli:
+        specifier: ^11.0.0
+        version: 11.0.0
       jsdom:
         specifier: ^30.0.1
         version: 30.0.1(@noble/hashes@2.4.0)

@@ -26,6 +26,7 @@ try {
 	await client.connect();
 
 	await client.query("DROP SCHEMA public CASCADE");
+	await client.query("DROP SCHEMA drizzle CASCADE");
 	await client.query("CREATE SCHEMA public");
 } finally {
 	await client.end();

@@ -11,7 +11,7 @@ export default defineConfig({
 	retries: process.env.CI ? 2 : 0, // do not retry in local dev
 
 	use: {
-		baseURL: "http://localhost:5173",
+		baseURL: "http://localhost:5174",
 		trace: "on-first-retry",
 		screenshot: "only-on-failure",
 		video: "retain-on-failure",
@@ -36,15 +36,15 @@ export default defineConfig({
 		{
 			name: "Backend",
 			command: "pnpm --filter @notetaker-v2/backend dev:e2e",
-			url: "http://localhost:3000/api/health",
-			reuseExistingServer: !process.env.CI,
+			url: "http://localhost:3001/api/health",
+			reuseExistingServer: false,
 			timeout: 120000,
 		},
 		{
 			name: "Frontend",
-			command: "pnpm --filter @notetaker-v2/frontend dev",
-			url: "http://localhost:5173",
-			reuseExistingServer: !process.env.CI,
+			command: "pnpm --filter @notetaker-v2/frontend dev:e2e",
+			url: "http://localhost:5174",
+			reuseExistingServer: false,
 			timeout: 120000,
 		},
 	],
