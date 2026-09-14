@@ -15,6 +15,7 @@
 		"db:migrate": "dotenv -e .env -- drizzle-kit migrate",
 		"db:migrate:e2e": "dotenv -e .env.e2e -- drizzle-kit migrate",
 		"db:migrate:test": "dotenv -e .env.test -- drizzle-kit migrate",
+		"db:reset:e2e": "tsx --env-file=.env.e2e scripts/resetE2EDatabase.ts && pnpm run db:migrate:e2e",
 		"db:studio": "drizzle-kit studio",
 		"dev": "tsx watch --env-file=.env src/server.ts",
 		"e2e": "tsx watch --env-file=.env.test src/server.ts",

@@ -146,4 +146,4 @@ vite.config.ts.timestamp-*
 .vscode
 
 # Playwright test results
-e2e/test-results/
+e2e/test_results/

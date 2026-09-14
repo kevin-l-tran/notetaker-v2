@@ -2,7 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
 	testDir: "./e2e",
-	outputDir: "./e2e/test-results",
+	outputDir: "./e2e/test_results",
+	globalSetup: "./e2e/globalSetup.ts",
 
 	fullyParallel: false,
 	workers: 1, // db doesn't support per-worker isolation yet
