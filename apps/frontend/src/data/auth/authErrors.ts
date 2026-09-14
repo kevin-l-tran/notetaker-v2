@@ -40,7 +40,7 @@ const signInErrorMap = {
 } satisfies Partial<Record<keyof typeof authClient.$ERROR_CODES, AuthError>>;
 
 const signUpErrorMap = {
-	USER_ALREADY_EXISTS: {
+	USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: {
 		kind: "user_already_exists",
 		message: "An account with this email already exists.",
 	},

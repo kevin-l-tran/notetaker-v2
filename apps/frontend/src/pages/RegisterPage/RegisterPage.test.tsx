@@ -133,7 +133,7 @@ describe("RegisterPage", () => {
 			signUpEmail.mockResolvedValue({
 				data: null,
 				error: {
-					code: "USER_ALREADY_EXISTS",
+					code: "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",
 					status: 401,
 				},
 			});
