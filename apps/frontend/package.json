@@ -6,6 +6,7 @@
 	"scripts": {
 		"build": "react-router build",
 		"dev": "react-router dev",
+		"dev:e2e": "react-router dev --mode e2e --port 5174 --strictPort",
 		"dev:test": "dotenv -e .env.test -- react-router dev --mode test --port 5175",
 		"lint": "oxlint",
 		"preview": "vite preview",

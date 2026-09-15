@@ -11,7 +11,6 @@ export default defineConfig({
 	retries: process.env.CI ? 2 : 0, // do not retry in local dev
 
 	use: {
-		baseURL: "http://localhost:5174",
 		trace: "on-first-retry",
 		screenshot: "only-on-failure",
 		video: "retain-on-failure",

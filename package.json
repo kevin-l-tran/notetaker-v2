@@ -52,12 +52,11 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.5.7",
 		"@playwright/test": "^1.63.0",
-		"@types/http-proxy": "^1.17.17",
 		"@types/node": "^26.5.1",
 		"@types/pg": "^8.23.1",
 		"dotenv-cli": "^11.0.0",
 		"drizzle-orm": "1.0.0-rc.4",
-		"http-proxy": "^1.18.1",
+		"httpxy": "^0.5.5",
 		"pg": "^8.23.0",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.11"

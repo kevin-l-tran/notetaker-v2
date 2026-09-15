@@ -1,17 +1,21 @@
 import { type ChildProcess, execFile, spawn } from "node:child_process";
 import { once } from "node:events";
+import { createServer, type Server } from "node:http";
 import { createRequire } from "node:module";
+import type { Socket } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { test as base, expect } from "@playwright/test";
+import { createProxyServer } from "httpxy";
 import { clearDatabaseRows } from "./helpers/clearDatabaseRows";
 
 const execFileAsync = promisify(execFile);
 
 const DATABASE_PREFIX = "notetaker-e2e";
-const BACKEND_PORT_BASE = 3100;
 const FRONTEND_URL = "http://localhost:5174";
+const BACKEND_PORT_BASE = 3100;
+const PROXY_PORT_BASE = 5200;
 const BACKEND_DIR = fileURLToPath(new URL("../apps/backend/", import.meta.url));
 
 const backendRequire = createRequire(path.join(BACKEND_DIR, "package.json"));
@@ -20,13 +24,12 @@ const TSX_CLI = backendRequire.resolve("tsx/cli");
 type WorkerFixtures = {
 	databaseUrl: string;
 	backendUrl: string;
+	proxyUrl: string;
 };
 
 type TestFixtures = {
 	// biome-ignore lint/suspicious/noConfusingVoidType: is param type
 	resetDatabase: void;
-	// biome-ignore lint/suspicious/noConfusingVoidType: is param type
-	routeApi: void;
 };
 
 function getDatabaseUrl(slot: number) {
@@ -58,6 +61,77 @@ function startBackend(port: number, databaseUrl: string, backendUrl: string, fro
 		shell: false,
 		detached: process.platform !== "win32",
 	});
+}
+
+async function startProxy(port: number, backendUrl: string, frontendUrl: string) {
+	const proxy = createProxyServer({
+		ws: true,
+	});
+
+	function isConnectionReset(error: unknown) {
+		return (
+			error instanceof Error &&
+			"code" in error &&
+			(error as NodeJS.ErrnoException).code === "ECONNRESET"
+		);
+	}
+
+	const server = createServer(async (request, response) => {
+		const target = request.url?.startsWith("/api/") ? backendUrl : frontendUrl;
+
+		try {
+			await proxy.web(request, response, {
+				target,
+				changeOrigin: false,
+			});
+		} catch (error) {
+			if (isConnectionReset(error)) {
+				return;
+			}
+
+			console.error("Proxy request failed:", error);
+
+			if (!response.headersSent && !response.destroyed) {
+				response.writeHead(502);
+				response.end("Bad Gateway");
+			} else if (!response.destroyed) {
+				response.destroy();
+			}
+		}
+	});
+
+	server.on("upgrade", async (request, socket, head) => {
+		const target = request.url?.startsWith("/api/") ? backendUrl : frontendUrl;
+
+		try {
+			await proxy.ws(
+				request,
+				socket as Socket,
+				{
+					target,
+					changeOrigin: false,
+				},
+				head,
+			);
+		} catch (error) {
+			if (isConnectionReset(error)) {
+				return;
+			}
+
+			console.error("WebSocket proxy failed:", error);
+
+			if (!socket.destroyed) {
+				socket.destroy();
+			}
+		}
+	});
+
+	await new Promise<void>((resolve, reject) => {
+		server.once("error", reject);
+		server.listen(port, "localhost", resolve);
+	});
+
+	return server;
 }
 
 async function stopProcess(child: ChildProcess) {
@@ -112,6 +186,18 @@ async function waitForServer(url: string, child: ChildProcess, timeout = 30_000)
 	throw new Error(`Timed out waiting for ${url}`);
 }
 
+async function stopServer(server: Server) {
+	await new Promise<void>((resolve, reject) => {
+		server.close((error) => {
+			if (error) {
+				reject(error);
+			} else {
+				resolve();
+			}
+		});
+	});
+}
+
 export const test = base.extend<TestFixtures, WorkerFixtures>({
 	databaseUrl: [
 		// biome-ignore lint/correctness/noEmptyPattern: destructured param is required
@@ -123,10 +209,13 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
 	backendUrl: [
 		async ({ databaseUrl }, use, workerInfo) => {
-			const port = BACKEND_PORT_BASE + workerInfo.parallelIndex;
-			const backendUrl = `http://localhost:${port}`;
+			const backendPort = BACKEND_PORT_BASE + workerInfo.parallelIndex;
+			const backendUrl = `http://localhost:${backendPort}`;
 
-			const backend = startBackend(port, databaseUrl, backendUrl, FRONTEND_URL);
+			const proxyPort = PROXY_PORT_BASE + workerInfo.parallelIndex;
+			const frontendUrl = `http://localhost:${proxyPort}`;
+
+			const backend = startBackend(backendPort, databaseUrl, backendUrl, frontendUrl);
 
 			try {
 				await waitForServer(`${backendUrl}/api/health`, backend);
@@ -134,6 +223,22 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 				await use(backendUrl);
 			} finally {
 				await stopProcess(backend);
+			}
+		},
+		{ scope: "worker" },
+	],
+
+	proxyUrl: [
+		async ({ backendUrl }, use, workerInfo) => {
+			const port = PROXY_PORT_BASE + workerInfo.parallelIndex;
+			const proxyUrl = `http://localhost:${port}`;
+
+			const server = await startProxy(port, backendUrl, FRONTEND_URL);
+
+			try {
+				await use(proxyUrl);
+			} finally {
+				await stopServer(server);
 			}
 		},
 		{ scope: "worker" },
@@ -147,26 +252,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 		{ auto: true },
 	],
 
-	routeApi: [
-		async ({ context, backendUrl }, use) => {
-			const route = await context.route("**/api/**", async (route) => {
-				const requestUrl = new URL(route.request().url());
-
-				const backendRequestUrl = new URL(requestUrl.pathname + requestUrl.search, backendUrl);
-
-				const response = await route.fetch({
-					url: backendRequestUrl.toString(),
-				});
-
-				await route.fulfill({ response });
-			});
-
-			await use();
-
-			await route.dispose();
-		},
-		{ auto: true },
-	],
+	baseURL: async ({ proxyUrl }, use) => {
+		await use(proxyUrl);
+	},
 });
 
 export { expect };
