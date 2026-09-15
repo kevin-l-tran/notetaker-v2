@@ -1,12 +1,6 @@
 import { Client } from "pg";
 
-export async function clearDatabaseRows() {
-	const connectionString = process.env.E2E_DATABASE_URL;
-
-	if (!connectionString) {
-		throw new Error("E2E_DATABASE_URL is not defined");
-	}
-
+export async function clearDatabaseRows(connectionString: string) {
 	const client = new Client({ connectionString });
 
 	await client.connect();

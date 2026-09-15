@@ -1,5 +1,5 @@
-import { expect, type Page, test } from "@playwright/test";
-import { clearDatabaseRows } from "./helpers/clearDatabaseRows";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const PASSWORD = "TestPassword123!";
 
@@ -32,10 +32,6 @@ async function logout(page: Page) {
 }
 
 test.describe("authentication", () => {
-	test.beforeEach(async () => {
-		await clearDatabaseRows();
-	});
-
 	test("registers and persists the session across a page reload", async ({ page }) => {
 		const email = createEmail();
 
