@@ -21,8 +21,34 @@ env:
   PNPM_VERSION: "11.24.0"
 
 jobs:
-  validate:
-    name: Validate
+  static-checks:
+    name: Static Checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm and Node
+        uses: pnpm/setup@v1
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          runtime: node@${{ env.NODE_VERSION }}
+          cache: true
+          install: true
+
+      - name: Run Biome checks
+        run: pnpm check:ci
+
+      - name: Type-check workspaces
+        run: pnpm typecheck
+
+      - name: Build production packages
+        run: pnpm build
+
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
@@ -52,25 +78,75 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
-      - name: Set up pnpm and node
-        uses: pnpm/setup@v2
+      - name: Set up pnpm and Node
+        uses: pnpm/setup@v1
         with:
-          version: 11
-          runtime: node@26
+          version: ${{ env.PNPM_VERSION }}
+          runtime: node@${{ env.NODE_VERSION }}
           cache: true
           install: true
-
-      - name: Run Biome checks
-        run: pnpm check:ci
-
-      - name: Type-check workspaces
-        run: pnpm typecheck
 
       - name: Run database migrations
         run: pnpm --filter @notetaker-v2/backend db:migrate
 
       - name: Run unit and integration tests
-        run: pnpm exec vitest run
+        run: pnpm test
 
-      - name: Build production packages
-        run: pnpm build
+  e2e-tests:
+    name: E2E Tests
+    needs:
+      - static-checks
+      - unit-tests
+
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: notetaker_ci
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: notetaker_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U notetaker_ci -d notetaker_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      E2E_DATABASE_URL: postgresql://notetaker_ci:password@localhost:5432/postgres
+      E2E_WORKERS: "3"
+      BETTER_AUTH_SECRET: some-long-random-secret-at-least-32-characters
+      BETTER_AUTH_URL: http://localhost:3000
+      FRONTEND_URL: http://localhost:5174
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm and Node
+        uses: pnpm/setup@v1
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          runtime: node@${{ env.NODE_VERSION }}
+          cache: true
+          install: true
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run E2E tests
+        run: pnpm exec playwright test
+
+      - name: Upload Playwright test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-test-results
+          path: e2e/test_results/
+          if-no-files-found: ignore
+          retention-days: 14
