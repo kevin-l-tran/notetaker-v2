@@ -1,14 +1,15 @@
 import z from "zod";
 
 export type Notebook = z.infer<typeof NotebookSchema>;
+export type NotebookSettings = z.infer<typeof NotebookSettingsSchema>;
 
-export const NotebookSettings = z.object({});
+export const NotebookSettingsSchema = z.object({});
 
 export const NotebookSchema = z.object({
 	id: z.uuid(),
 	title: z.string(),
 	description: z.string().optional(),
-	settings: NotebookSettings,
+	settings: NotebookSettingsSchema,
 	createdAt: z.iso.datetime(),
 	updatedAt: z.iso.datetime(),
 });
