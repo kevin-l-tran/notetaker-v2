@@ -1,12 +1,12 @@
 import { and, eq } from "drizzle-orm";
-import { type AppUser, appUsers } from "../../../database/schema/appUsers.ts";
+import { type AppUser, appUsers } from "../../database/schema/appUsers.ts";
 import {
 	type NewNotebookMember,
 	type NotebookMember,
 	notebookMembers,
-} from "../../../database/schema/notebookMembers.ts";
-import type { Notebook } from "../../../database/schema/notebooks.ts";
-import type { DatabaseExecutor } from "../../../database/types.ts";
+} from "../../database/schema/notebookMembers.ts";
+import type { Notebook } from "../../database/schema/notebooks.ts";
+import type { DatabaseExecutor } from "../../database/types.ts";
 
 export function createNotebookMemberRepository(database: DatabaseExecutor) {
 	return {
