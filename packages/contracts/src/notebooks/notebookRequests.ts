@@ -5,13 +5,13 @@ export type UpdateNotebookRequest = z.infer<typeof UpdateNotebookRequestSchema>;
 
 export const CreateNotebookRequestSchema = z.object({
 	title: z.string().trim().min(1),
-	description: z.string().optional(),
+	description: z.string().trim().optional(),
 });
 
 export const UpdateNotebookRequestSchema = z
 	.object({
 		title: z.string().trim().min(1),
-		description: z.string(),
+		description: z.string().trim(),
 	})
 	.partial()
 	.refine((data) => Object.keys(data).length > 0, {
