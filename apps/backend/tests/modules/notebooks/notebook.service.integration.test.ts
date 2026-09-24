@@ -32,6 +32,21 @@ describe("notebook service", () => {
 		return notebook;
 	}
 
+	async function createNotebookMembership(
+		userId: string,
+		notebookId: string,
+		role: "owner" | "editor" | "viewer",
+	) {
+		const [membership] = await db
+			.insert(notebookMembers)
+			.values({ appUserId: userId, notebookId, role })
+			.returning();
+
+		if (!membership) throw new Error("Failed to create test membership.");
+
+		return membership;
+	}
+
 	describe("listNotebooksForUser", () => {
 		it("returns all notebooks the user is a member of", async () => {
 			const user = await createUser("User");
@@ -174,7 +189,19 @@ describe("notebook service", () => {
 	});
 
 	describe("getNotebook", () => {
-		it("allows any member to get the notebook");
+		it("allows any member to get the notebook", async () => {
+			for (const role of ["owner", "editor", "viewer"] as const) {
+				const user = await createUser("User");
+				const notebook = await createNotebook("Notebook");
+
+				await createNotebookMembership(user.id, notebook.id, role);
+
+				const result = await service.getNotebook({ appUserId: user.id, notebookId: notebook.id });
+
+				expect(result).toEqual({ ...notebook, role });
+			}
+		});
+
 		it("returns the notebook and the caller's role when the caller is a member");
 		it("rejects callers with no membership");
 	});

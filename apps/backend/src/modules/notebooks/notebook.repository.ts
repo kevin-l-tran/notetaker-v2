@@ -36,13 +36,15 @@ export function createNotebookRepository(database: DatabaseExecutor) {
 		},
 
 		async findByIdForUser(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
-			return await database
+			const res = await database
 				.select({ ...getColumns(notebooks), role: notebookMembers.role })
 				.from(notebooks)
 				.innerJoin(notebookMembers, eq(notebooks.id, notebookMembers.notebookId))
 				.where(
 					and(eq(notebookMembers.appUserId, input.appUserId), eq(notebooks.id, input.notebookId)),
 				);
+
+			return res[0];
 		},
 
 		async create(input: { title: NewNotebook["title"]; description: NewNotebook["description"] }) {
