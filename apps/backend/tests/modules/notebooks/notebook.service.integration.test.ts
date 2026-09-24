@@ -232,11 +232,107 @@ describe("notebook service", () => {
 	});
 
 	describe("updateNotebook", () => {
-		it("allows the owner to update the title");
-		it("allows the owner to update the description");
-		it("allows the owner to update both");
-		it("allows the owner to clear the description");
-		it("preserves fields omitted from the input");
+		it("allows the owner to update the title", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title", description: "Description" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.updateNotebook({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				data: { title: "New Title" },
+			});
+
+			const updatedNotebook = await notebookRepo.findById({ id: result.id });
+
+			expect(updatedNotebook?.title).toEqual("New Title");
+		});
+
+		it("allows the owner to update the description", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title", description: "Description" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.updateNotebook({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				data: { description: "New description" },
+			});
+
+			const updatedNotebook = await notebookRepo.findById({ id: result.id });
+
+			expect(updatedNotebook?.description).toEqual("New description");
+		});
+
+		it("allows the owner to update both", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title", description: "Description" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.updateNotebook({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				data: { title: "New Title", description: "New description" },
+			});
+
+			const updatedNotebook = await notebookRepo.findById({ id: result.id });
+
+			expect(updatedNotebook?.title).toEqual("New Title");
+			expect(updatedNotebook?.description).toEqual("New description");
+		});
+
+		it("allows the owner to clear the description", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title", description: "Description" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.updateNotebook({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				data: { description: null },
+			});
+
+			const updatedNotebook = await notebookRepo.findById({ id: result.id });
+
+			expect(updatedNotebook?.description).toBeNull();
+		});
+
+		it("preserves fields omitted from the input", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title", description: "Description" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.updateNotebook({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				data: { title: "New Title" },
+			});
+
+			const updatedNotebook = await notebookRepo.findById({ id: result.id });
+
+			expect(updatedNotebook?.description).toEqual("Description");
+		});
+
 		it("returns the updated notebook");
 		it("doesn't allow non-owners to update notebook metadata");
 		it("returns a NOT_FOUND error when the notebook doesn't exist");
