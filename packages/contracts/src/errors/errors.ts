@@ -9,6 +9,15 @@ export const ERROR_CODES = [
 
 	// user errors
 	"USER_NOT_FOUND",
+
+	// notebook errors
+	"NOTEBOOK_NOT_FOUND",
+
+	// notebook membership error
+	"NOTEBOOK_MEMBERSHIP_NOT_FOUND",
+	"NOTEBOOK_MEMBERSHIP_ALREADY_EXISTS",
+	"INVALID_MEMBERSHIP_ROLE",
+	"UPDATE_SELF_MEMBERSHIP",
 ] as const;
 
 export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;

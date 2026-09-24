@@ -67,6 +67,17 @@ export class ConflictError extends AppError {
 	}
 }
 
+export class InvalidInputError extends AppError {
+	constructor(
+		code: (typeof ERROR_CODES)[number],
+		message: string,
+		details?: Record<string, unknown>,
+		options?: ErrorOptions,
+	) {
+		super(code, message, 422, details, options);
+	}
+}
+
 export class InvariantError extends AppError {
 	constructor(message: string, details?: Record<string, unknown>, options?: ErrorOptions) {
 		super("INTERNAL_SERVER_ERROR", message, 500, details, options);

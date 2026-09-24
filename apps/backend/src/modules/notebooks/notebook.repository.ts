@@ -1,4 +1,4 @@
-import { eq, getColumns } from "drizzle-orm";
+import { and, eq, getColumns } from "drizzle-orm";
 import type { AppUser } from "../../database/schema/appUsers.ts";
 import { notebookMembers } from "../../database/schema/notebookMembers.ts";
 import { type NewNotebook, type Notebook, notebooks } from "../../database/schema/notebooks.ts";
@@ -16,12 +16,33 @@ export function createNotebookRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
+		async findByIdForUpdate(input: { id: Notebook["id"] }) {
+			const res = await database
+				.select()
+				.from(notebooks)
+				.for("update")
+				.where(eq(notebooks.id, input.id))
+				.limit(1);
+
+			return res[0];
+		},
+
 		async findForUser(input: { appUserId: AppUser["id"] }) {
 			return await database
 				.select({ ...getColumns(notebooks), role: notebookMembers.role })
 				.from(notebooks)
 				.innerJoin(notebookMembers, eq(notebooks.id, notebookMembers.notebookId))
 				.where(eq(notebookMembers.appUserId, input.appUserId));
+		},
+
+		async findByIdForUser(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
+			return await database
+				.select({ ...getColumns(notebooks), role: notebookMembers.role })
+				.from(notebooks)
+				.innerJoin(notebookMembers, eq(notebooks.id, notebookMembers.notebookId))
+				.where(
+					and(eq(notebookMembers.appUserId, input.appUserId), eq(notebooks.id, input.notebookId)),
+				);
 		},
 
 		async create(input: { title: NewNotebook["title"]; description: NewNotebook["description"] }) {

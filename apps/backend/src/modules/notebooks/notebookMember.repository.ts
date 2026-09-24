@@ -20,6 +20,18 @@ export function createNotebookMemberRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
+		async findByIdAndNotebook(input: { id: NotebookMember["id"]; notebookId: Notebook["id"] }) {
+			const res = await database
+				.select()
+				.from(notebookMembers)
+				.where(
+					and(eq(notebookMembers.id, input.id), eq(notebookMembers.notebookId, input.notebookId)),
+				)
+				.limit(1);
+
+			return res[0];
+		},
+
 		async findForNotebookWithUsers(input: { notebookId: Notebook["id"] }) {
 			return await database
 				.select()
