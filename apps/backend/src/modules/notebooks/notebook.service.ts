@@ -86,7 +86,7 @@ export function createNotebookService(context: ServiceContext) {
 
 		createNotebook(input: {
 			appUserId: AppUser["id"];
-			data: { title: NewNotebook["title"]; description: NewNotebook["description"] };
+			data: { title: NewNotebook["title"]; description?: NewNotebook["description"] };
 		}) {
 			return context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);

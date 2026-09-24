@@ -47,7 +47,7 @@ export function createNotebookRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
-		async create(input: { title: NewNotebook["title"]; description: NewNotebook["description"] }) {
+		async create(input: { title: NewNotebook["title"]; description?: NewNotebook["description"] }) {
 			const res = await database.insert(notebooks).values(input).returning();
 
 			const newNotebook = res[0];

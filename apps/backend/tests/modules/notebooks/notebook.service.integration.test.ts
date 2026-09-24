@@ -1,13 +1,20 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../../src/database/client.ts";
-import { appUsers } from "../../../src/database/schema/appUsers.ts";
 import { notebookMembers } from "../../../src/database/schema/notebookMembers.ts";
 import { notebooks } from "../../../src/database/schema/notebooks.ts";
+import { createNotebookRepository } from "../../../src/modules/notebooks/notebook.repository.ts";
 import { createNotebookService } from "../../../src/modules/notebooks/notebook.service.ts";
+import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
+import { createUserRepository } from "../../../src/modules/users/user.repository.ts";
+import { ForbiddenError } from "../../../src/shared/errors/appError.ts";
 import { createServiceContext } from "../../../src/shared/services/serviceContext.ts";
 
 describe("notebook service", () => {
 	const service = createNotebookService(createServiceContext(db));
+
+	const userRepo = createUserRepository(db);
+	const notebookRepo = createNotebookRepository(db);
+	const notebookMemberRepo = createNotebookMemberRepository(db);
 
 	beforeEach(async () => {
 		await db.transaction(async (tx) => {
@@ -16,62 +23,29 @@ describe("notebook service", () => {
 		});
 	});
 
-	async function createUser(displayName: string) {
-		const [user] = await db.insert(appUsers).values({ displayName }).returning();
-
-		if (!user) throw new Error("Failed to create test user.");
-
-		return user;
-	}
-
-	async function createNotebook(title: string) {
-		const [notebook] = await db.insert(notebooks).values({ title }).returning();
-
-		if (!notebook) throw new Error("Failed to create test notebook.");
-
-		return notebook;
-	}
-
-	async function createNotebookMembership(
-		userId: string,
-		notebookId: string,
-		role: "owner" | "editor" | "viewer",
-	) {
-		const [membership] = await db
-			.insert(notebookMembers)
-			.values({ appUserId: userId, notebookId, role })
-			.returning();
-
-		if (!membership) throw new Error("Failed to create test membership.");
-
-		return membership;
-	}
-
 	describe("listNotebooksForUser", () => {
 		it("returns all notebooks the user is a member of", async () => {
-			const user = await createUser("User");
-			const owner = await createUser("Owner");
+			const user = await userRepo.create();
+			const owner = await userRepo.create();
 
-			const notebookA = await createNotebook("Notebook A");
-			const notebookB = await createNotebook("Notebook B");
+			const notebookA = await notebookRepo.create({ title: "Notebook A" });
+			const notebookB = await notebookRepo.create({ title: "Notebook B" });
 
-			await db.insert(notebookMembers).values([
-				{
-					appUserId: user.id,
-					notebookId: notebookA.id,
-					role: "owner",
-				},
-				{
-					appUserId: owner.id,
-					notebookId: notebookB.id,
-					role: "owner",
-				},
-				{
-					appUserId: user.id,
-					notebookId: notebookB.id,
-					role: "editor",
-				},
-			]);
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebookA.id,
+				role: "owner",
+			});
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebookB.id,
+				role: "owner",
+			});
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebookB.id,
+				role: "editor",
+			});
 
 			const result = await service.listNotebooksForUser({
 				appUserId: user.id,
@@ -84,24 +58,22 @@ describe("notebook service", () => {
 		});
 
 		it("does not return notebooks the user is not a member of", async () => {
-			const user = await createUser("User");
-			const otherUser = await createUser("Other User");
+			const user = await userRepo.create();
+			const otherUser = await userRepo.create();
 
-			const accessibleNotebook = await createNotebook("Accessible");
-			const inaccessibleNotebook = await createNotebook("Inaccessible");
+			const accessibleNotebook = await notebookRepo.create({ title: "Accessible" });
+			const inaccessibleNotebook = await notebookRepo.create({ title: "Inaccessible" });
 
-			await db.insert(notebookMembers).values([
-				{
-					appUserId: user.id,
-					notebookId: accessibleNotebook.id,
-					role: "owner",
-				},
-				{
-					appUserId: otherUser.id,
-					notebookId: inaccessibleNotebook.id,
-					role: "owner",
-				},
-			]);
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: accessibleNotebook.id,
+				role: "owner",
+			});
+			await notebookMemberRepo.create({
+				appUserId: otherUser.id,
+				notebookId: inaccessibleNotebook.id,
+				role: "owner",
+			});
 
 			const result = await service.listNotebooksForUser({
 				appUserId: user.id,
@@ -112,40 +84,38 @@ describe("notebook service", () => {
 		});
 
 		it("includes the user's role for each notebook", async () => {
-			const user = await createUser("User");
-			const owner = await createUser("Owner");
+			const user = await userRepo.create();
+			const owner = await userRepo.create();
 
-			const ownedNotebook = await createNotebook("Owned");
-			const editableNotebook = await createNotebook("Editable");
-			const viewableNotebook = await createNotebook("Viewable");
+			const ownedNotebook = await notebookRepo.create({ title: "Owned" });
+			const editableNotebook = await notebookRepo.create({ title: "Editable" });
+			const viewableNotebook = await notebookRepo.create({ title: "Viewable" });
 
-			await db.insert(notebookMembers).values([
-				{
-					appUserId: user.id,
-					notebookId: ownedNotebook.id,
-					role: "owner",
-				},
-				{
-					appUserId: owner.id,
-					notebookId: editableNotebook.id,
-					role: "owner",
-				},
-				{
-					appUserId: user.id,
-					notebookId: editableNotebook.id,
-					role: "editor",
-				},
-				{
-					appUserId: owner.id,
-					notebookId: viewableNotebook.id,
-					role: "owner",
-				},
-				{
-					appUserId: user.id,
-					notebookId: viewableNotebook.id,
-					role: "viewer",
-				},
-			]);
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: ownedNotebook.id,
+				role: "owner",
+			});
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: editableNotebook.id,
+				role: "owner",
+			});
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: editableNotebook.id,
+				role: "editor",
+			});
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: viewableNotebook.id,
+				role: "owner",
+			});
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: viewableNotebook.id,
+				role: "viewer",
+			});
 
 			const result = await service.listNotebooksForUser({
 				appUserId: user.id,
@@ -170,11 +140,11 @@ describe("notebook service", () => {
 		});
 
 		it("returns an empty array when the user has no notebook memberships", async () => {
-			const user = await createUser("User");
-			const otherUser = await createUser("Other User");
-			const notebook = await createNotebook("Notebook");
+			const user = await userRepo.create();
+			const otherUser = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Notebook" });
 
-			await db.insert(notebookMembers).values({
+			await notebookMemberRepo.create({
 				appUserId: otherUser.id,
 				notebookId: notebook.id,
 				role: "owner",
@@ -191,10 +161,10 @@ describe("notebook service", () => {
 	describe("getNotebook", () => {
 		it("allows any member to get the notebook", async () => {
 			for (const role of ["owner", "editor", "viewer"] as const) {
-				const user = await createUser("User");
-				const notebook = await createNotebook("Notebook");
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Notebook" });
 
-				await createNotebookMembership(user.id, notebook.id, role);
+				await notebookMemberRepo.create({ appUserId: user.id, notebookId: notebook.id, role });
 
 				const result = await service.getNotebook({ appUserId: user.id, notebookId: notebook.id });
 
@@ -202,12 +172,31 @@ describe("notebook service", () => {
 			}
 		});
 
-		it("returns the notebook and the caller's role when the caller is a member");
-		it("rejects callers with no membership");
+		it("rejects callers with no membership", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Notebook" });
+
+			const getNotebook = async () =>
+				await service.getNotebook({ appUserId: user.id, notebookId: notebook.id });
+
+			expect(getNotebook).rejects.toThrow(
+				new ForbiddenError("Could not find notebook membership."),
+			);
+		});
 	});
 
 	describe("createNotebook", () => {
-		it("creates the notebook with the supplied title and description");
+		it("creates the notebook with the supplied title and description", async () => {
+			const user = await userRepo.create();
+
+			const result = await service.createNotebook({
+				appUserId: user.id,
+				data: { title: "Title", description: "Description" },
+			});
+
+			expect(result.title).toEqual("Title");
+			expect(result.description).toEqual("Description");
+		});
 		it('creates exactly one member for the creator with the "owner" role');
 		it("it returns the notebook and the caller's role");
 		it("rolls back notebook creation if owner membership creation fails");
