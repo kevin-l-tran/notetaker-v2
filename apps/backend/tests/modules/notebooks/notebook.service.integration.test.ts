@@ -176,12 +176,9 @@ describe("notebook service", () => {
 			const user = await userRepo.create();
 			const notebook = await notebookRepo.create({ title: "Notebook" });
 
-			const getNotebook = async () =>
-				await service.getNotebook({ appUserId: user.id, notebookId: notebook.id });
-
-			expect(getNotebook).rejects.toThrow(
-				new ForbiddenError("Could not find notebook membership."),
-			);
+			await expect(
+				service.getNotebook({ appUserId: user.id, notebookId: notebook.id }),
+			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
 		});
 	});
 
@@ -194,13 +191,44 @@ describe("notebook service", () => {
 				data: { title: "Title", description: "Description" },
 			});
 
-			expect(result.title).toEqual("Title");
-			expect(result.description).toEqual("Description");
+			const notebook = await notebookRepo.findById({ id: result.id });
+
+			expect(notebook?.title).toEqual("Title");
+			expect(notebook?.description).toEqual("Description");
+			expect(result.role).toEqual("owner");
 		});
-		it('creates exactly one member for the creator with the "owner" role');
-		it("it returns the notebook and the caller's role");
-		it("rolls back notebook creation if owner membership creation fails");
-		it("leaves no orphan notebook after transaction failure");
+
+		it('creates exactly one member for the creator with the "owner" role', async () => {
+			const user = await userRepo.create();
+
+			const result = await service.createNotebook({
+				appUserId: user.id,
+				data: { title: "Title", description: "Description" },
+			});
+
+			const memberships = await notebookMemberRepo.findForNotebookWithUsers({
+				notebookId: result.id,
+			});
+
+			expect(memberships).toHaveLength(1);
+			expect(memberships[0]?.notebook_members.appUserId).toEqual(user.id);
+			expect(memberships[0]?.notebook_members.role).toEqual("owner");
+		});
+
+		it("rolls back notebook creation if owner membership creation fails", async () => {
+			const nonexistentUserId = crypto.randomUUID();
+
+			await expect(
+				service.createNotebook({
+					appUserId: nonexistentUserId,
+					data: { title: "Title", description: "Description" },
+				}),
+			).rejects.toThrow();
+
+			const dbNotebooks = await db.select().from(notebooks);
+
+			expect(dbNotebooks).toHaveLength(0);
+		});
 	});
 
 	describe("updateNotebook", () => {
