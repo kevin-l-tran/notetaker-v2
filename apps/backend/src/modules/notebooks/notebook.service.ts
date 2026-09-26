@@ -73,21 +73,21 @@ export function createNotebookService(context: ServiceContext) {
 	}
 
 	return {
-		listNotebooksForUser(input: { appUserId: AppUser["id"] }) {
-			return notebookRepo.findForUser(input);
+		async listNotebooksForUser(input: { appUserId: AppUser["id"] }) {
+			return await notebookRepo.findForUser(input);
 		},
 
 		async getNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
 			await requireMembership(notebookMemberRepo, input.appUserId, input.notebookId);
 
-			return notebookRepo.findByIdForUser(input);
+			return await notebookRepo.findByIdForUser(input);
 		},
 
-		createNotebook(input: {
+		async createNotebook(input: {
 			appUserId: AppUser["id"];
 			data: { title: NewNotebook["title"]; description?: NewNotebook["description"] };
 		}) {
-			return context.transaction(async (transactionContext) => {
+			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
@@ -102,12 +102,12 @@ export function createNotebookService(context: ServiceContext) {
 			});
 		},
 
-		updateNotebook(input: {
+		async updateNotebook(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
 			data: { title?: NewNotebook["title"]; description?: NewNotebook["description"] };
 		}) {
-			return context.transaction(async (transactionContext) => {
+			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
@@ -131,8 +131,8 @@ export function createNotebookService(context: ServiceContext) {
 			});
 		},
 
-		deleteNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
-			return context.transaction(async (transactionContext) => {
+		async deleteNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
+			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
@@ -159,7 +159,7 @@ export function createNotebookService(context: ServiceContext) {
 			return notebookMemberRepo.findForNotebookWithUsers({ notebookId: input.notebookId });
 		},
 
-		addNotebookMember(input: {
+		async addNotebookMember(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
 			data: {
@@ -170,7 +170,7 @@ export function createNotebookService(context: ServiceContext) {
 			if (input.data.role === "owner")
 				throw new BadRequestError("INVALID_MEMBERSHIP_ROLE", "Cannot create a new notebook owner.");
 
-			return context.transaction(async (transactionContext) => {
+			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 				const txUserService = createUserService(transactionContext);
@@ -202,7 +202,7 @@ export function createNotebookService(context: ServiceContext) {
 			});
 		},
 
-		updateNotebookMemberRole(input: {
+		async updateNotebookMemberRole(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
 			data: {
@@ -216,7 +216,7 @@ export function createNotebookService(context: ServiceContext) {
 					'Cannot set a member\'s role to "owner".',
 				);
 
-			return context.transaction(async (transactionContext) => {
+			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
@@ -244,12 +244,12 @@ export function createNotebookService(context: ServiceContext) {
 			});
 		},
 
-		removeNotebookMember(input: {
+		async removeNotebookMember(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
 			memberId: NotebookMember["id"];
 		}) {
-			return context.transaction(async (transactionContext) => {
+			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
@@ -270,8 +270,8 @@ export function createNotebookService(context: ServiceContext) {
 			});
 		},
 
-		leaveNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
-			return context.transaction(async (transactionContext) => {
+		async leaveNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
+			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
@@ -292,12 +292,12 @@ export function createNotebookService(context: ServiceContext) {
 			});
 		},
 
-		transferNotebookOwnership(input: {
+		async transferNotebookOwnership(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
 			memberId: NotebookMember["id"];
 		}) {
-			return context.transaction(async (transactionContext) => {
+			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 

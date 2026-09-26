@@ -7,12 +7,12 @@ export function createUserService(context: ServiceContext) {
 	const userRepo = createUserRepository(context.database);
 
 	return {
-		createUser() {
-			return userRepo.create();
+		async createUser() {
+			return await userRepo.create();
 		},
 
-		findUserById(input: { id: AppUser["id"] }) {
-			return userRepo.findById(input);
+		async findUserById(input: { id: AppUser["id"] }) {
+			return await userRepo.findById(input);
 		},
 
 		async getUserById(input: { id: AppUser["id"] }) {

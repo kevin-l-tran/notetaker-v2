@@ -6,7 +6,11 @@ import { createNotebookRepository } from "../../../src/modules/notebooks/noteboo
 import { createNotebookService } from "../../../src/modules/notebooks/notebook.service.ts";
 import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
 import { createUserRepository } from "../../../src/modules/users/user.repository.ts";
-import { ForbiddenError, NotFoundError } from "../../../src/shared/errors/appError.ts";
+import {
+	BadRequestError,
+	ForbiddenError,
+	NotFoundError,
+} from "../../../src/shared/errors/appError.ts";
 import { createServiceContext } from "../../../src/shared/services/serviceContext.ts";
 
 describe("notebook service", () => {
@@ -189,6 +193,8 @@ describe("notebook service", () => {
 				data: { title: "Title", description: "Description" },
 			});
 
+			expect(result).toMatchObject({ title: "Title", description: "Description", role: "owner" });
+
 			const notebook = await notebookRepo.findById({ id: result.id });
 
 			expect(notebook?.title).toEqual("Title");
@@ -346,7 +352,7 @@ describe("notebook service", () => {
 				data: { title: "New Title" },
 			});
 
-			expect(result.title).toEqual("New Title");
+			expect(result).toMatchObject({ id: notebook.id, title: "New Title" });
 		});
 
 		it("doesn't allow non-owners to update notebook metadata", async () => {
@@ -581,11 +587,172 @@ describe("notebook service", () => {
 	});
 
 	describe("addNotebookMember", () => {
-		it("allows owners to add a notebook editor");
-		it("allows owners to add a notebook viewer");
-		it("doesn't allow non-owners to add a notebook editor");
-		it("doesn't allow non-owners to add a notebook viewer");
-		it("doesn't allow creating an owner membership");
+		it("allows owners to add a notebook editor", async () => {
+			const owner = await userRepo.create();
+			const editor = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.addNotebookMember({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				data: {
+					targetAppUserId: editor.id,
+					role: "editor",
+				},
+			});
+
+			const newEditor = await notebookMemberRepo.findById({ id: result.id });
+
+			expect(newEditor).toMatchObject({
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+		});
+
+		it("allows owners to add a notebook viewer", async () => {
+			const owner = await userRepo.create();
+			const viewer = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.addNotebookMember({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				data: {
+					targetAppUserId: viewer.id,
+					role: "viewer",
+				},
+			});
+
+			const newViewer = await notebookMemberRepo.findById({ id: result.id });
+
+			expect(newViewer).toMatchObject({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+		});
+
+		it("returns the newly created membership", async () => {
+			const owner = await userRepo.create();
+			const viewer = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.addNotebookMember({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				data: {
+					targetAppUserId: viewer.id,
+					role: "viewer",
+				},
+			});
+
+			expect(result).toMatchObject({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+		});
+
+		it("doesn't allow non-owners to add a notebook editor", async () => {
+			for (const role of ["editor", "viewer", "none"] as const) {
+				const userA = await userRepo.create();
+				const userB = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: userA.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				await expect(
+					service.addNotebookMember({
+						appUserId: userA.id,
+						notebookId: notebook.id,
+						data: {
+							targetAppUserId: userB.id,
+							role: "editor",
+						},
+					}),
+				).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+			}
+		});
+
+		it("doesn't allow non-owners to add a notebook viewer", async () => {
+			for (const role of ["editor", "viewer", "none"] as const) {
+				const userA = await userRepo.create();
+				const userB = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: userA.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				await expect(
+					service.addNotebookMember({
+						appUserId: userA.id,
+						notebookId: notebook.id,
+						data: {
+							targetAppUserId: userB.id,
+							role: "viewer",
+						},
+					}),
+				).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+			}
+		});
+
+		it("doesn't allow creating an owner membership", async () => {
+			const owner = await userRepo.create();
+			const targetUser = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.addNotebookMember({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					data: {
+						targetAppUserId: targetUser.id,
+						role: "owner",
+					},
+				}),
+			).rejects.toThrow(
+				new BadRequestError("INVALID_MEMBERSHIP_ROLE", "Cannot create a new notebook owner."),
+			);
+		});
+
 		it("doesn't allow creating a membership for a nonexistent user");
 		it("doesn't allow creating a membership for the same user twice");
 		it("doesn't create memberships for other notebooks");
