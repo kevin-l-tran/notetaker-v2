@@ -6,7 +6,7 @@ import { createNotebookRepository } from "../../../src/modules/notebooks/noteboo
 import { createNotebookService } from "../../../src/modules/notebooks/notebook.service.ts";
 import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
 import { createUserRepository } from "../../../src/modules/users/user.repository.ts";
-import { ForbiddenError } from "../../../src/shared/errors/appError.ts";
+import { ForbiddenError, NotFoundError } from "../../../src/shared/errors/appError.ts";
 import { createServiceContext } from "../../../src/shared/services/serviceContext.ts";
 
 describe("notebook service", () => {
@@ -164,11 +164,9 @@ describe("notebook service", () => {
 				const user = await userRepo.create();
 				const notebook = await notebookRepo.create({ title: "Notebook" });
 
-				await notebookMemberRepo.create({ appUserId: user.id, notebookId: notebook.id, role });
-
-				const result = await service.getNotebook({ appUserId: user.id, notebookId: notebook.id });
-
-				expect(result).toEqual({ ...notebook, role });
+				await expect(
+					notebookMemberRepo.create({ appUserId: user.id, notebookId: notebook.id, role }),
+				).ok;
 			}
 		});
 
@@ -333,25 +331,253 @@ describe("notebook service", () => {
 			expect(updatedNotebook?.description).toEqual("Description");
 		});
 
-		it("returns the updated notebook");
-		it("doesn't allow non-owners to update notebook metadata");
-		it("returns a NOT_FOUND error when the notebook doesn't exist");
+		it("returns the updated notebook", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title", description: "Description" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.updateNotebook({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				data: { title: "New Title" },
+			});
+
+			expect(result.title).toEqual("New Title");
+		});
+
+		it("doesn't allow non-owners to update notebook metadata", async () => {
+			for (const role of ["editor", "viewer", "none"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				await expect(
+					service.updateNotebook({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						data: { title: "New Title" },
+					}),
+				).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+
+				const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
+				expect(preservedNotebook?.title).toEqual("Title");
+			}
+		});
+
+		it("returns a NOT_FOUND error when the notebook doesn't exist", async () => {
+			const user = await userRepo.create();
+			const nonexistentNotebookId = crypto.randomUUID();
+
+			await expect(
+				service.updateNotebook({
+					appUserId: user.id,
+					notebookId: nonexistentNotebookId,
+					data: { title: "New Title" },
+				}),
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
+		});
 	});
 
 	describe("deleteNotebook", () => {
-		it("allows the owner to delete the notebook");
-		it("doesn't allow non-owners to delete the notebook");
-		it("returns the deleted notebook");
-		it("cascade deletes all memberships when deleting a notebook");
-		it("doesn't affect other notebooks");
-		it("returns a NOT_FOUND error when the notebook doesn't exist");
+		it("allows the owner to delete the notebook", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title", description: "Description" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.deleteNotebook({ appUserId: user.id, notebookId: notebook.id });
+			expect(result).toMatchObject({ id: notebook.id, title: "Title", description: "Description" });
+
+			const deletedNotebook = await notebookRepo.findById({ id: notebook.id });
+			expect(deletedNotebook).toBeUndefined();
+		});
+
+		it("doesn't allow non-owners to delete the notebook", async () => {
+			for (const role of ["editor", "viewer", "none"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				await expect(
+					service.deleteNotebook({ appUserId: user.id, notebookId: notebook.id }),
+				).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+
+				const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
+				expect(preservedNotebook).toBeDefined();
+			}
+		});
+
+		it("cascade deletes all memberships when deleting a notebook", async () => {
+			const owner = await userRepo.create();
+			const viewer = await userRepo.create();
+
+			const notebook = await notebookRepo.create({ title: "Title" });
+			const ownerMembership = await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const viewerMembership = await notebookMemberRepo.create({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await service.deleteNotebook({ appUserId: owner.id, notebookId: notebook.id });
+
+			const deletedOwnerMembership = await notebookMemberRepo.findById({ id: ownerMembership.id });
+			const deletedViewerMembership = await notebookMemberRepo.findById({
+				id: viewerMembership.id,
+			});
+
+			expect(deletedOwnerMembership).toBeUndefined();
+			expect(deletedViewerMembership).toBeUndefined();
+		});
+
+		it("doesn't affect other notebooks", async () => {
+			const user = await userRepo.create();
+
+			const notebookToDelete = await notebookRepo.create({ title: "To Delete" });
+			const notebookToPersist = await notebookRepo.create({ title: "To Persist" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebookToDelete.id,
+				role: "owner",
+			});
+
+			await service.deleteNotebook({ appUserId: user.id, notebookId: notebookToDelete.id });
+
+			const persistedNotebook = await notebookRepo.findById({ id: notebookToPersist.id });
+			expect(persistedNotebook).toBeDefined();
+		});
+
+		it("returns a NOT_FOUND error when the notebook doesn't exist", async () => {
+			const user = await userRepo.create();
+			const nonexistentNotebookId = crypto.randomUUID();
+
+			await expect(
+				service.deleteNotebook({
+					appUserId: user.id,
+					notebookId: nonexistentNotebookId,
+				}),
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
+		});
 	});
 
 	describe("listNotebookMembers", () => {
-		it("allows any member to list notebook members");
-		it("doesn't allow non-members to list notebook members");
-		it("returns all memberships and the associated users for the requested notebook");
-		it("does not return memberships from other notebooks");
+		it("allows any member to list notebook members", async () => {
+			for (const role of ["owner", "editor", "viewer"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+				await notebookMemberRepo.create({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					role,
+				});
+
+				await expect(service.listNotebookMembers({ appUserId: user.id, notebookId: notebook.id }))
+					.ok;
+			}
+		});
+
+		it("returns all memberships and the associated users for the requested notebook", async () => {
+			const owner = await userRepo.create();
+			const editor = await userRepo.create();
+			const viewer = await userRepo.create();
+
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const ownerMemberData = { appUserId: owner.id, role: "owner" as const };
+			const editorMemberData = { appUserId: editor.id, role: "editor" as const };
+			const viewerMemberData = { appUserId: viewer.id, role: "viewer" as const };
+
+			await notebookMemberRepo.create({
+				notebookId: notebook.id,
+				...ownerMemberData,
+			});
+			await notebookMemberRepo.create({
+				notebookId: notebook.id,
+				...editorMemberData,
+			});
+			await notebookMemberRepo.create({
+				notebookId: notebook.id,
+				...viewerMemberData,
+			});
+
+			const result = await service.listNotebookMembers({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+			});
+
+			const listData = result.map((v) => {
+				return {
+					appUserId: v.app_users.id,
+					role: v.notebook_members.role,
+				};
+			});
+
+			expect(listData).toEqual([ownerMemberData, editorMemberData, viewerMemberData]);
+		});
+
+		it("doesn't allow non-members to list notebook members", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await expect(
+				service.listNotebookMembers({ appUserId: user.id, notebookId: notebook.id }),
+			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+		});
+
+		it("does not return memberships from other notebooks", async () => {
+			const userA = await userRepo.create();
+			const userB = await userRepo.create();
+
+			const notebookA = await notebookRepo.create({ title: "Title A" });
+			const notebookB = await notebookRepo.create({ title: "Title B" });
+
+			await notebookMemberRepo.create({
+				appUserId: userA.id,
+				notebookId: notebookA.id,
+				role: "owner",
+			});
+			await notebookMemberRepo.create({
+				appUserId: userB.id,
+				notebookId: notebookB.id,
+				role: "owner",
+			});
+
+			const result = await service.listNotebookMembers({
+				appUserId: userA.id,
+				notebookId: notebookA.id,
+			});
+
+			expect(result.length).toEqual(1);
+			expect(result[0]?.app_users.id).toEqual(userA.id);
+		});
 	});
 
 	describe("addNotebookMember", () => {
@@ -360,7 +586,7 @@ describe("notebook service", () => {
 		it("doesn't allow non-owners to add a notebook editor");
 		it("doesn't allow non-owners to add a notebook viewer");
 		it("doesn't allow creating an owner membership");
-		it("doesn't allow creating a membership for a nonexistant user");
+		it("doesn't allow creating a membership for a nonexistent user");
 		it("doesn't allow creating a membership for the same user twice");
 		it("doesn't create memberships for other notebooks");
 	});

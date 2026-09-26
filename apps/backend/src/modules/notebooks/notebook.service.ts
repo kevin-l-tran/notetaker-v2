@@ -23,8 +23,7 @@ export function createNotebookService(context: ServiceContext) {
 	) {
 		const notebook = await txNotebookRepo.findByIdForUpdate({ id: notebookId });
 
-		if (!notebook)
-			throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find notebook to lock.");
+		if (!notebook) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
 
 		return notebook;
 	}
