@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance } from "fastify";
+import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import { db } from "./database/client.ts";
 import { createAuth } from "./modules/auth/createAuth.ts";
 import errorHandler from "./plugins/errorHandler.plugin.ts";
@@ -9,6 +10,9 @@ export function buildApp(): FastifyInstance {
 	const app = Fastify({
 		logger: true,
 	});
+
+	app.setValidatorCompiler(validatorCompiler);
+	app.setSerializerCompiler(serializerCompiler);
 
 	const serviceContext = createServiceContext(db);
 	const auth = createAuth({ database: db, context: serviceContext });
