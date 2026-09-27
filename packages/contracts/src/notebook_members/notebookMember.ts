@@ -1,5 +1,5 @@
 import z from "zod";
-import { NotebookSchema } from "../notebooks/notebook.ts";
+import { NotebookIdSchema, NotebookMemberIdSchema, UserIdSchema } from "../ids.ts";
 import { UserSchema } from "../users/user.ts";
 
 export type NotebookMemberRole = z.infer<typeof NotebookMemberRoleSchema>;
@@ -10,14 +10,14 @@ export const NotebookMemberRoles = ["owner", "editor", "viewer"] as const;
 export const NotebookMemberRoleSchema = z.enum(NotebookMemberRoles);
 
 export const NotebookMemberSchema = z.object({
-	id: z.uuid(),
-	notebookId: NotebookSchema.shape.id,
-	userId: UserSchema.shape.id,
+	id: NotebookMemberIdSchema,
+	notebookId: NotebookIdSchema,
+	userId: UserIdSchema,
 	role: NotebookMemberRoleSchema,
 });
 
 export const NotebookMemberSummarySchema = z.object({
-	id: z.uuid(),
+	id: NotebookMemberIdSchema,
 	user: z.object({ id: UserSchema.shape.id, displayName: UserSchema.shape.displayName }),
 	role: NotebookMemberRoleSchema,
 });

@@ -130,15 +130,15 @@ describe("notebook service", () => {
 				expect.arrayContaining([
 					expect.objectContaining({
 						id: ownedNotebook.id,
-						role: "owner",
+						myRole: "owner",
 					}),
 					expect.objectContaining({
 						id: editableNotebook.id,
-						role: "editor",
+						myRole: "editor",
 					}),
 					expect.objectContaining({
 						id: viewableNotebook.id,
-						role: "viewer",
+						myRole: "viewer",
 					}),
 				]),
 			);
@@ -169,9 +169,9 @@ describe("notebook service", () => {
 				const user = await userRepo.create();
 				const notebook = await notebookRepo.create({ title: "Notebook" });
 
-				await expect(
-					notebookMemberRepo.create({ appUserId: user.id, notebookId: notebook.id, role }),
-				).ok;
+				await notebookMemberRepo.create({ appUserId: user.id, notebookId: notebook.id, role });
+
+				await expect(service.getNotebook({ appUserId: user.id, notebookId: notebook.id })).ok;
 			}
 		});
 
@@ -194,13 +194,13 @@ describe("notebook service", () => {
 				data: { title: "Title", description: "Description" },
 			});
 
-			expect(result).toMatchObject({ title: "Title", description: "Description", role: "owner" });
+			expect(result).toMatchObject({ title: "Title", description: "Description", myRole: "owner" });
 
 			const notebook = await notebookRepo.findById({ id: result.id });
 
 			expect(notebook?.title).toEqual("Title");
 			expect(notebook?.description).toEqual("Description");
-			expect(result.role).toEqual("owner");
+			expect(result.myRole).toEqual("owner");
 		});
 
 		it('creates exactly one member for the creator with the "owner" role', async () => {

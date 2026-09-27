@@ -1,5 +1,5 @@
 import z from "zod";
-import { UserSchema } from "../users/user.ts";
+import { UserIdSchema } from "../ids.ts";
 
 export type SettableNotebookMemberRole = z.infer<typeof SettableNotebookMemberRoleSchema>;
 export type CreateNotebookMemberRequest = z.infer<typeof CreateNotebookMemberRequestSchema>;
@@ -10,7 +10,7 @@ export const SettableNotebookMemberRoles = ["editor", "viewer"] as const;
 export const SettableNotebookMemberRoleSchema = z.enum(["editor", "viewer"]);
 
 export const CreateNotebookMemberRequestSchema = z.object({
-	userId: UserSchema.shape.id,
+	userId: UserIdSchema,
 	role: SettableNotebookMemberRoleSchema,
 });
 

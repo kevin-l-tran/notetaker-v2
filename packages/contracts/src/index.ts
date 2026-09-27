@@ -2,6 +2,16 @@
 export { type Claim, ClaimSchema } from "./claims/claim.ts";
 export { type Concept, ConceptSchema } from "./concepts/concept.ts";
 export { type ApiErrorResponse, ApiErrorResponseSchema, ERROR_CODES } from "./errors/errors.ts";
+export {
+	type NodeId,
+	NodeIdSchema,
+	type NotebookId,
+	NotebookIdSchema,
+	type NotebookMemberId,
+	NotebookMemberIdSchema,
+	type UserId,
+	UserIdSchema,
+} from "./ids.ts";
 export type { NotebookMemberRole } from "./notebook_members/notebookMember.ts";
 export {
 	type NotebookMember,
@@ -23,6 +33,8 @@ export {
 	NotebookSchema,
 	type NotebookSettings,
 	NotebookSettingsSchema,
+	type NotebookSummary,
+	NotebookSummarySchema,
 } from "./notebooks/notebook.ts";
 export {
 	type CreateNotebookRequest,

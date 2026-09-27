@@ -29,7 +29,7 @@ export function createNotebookRepository(database: DatabaseExecutor) {
 
 		async findForUser(input: { appUserId: AppUser["id"] }) {
 			return await database
-				.select({ ...getColumns(notebooks), role: notebookMembers.role })
+				.select({ ...getColumns(notebooks), myRole: notebookMembers.role })
 				.from(notebooks)
 				.innerJoin(notebookMembers, eq(notebooks.id, notebookMembers.notebookId))
 				.where(eq(notebookMembers.appUserId, input.appUserId));
@@ -37,7 +37,7 @@ export function createNotebookRepository(database: DatabaseExecutor) {
 
 		async findByIdForUser(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
 			const res = await database
-				.select({ ...getColumns(notebooks), role: notebookMembers.role })
+				.select({ ...getColumns(notebooks), myRole: notebookMembers.role })
 				.from(notebooks)
 				.innerJoin(notebookMembers, eq(notebooks.id, notebookMembers.notebookId))
 				.where(

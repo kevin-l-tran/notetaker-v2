@@ -98,7 +98,7 @@ export function createNotebookService(context: ServiceContext) {
 					role: "owner",
 				});
 
-				return { ...notebook, role: membership.role };
+				return { ...notebook, myRole: membership.role };
 			});
 		},
 
@@ -127,7 +127,7 @@ export function createNotebookService(context: ServiceContext) {
 				if (!updatedNotebook)
 					throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Notebook to update was not found.");
 
-				return { ...updatedNotebook, role: membership.role };
+				return { ...updatedNotebook, myRole: membership.role };
 			});
 		},
 
@@ -149,7 +149,7 @@ export function createNotebookService(context: ServiceContext) {
 				if (!deletedNotebook)
 					throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Notebook to delete was not found.");
 
-				return { ...deletedNotebook, role: membership.role };
+				return { ...deletedNotebook, myRole: membership.role };
 			});
 		},
 
