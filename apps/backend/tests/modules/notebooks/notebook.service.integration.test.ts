@@ -924,7 +924,7 @@ describe("notebook service", () => {
 				},
 			});
 
-			expect(result).toMatchObject({
+			expect(result).toEqual({
 				id: viewerMembership.id,
 				appUserId: viewer.id,
 				notebookId: notebook.id,
@@ -1077,31 +1077,567 @@ describe("notebook service", () => {
 	});
 
 	describe("removeNotebookMember", () => {
-		it("allows owners to remove an editor");
-		it("allows owners to remove a viewer");
-		it("doesn't allow non-members to remove other members");
-		it("doesn't allow owners to remove nonexistent members");
-		it("doesn't allow owners to remove members from other notebooks");
-		it("only removes the member being targeted");
+		it("allows owners to remove an editor", async () => {
+			const owner = await userRepo.create();
+			const editor = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const editorMembership = await notebookMemberRepo.create({
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+
+			await service.removeNotebookMember({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				memberId: editorMembership.id,
+			});
+
+			const deletedMembership = await notebookMemberRepo.findById({ id: editorMembership.id });
+
+			expect(deletedMembership).toBeUndefined();
+		});
+
+		it("allows owners to remove a viewer", async () => {
+			const owner = await userRepo.create();
+			const viewer = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const viewerMembership = await notebookMemberRepo.create({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await service.removeNotebookMember({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				memberId: viewerMembership.id,
+			});
+
+			const deletedMembership = await notebookMemberRepo.findById({ id: viewerMembership.id });
+
+			expect(deletedMembership).toBeUndefined();
+		});
+
+		it("returns the deleted membership", async () => {
+			const owner = await userRepo.create();
+			const editor = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const editorMembership = await notebookMemberRepo.create({
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+
+			const result = await service.removeNotebookMember({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				memberId: editorMembership.id,
+			});
+
+			expect(result).toEqual({
+				id: editorMembership.id,
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+		});
+
+		it("doesn't allow non-members to remove other members", async () => {
+			for (const role of ["editor", "viewer", "none"] as const) {
+				const user = await userRepo.create();
+				const viewer = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				const viewerMembership = await notebookMemberRepo.create({
+					appUserId: viewer.id,
+					notebookId: notebook.id,
+					role: "viewer",
+				});
+
+				await expect(
+					service.removeNotebookMember({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						memberId: viewerMembership.id,
+					}),
+				).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+			}
+		});
+
+		it("doesn't allow owners to remove nonexistent members", async () => {
+			const owner = await userRepo.create();
+			const nonexistentId = crypto.randomUUID();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.removeNotebookMember({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					memberId: nonexistentId,
+				}),
+			).rejects.toThrow(
+				new NotFoundError("NOTEBOOK_MEMBERSHIP_NOT_FOUND", "Could not find notebook membership."),
+			);
+		});
+
+		it("doesn't allow owners to remove members from other notebooks", async () => {
+			const owner = await userRepo.create();
+			const member = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			const otherNotebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const membership = await notebookMemberRepo.create({
+				appUserId: member.id,
+				notebookId: otherNotebook.id,
+				role: "viewer",
+			});
+
+			await expect(
+				service.removeNotebookMember({
+					appUserId: owner.id,
+					notebookId: otherNotebook.id,
+					memberId: membership.id,
+				}),
+			).rejects.toThrow(
+				new ForbiddenError("Must be the notebook owner to perform this operation."),
+			);
+		});
+
+		it("only removes the member being targeted", async () => {
+			const owner = await userRepo.create();
+			const editor = await userRepo.create();
+			const viewer = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const editorMembership = await notebookMemberRepo.create({
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+			const viewerMembership = await notebookMemberRepo.create({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await service.removeNotebookMember({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				memberId: editorMembership.id,
+			});
+
+			const preservedMembership = await notebookMemberRepo.findById({ id: viewerMembership.id });
+
+			expect(preservedMembership).toBeDefined();
+		});
 	});
 
 	describe("leaveNotebook", () => {
-		it("allows viewers to leave");
-		it("allows editors to leave");
-		it("doesn't allow owners to leave");
-		it("doesn't allow non-members to leave");
-		it("only affects the caller's membership");
-		it("doesn't affect the caller's membership in other notebooks");
+		it("allows viewers to leave", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const membership = await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await service.leaveNotebook({ appUserId: user.id, notebookId: notebook.id });
+
+			const deletedMembership = await notebookMemberRepo.findById({ id: membership.id });
+
+			expect(deletedMembership).toBeUndefined();
+		});
+
+		it("allows editors to leave", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const membership = await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+
+			await service.leaveNotebook({ appUserId: user.id, notebookId: notebook.id });
+
+			const deletedMembership = await notebookMemberRepo.findById({ id: membership.id });
+
+			expect(deletedMembership).toBeUndefined();
+		});
+
+		it("returns caller's prior membership", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const membership = await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			const result = await service.leaveNotebook({ appUserId: user.id, notebookId: notebook.id });
+
+			expect(result).toEqual(membership);
+		});
+
+		it("doesn't allow owners to leave", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.leaveNotebook({ appUserId: user.id, notebookId: notebook.id }),
+			).rejects.toThrow(
+				new ForbiddenError(
+					"You must delete this notebook or transfer ownership to leave this notebook.",
+				),
+			);
+		});
+
+		it("doesn't allow non-members to leave", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await expect(
+				service.leaveNotebook({ appUserId: user.id, notebookId: notebook.id }),
+			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+		});
+
+		it("only affects the caller's membership", async () => {
+			const viewer = await userRepo.create();
+			const editor = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const viewerMembership = await notebookMemberRepo.create({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await notebookMemberRepo.create({
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+
+			await service.leaveNotebook({ appUserId: editor.id, notebookId: notebook.id });
+
+			const persistedMembership = await notebookMemberRepo.findById({ id: viewerMembership.id });
+
+			expect(persistedMembership).toEqual(viewerMembership);
+		});
+
+		it("doesn't affect the caller's membership in other notebooks", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			const otherNotebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			const otherMembership = await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: otherNotebook.id,
+				role: "viewer",
+			});
+
+			await service.leaveNotebook({ appUserId: user.id, notebookId: notebook.id });
+
+			const persistedMembership = await notebookMemberRepo.findById({ id: otherMembership.id });
+
+			expect(persistedMembership).toEqual(otherMembership);
+		});
 	});
 
 	describe("transferNotebookOwnership", () => {
-		it("allows owners to transfer membership to an editor");
-		it("allows owners to transfer membership to a viewer");
-		it('sets the role of the old owner to "editor"');
-		it('sets the role of the targeted member to "owner"');
-		it("ensures that exactly one owner remains afterwards");
-		it("doesn't allow non-owners to transfer ownership");
-		it("doesn't allow owners to transfer ownership to themselves");
-		it("doesn't allow owners to transfer ownership to members of other notebooks");
+		it("allows owners to transfer membership to an editor", async () => {
+			const owner = await userRepo.create();
+			const editor = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const ownerMembership = await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const editorMembership = await notebookMemberRepo.create({
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+
+			await service.transferNotebookOwnership({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				memberId: editorMembership.id,
+			});
+
+			const updatedOwnerMembership = await notebookMemberRepo.findById({ id: ownerMembership.id });
+			const updatedEditorMembership = await notebookMemberRepo.findById({
+				id: editorMembership.id,
+			});
+
+			expect(updatedOwnerMembership).toEqual({
+				id: ownerMembership.id,
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+			expect(updatedEditorMembership).toEqual({
+				id: editorMembership.id,
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+		});
+
+		it("allows owners to transfer membership to a viewer", async () => {
+			const owner = await userRepo.create();
+			const viewer = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const ownerMembership = await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const viewerMembership = await notebookMemberRepo.create({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await service.transferNotebookOwnership({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				memberId: viewerMembership.id,
+			});
+
+			const updatedOwnerMembership = await notebookMemberRepo.findById({ id: ownerMembership.id });
+			const updatedViewerMembership = await notebookMemberRepo.findById({
+				id: viewerMembership.id,
+			});
+
+			expect(updatedOwnerMembership).toEqual({
+				id: ownerMembership.id,
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+			expect(updatedViewerMembership).toEqual({
+				id: viewerMembership.id,
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+		});
+
+		it("returns both updated memberships", async () => {
+			const owner = await userRepo.create();
+			const targetUser = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const ownerMembership = await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const targetMembership = await notebookMemberRepo.create({
+				appUserId: targetUser.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+
+			const result = await service.transferNotebookOwnership({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				memberId: targetMembership.id,
+			});
+
+			expect(result).toEqual({
+				yourMembership: {
+					...ownerMembership,
+					role: "editor",
+				},
+				targetMembership: {
+					...targetMembership,
+					role: "owner",
+				},
+			});
+		});
+
+		it("ensures that exactly one owner remains afterwards", async () => {
+			const owner = await userRepo.create();
+			const targetUser = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const targetMembership = await notebookMemberRepo.create({
+				appUserId: targetUser.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+
+			await service.transferNotebookOwnership({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				memberId: targetMembership.id,
+			});
+
+			const memberships = await notebookMemberRepo.findForNotebookWithUsers({
+				notebookId: notebook.id,
+			});
+
+			const owners = memberships.filter((v) => v.notebook_members.role === "owner");
+
+			expect(owners).toHaveLength(1);
+		});
+
+		it("doesn't allow non-owners to transfer ownership", async () => {
+			for (const role of ["editor", "viewer", "none"] as const) {
+				const user = await userRepo.create();
+				const targetUser = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				const targetMembership = await notebookMemberRepo.create({
+					appUserId: targetUser.id,
+					notebookId: notebook.id,
+					role: "editor",
+				});
+
+				await expect(
+					service.transferNotebookOwnership({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						memberId: targetMembership.id,
+					}),
+				).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+			}
+		});
+
+		it("doesn't allow owners to transfer ownership to themselves", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const membership = await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.transferNotebookOwnership({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					memberId: membership.id,
+				}),
+			).rejects.toThrow(
+				new BadRequestError(
+					"UPDATE_SELF_MEMBERSHIP",
+					"Cannot transfer ownership back to yourself.",
+				),
+			);
+		});
+
+		it("doesn't allow owners to transfer ownership to members of other notebooks", async () => {
+			const owner = await userRepo.create();
+			const targetUser = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			const otherNotebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const targetMembership = await notebookMemberRepo.create({
+				appUserId: targetUser.id,
+				notebookId: otherNotebook.id,
+				role: "editor",
+			});
+
+			await expect(
+				service.transferNotebookOwnership({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					memberId: targetMembership.id,
+				}),
+			).rejects.toThrow(
+				new NotFoundError("NOTEBOOK_MEMBERSHIP_NOT_FOUND", "Could not find notebook membership."),
+			);
+		});
 	});
 });
