@@ -753,19 +753,327 @@ describe("notebook service", () => {
 			);
 		});
 
-		it("doesn't allow creating a membership for a nonexistent user");
-		it("doesn't allow creating a membership for the same user twice");
-		it("doesn't create memberships for other notebooks");
+		it("doesn't allow creating a membership for a nonexistent user", async () => {
+			const user = await userRepo.create();
+			const nonexistentTargetId = crypto.randomUUID();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.addNotebookMember({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					data: {
+						targetAppUserId: nonexistentTargetId,
+						role: "viewer",
+					},
+				}),
+			).rejects.toThrow(new BadRequestError("USER_NOT_FOUND", "Target user was not found."));
+		});
+
+		it("doesn't allow creating a membership for the same user twice", async () => {
+			const user = await userRepo.create();
+			const targetUser = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			await notebookMemberRepo.create({
+				appUserId: targetUser.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await expect(
+				service.addNotebookMember({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					data: {
+						targetAppUserId: targetUser.id,
+						role: "editor",
+					},
+				}),
+			).rejects.toThrow(
+				new BadRequestError(
+					"NOTEBOOK_MEMBERSHIP_ALREADY_EXISTS",
+					"The target user already has a membership.",
+				),
+			);
+		});
+
+		it("doesn't create memberships for other notebooks", async () => {
+			const owner = await userRepo.create();
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			const otherNotebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await service.addNotebookMember({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				data: {
+					targetAppUserId: user.id,
+					role: "viewer",
+				},
+			});
+
+			const otherNotebookMembers = await notebookMemberRepo.findForNotebookWithUsers({
+				notebookId: otherNotebook.id,
+			});
+
+			expect(otherNotebookMembers).toHaveLength(0);
+		});
 	});
 
 	describe("updateNotebookMemberRole", () => {
-		it('allows owners to change a member\'s role to "editor"');
-		it('allows owners to change a member\'s role to "viewer"');
-		it("doesn't allow owners to change a member's role to \"owner\"");
-		it("doesn't allow owners to change their own role");
-		it("doesn't allow non-owners to change another member's role");
-		it("doesn't allow owners to change members from other notebooks");
-		it("doesn't allow owners to change nonexistent memberships");
+		it('allows owners to change a member\'s role to "editor"', async () => {
+			const owner = await userRepo.create();
+			const viewer = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const viewerMembership = await notebookMemberRepo.create({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await service.updateNotebookMemberRole({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				data: {
+					memberId: viewerMembership.id,
+					role: "editor",
+				},
+			});
+
+			const updatedMembership = await notebookMemberRepo.findById({ id: viewerMembership.id });
+
+			expect(updatedMembership?.role).toEqual("editor");
+		});
+
+		it('allows owners to change a member\'s role to "viewer"', async () => {
+			const owner = await userRepo.create();
+			const editor = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const editorMembership = await notebookMemberRepo.create({
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await service.updateNotebookMemberRole({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				data: {
+					memberId: editorMembership.id,
+					role: "viewer",
+				},
+			});
+
+			const updatedMembership = await notebookMemberRepo.findById({ id: editorMembership.id });
+
+			expect(updatedMembership?.role).toEqual("viewer");
+		});
+
+		it("returns the updated membership", async () => {
+			const owner = await userRepo.create();
+			const viewer = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const viewerMembership = await notebookMemberRepo.create({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			const result = await service.updateNotebookMemberRole({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				data: {
+					memberId: viewerMembership.id,
+					role: "editor",
+				},
+			});
+
+			expect(result).toMatchObject({
+				id: viewerMembership.id,
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+		});
+
+		it("doesn't allow owners to change a member's role to \"owner\"", async () => {
+			const owner = await userRepo.create();
+			const viewer = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const viewerMembership = await notebookMemberRepo.create({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			await expect(
+				service.updateNotebookMemberRole({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					data: {
+						memberId: viewerMembership.id,
+						role: "owner",
+					},
+				}),
+			).rejects.toThrow(
+				new BadRequestError("INVALID_MEMBERSHIP_ROLE", 'Cannot set a member\'s role to "owner".'),
+			);
+		});
+
+		it("doesn't allow owners to change their own role", async () => {
+			const owner = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const membership = await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.updateNotebookMemberRole({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					data: {
+						memberId: membership.id,
+						role: "viewer",
+					},
+				}),
+			).rejects.toThrow(new ForbiddenError("You must transfer ownership to change your role."));
+		});
+
+		it("doesn't allow non-owners to change another member's role", async () => {
+			for (const role of ["editor", "viewer", "none"] as const) {
+				const user = await userRepo.create();
+				const targetUser = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				const targetMembership = await notebookMemberRepo.create({
+					appUserId: targetUser.id,
+					notebookId: notebook.id,
+					role: "viewer",
+				});
+
+				await expect(
+					service.updateNotebookMemberRole({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						data: {
+							memberId: targetMembership.id,
+							role: "editor",
+						},
+					}),
+				).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+			}
+		});
+
+		it("doesn't allow owners to change members from other notebooks", async () => {
+			const owner = await userRepo.create();
+			const member = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			const otherNotebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const otherMembership = await notebookMemberRepo.create({
+				appUserId: member.id,
+				notebookId: otherNotebook.id,
+				role: "viewer",
+			});
+
+			await expect(
+				service.updateNotebookMemberRole({
+					appUserId: owner.id,
+					notebookId: otherNotebook.id,
+					data: {
+						memberId: otherMembership.id,
+						role: "editor",
+					},
+				}),
+			).rejects.toThrow(
+				new ForbiddenError("Must be the notebook owner to perform this operation."),
+			);
+		});
+
+		it("doesn't allow owners to change nonexistent memberships", async () => {
+			const user = await userRepo.create();
+			const nonexistentId = crypto.randomUUID();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.updateNotebookMemberRole({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					data: {
+						memberId: nonexistentId,
+						role: "viewer",
+					},
+				}),
+			).rejects.toThrow(
+				new NotFoundError("NOTEBOOK_MEMBERSHIP_NOT_FOUND", "Could not find notebook membership."),
+			);
+		});
 	});
 
 	describe("removeNotebookMember", () => {
