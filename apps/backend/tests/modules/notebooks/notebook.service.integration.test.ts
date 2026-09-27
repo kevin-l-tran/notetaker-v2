@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../../src/database/client.ts";
 import { notebookMembers } from "../../../src/database/schema/notebookMembers.ts";
 import { notebooks } from "../../../src/database/schema/notebooks.ts";
+import type { DatabaseExecutor } from "../../../src/database/types.ts";
 import { createNotebookRepository } from "../../../src/modules/notebooks/notebook.repository.ts";
 import { createNotebookService } from "../../../src/modules/notebooks/notebook.service.ts";
 import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
@@ -1638,6 +1639,299 @@ describe("notebook service", () => {
 			).rejects.toThrow(
 				new NotFoundError("NOTEBOOK_MEMBERSHIP_NOT_FOUND", "Could not find notebook membership."),
 			);
+		});
+
+		describe("concurrency", () => {
+			async function runWhileNotebookLocked<T>(
+				notebookId: string,
+				concurrentOperation: () => Promise<T>,
+				whileLocked: (tx: DatabaseExecutor) => Promise<void>,
+			) {
+				let operation: Promise<T> | undefined;
+
+				await db.transaction(async (tx) => {
+					const txNotebookRepo = createNotebookRepository(tx);
+					await txNotebookRepo.findByIdForUpdate({ id: notebookId });
+
+					operation = concurrentOperation();
+
+					await whileLocked(tx);
+				});
+
+				if (!operation) throw new Error("Concurrent operation did not start.");
+
+				return operation;
+			}
+
+			async function transferOwnershipDirectly(
+				database: DatabaseExecutor,
+				ownerMemberId: string,
+				newOwnerMemberId: string,
+			) {
+				const repo = createNotebookMemberRepository(database);
+
+				await repo.updateRole({
+					id: ownerMemberId,
+					role: "editor",
+				});
+
+				await repo.updateRole({
+					id: newOwnerMemberId,
+					role: "owner",
+				});
+			}
+
+			it("serializes concurrent ownership transfers and leaves exactly one owner", async () => {
+				const owner = await userRepo.create();
+				const editorA = await userRepo.create();
+				const editorB = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				await notebookMemberRepo.create({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					role: "owner",
+				});
+
+				const membershipA = await notebookMemberRepo.create({
+					appUserId: editorA.id,
+					notebookId: notebook.id,
+					role: "editor",
+				});
+
+				const membershipB = await notebookMemberRepo.create({
+					appUserId: editorB.id,
+					notebookId: notebook.id,
+					role: "editor",
+				});
+
+				const results = await Promise.allSettled([
+					service.transferNotebookOwnership({
+						appUserId: owner.id,
+						notebookId: notebook.id,
+						memberId: membershipA.id,
+					}),
+					service.transferNotebookOwnership({
+						appUserId: owner.id,
+						notebookId: notebook.id,
+						memberId: membershipB.id,
+					}),
+				]);
+
+				expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+				expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+
+				const memberships = await notebookMemberRepo.findForNotebookWithUsers({
+					notebookId: notebook.id,
+				});
+
+				const owners = memberships.filter(
+					(membership) => membership.notebook_members.role === "owner",
+				);
+
+				expect(owners).toHaveLength(1);
+			});
+
+			it("prevents a member from leaving after a concurrent ownership transfer promotes them to owner", async () => {
+				const owner = await userRepo.create();
+				const editor = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				const ownerMembership = await notebookMemberRepo.create({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					role: "owner",
+				});
+
+				const editorMembership = await notebookMemberRepo.create({
+					appUserId: editor.id,
+					notebookId: notebook.id,
+					role: "editor",
+				});
+
+				const leavePromise = runWhileNotebookLocked(
+					notebook.id,
+					() =>
+						service.leaveNotebook({
+							appUserId: editor.id,
+							notebookId: notebook.id,
+						}),
+					(tx) => transferOwnershipDirectly(tx, ownerMembership.id, editorMembership.id),
+				);
+
+				await expect(leavePromise).rejects.toThrow(
+					new ForbiddenError(
+						"You must delete this notebook or transfer ownership to leave this notebook.",
+					),
+				);
+
+				const membership = await notebookMemberRepo.findById({
+					id: editorMembership.id,
+				});
+
+				expect(membership?.role).toBe("owner");
+			});
+
+			it("prevents an owner from removing a member after a concurrent ownership transfer promotes that member to owner", async () => {
+				const owner = await userRepo.create();
+				const editor = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				const ownerMembership = await notebookMemberRepo.create({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					role: "owner",
+				});
+
+				const editorMembership = await notebookMemberRepo.create({
+					appUserId: editor.id,
+					notebookId: notebook.id,
+					role: "editor",
+				});
+
+				const removePromise = runWhileNotebookLocked(
+					notebook.id,
+					() =>
+						service.removeNotebookMember({
+							appUserId: owner.id,
+							notebookId: notebook.id,
+							memberId: editorMembership.id,
+						}),
+					(tx) => transferOwnershipDirectly(tx, ownerMembership.id, editorMembership.id),
+				);
+
+				await expect(removePromise).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+
+				const membership = await notebookMemberRepo.findById({
+					id: editorMembership.id,
+				});
+
+				expect(membership?.role).toBe("owner");
+			});
+
+			it("rechecks ownership after waiting for the notebook lock before updating notebook metadata", async () => {
+				const owner = await userRepo.create();
+				const editor = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Original Title" });
+
+				const ownerMembership = await notebookMemberRepo.create({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					role: "owner",
+				});
+
+				const editorMembership = await notebookMemberRepo.create({
+					appUserId: editor.id,
+					notebookId: notebook.id,
+					role: "editor",
+				});
+
+				const updatePromise = runWhileNotebookLocked(
+					notebook.id,
+					() =>
+						service.updateNotebook({
+							appUserId: owner.id,
+							notebookId: notebook.id,
+							data: { title: "New Title" },
+						}),
+					(tx) => transferOwnershipDirectly(tx, ownerMembership.id, editorMembership.id),
+				);
+
+				await expect(updatePromise).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+
+				const preservedNotebook = await notebookRepo.findById({
+					id: notebook.id,
+				});
+
+				expect(preservedNotebook?.title).toBe("Original Title");
+			});
+
+			it("rechecks ownership after waiting for the notebook lock before deleting the notebook", async () => {
+				const owner = await userRepo.create();
+				const editor = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				const ownerMembership = await notebookMemberRepo.create({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					role: "owner",
+				});
+
+				const editorMembership = await notebookMemberRepo.create({
+					appUserId: editor.id,
+					notebookId: notebook.id,
+					role: "editor",
+				});
+
+				const deletePromise = runWhileNotebookLocked(
+					notebook.id,
+					() =>
+						service.deleteNotebook({
+							appUserId: owner.id,
+							notebookId: notebook.id,
+						}),
+					(tx) => transferOwnershipDirectly(tx, ownerMembership.id, editorMembership.id),
+				);
+
+				await expect(deletePromise).rejects.toThrow(
+					new ForbiddenError("Must be the notebook owner to perform this operation."),
+				);
+
+				const preservedNotebook = await notebookRepo.findById({
+					id: notebook.id,
+				});
+
+				expect(preservedNotebook).toBeDefined();
+			});
+
+			it("serializes concurrent attempts to add the same user to a notebook", async () => {
+				const owner = await userRepo.create();
+				const targetUser = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				await notebookMemberRepo.create({
+					appUserId: owner.id,
+					notebookId: notebook.id,
+					role: "owner",
+				});
+
+				const results = await Promise.allSettled([
+					service.addNotebookMember({
+						appUserId: owner.id,
+						notebookId: notebook.id,
+						data: {
+							targetAppUserId: targetUser.id,
+							role: "editor",
+						},
+					}),
+					service.addNotebookMember({
+						appUserId: owner.id,
+						notebookId: notebook.id,
+						data: {
+							targetAppUserId: targetUser.id,
+							role: "editor",
+						},
+					}),
+				]);
+
+				expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+				expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+
+				const membership = await notebookMemberRepo.findByUserAndNotebook({
+					appUserId: targetUser.id,
+					notebookId: notebook.id,
+				});
+
+				expect(membership).toMatchObject({
+					appUserId: targetUser.id,
+					notebookId: notebook.id,
+					role: "editor",
+				});
+			});
 		});
 	});
 });
