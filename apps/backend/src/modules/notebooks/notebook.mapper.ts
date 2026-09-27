@@ -18,9 +18,9 @@ export function toNotebookDTO(input: { notebook: Notebook }) {
 	return NotebookSchema.parse(notebook);
 }
 
-export function toNotebookSummaryDTO(input: { notebook: Notebook; role: NotebookMemberRole }) {
+export function toNotebookSummaryDTO(input: { notebook: Notebook; myRole: NotebookMemberRole }) {
 	const notebook = {
-		myRole: input.role,
+		myRole: input.myRole,
 		id: input.notebook.id,
 		title: input.notebook.title,
 		description: input.notebook.description ?? undefined,

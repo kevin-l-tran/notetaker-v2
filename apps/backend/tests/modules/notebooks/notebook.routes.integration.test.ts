@@ -80,6 +80,94 @@ describe("notebook routes", () => {
 			});
 
 			expect(response.statusCode).toBe(401);
+			expect(response.json()).toMatchObject({
+				code: "UNAUTHORIZED",
+				message: "Authentication required.",
+			});
+		});
+	});
+
+	describe("POST /notebooks", () => {
+		it("creates a notebook and returns 201 with the created notebook", async () => {
+			const { cookies } = await createAuthenticatedUser(app);
+
+			const response = await app.inject({
+				method: "POST",
+				url: "/api/notebooks",
+				body: {
+					title: "Title",
+					description: "Description",
+				},
+				cookies,
+			});
+
+			expect(response.statusCode).toBe(201);
+
+			const payloadNotebook = response.json();
+
+			expect(NotebookSummarySchema.safeParse(payloadNotebook).success).toEqual(true);
+
+			const dbNotebook = await notebookRepo.findById({ id: payloadNotebook.id });
+
+			expect(dbNotebook).toMatchObject({
+				title: "Title",
+				description: "Description",
+			});
+		});
+
+		it("accepts a notebook without an optional description", async () => {
+			const { cookies } = await createAuthenticatedUser(app);
+
+			const response = await app.inject({
+				method: "POST",
+				url: "/api/notebooks",
+				body: { title: "Title" },
+				cookies,
+			});
+
+			expect(response.statusCode).toBe(201);
+
+			const payloadNotebook = response.json();
+
+			expect(NotebookSummarySchema.safeParse(payloadNotebook).success).toEqual(true);
+
+			const dbNotebook = await notebookRepo.findById({ id: payloadNotebook.id });
+
+			expect(dbNotebook).toMatchObject({
+				title: "Title",
+				description: null,
+			});
+		});
+
+		it("returns 400 when the request body fails validation", async () => {
+			const { cookies } = await createAuthenticatedUser(app);
+
+			const response = await app.inject({
+				method: "POST",
+				url: "/api/notebooks",
+				body: { title: 3 },
+				cookies,
+			});
+
+			expect(response.statusCode).toBe(400);
+			expect(response.json()).toMatchObject({
+				code: "VALIDATION_ERROR",
+				message: "Invalid request.",
+			});
+		});
+
+		it("returns 401 when the request is unauthenticated", async () => {
+			const response = await app.inject({
+				method: "POST",
+				url: "/api/notebooks",
+				body: { title: "Title" },
+			});
+
+			expect(response.statusCode).toBe(401);
+			expect(response.json()).toMatchObject({
+				code: "UNAUTHORIZED",
+				message: "Authentication required.",
+			});
 		});
 	});
 });
