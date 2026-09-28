@@ -175,13 +175,13 @@ describe("notebook service", () => {
 			}
 		});
 
-		it("rejects callers with no membership", async () => {
+		it("rejects with a NOT_FOUND error for callers with no membership", async () => {
 			const user = await userRepo.create();
 			const notebook = await notebookRepo.create({ title: "Notebook" });
 
 			await expect(
 				service.getNotebook({ appUserId: user.id, notebookId: notebook.id }),
-			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
 	});
 

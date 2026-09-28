@@ -78,9 +78,12 @@ export function createNotebookService(context: ServiceContext) {
 		},
 
 		async getNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
-			await requireMembership(notebookMemberRepo, input.appUserId, input.notebookId);
+			const notebook = await notebookRepo.findByIdForUser(input);
 
-			return await notebookRepo.findByIdForUser(input);
+			if (!notebook)
+				throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
+
+			return notebook;
 		},
 
 		async createNotebook(input: {

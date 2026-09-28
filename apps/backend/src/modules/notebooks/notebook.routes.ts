@@ -47,6 +47,28 @@ const notebookRoutes: FastifyPluginCallback = (app, _options, done) => {
 		},
 	);
 
+	zodApp.get<{ Params: { id: string } }>(
+		"/notebooks/:id",
+		{
+			preHandler: app.requireAuthentication,
+			schema: {
+				response: { 200: NotebookSummarySchema },
+				params: z.object({
+					id: z.uuid(),
+				}),
+			},
+		},
+		async (request, _reply) => {
+			const { id } = request.params;
+
+			const appUser = getAuthenticatedUser(request);
+
+			const notebook = await notebookService.getNotebook({ appUserId: appUser.id, notebookId: id });
+
+			return toNotebookSummaryDTO({ notebook, myRole: notebook.myRole });
+		},
+	);
+
 	done();
 };
 

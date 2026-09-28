@@ -170,4 +170,90 @@ describe("notebook routes", () => {
 			});
 		});
 	});
+
+	describe("GET /notebooks/:id", () => {
+		it("returns 200 with the requested notebook", async () => {
+			const { user, cookies } = await createAuthenticatedUser(app);
+
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			const response = await app.inject({
+				method: "GET",
+				url: `/api/notebooks/${notebook.id}`,
+				cookies,
+			});
+
+			expect(response.statusCode).toBe(200);
+
+			const payloadNotebook = response.json();
+
+			expect(NotebookSummarySchema.safeParse(payloadNotebook).success).toEqual(true);
+			expect(payloadNotebook.id).toEqual(notebook.id);
+		});
+
+		it("returns 404 when the user is not a notebook member", async () => {
+			const { cookies } = await createAuthenticatedUser(app);
+
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const response = await app.inject({
+				method: "GET",
+				url: `/api/notebooks/${notebook.id}`,
+				cookies,
+			});
+
+			expect(response.statusCode).toBe(404);
+			expect(response.json()).toMatchObject({
+				code: "NOTEBOOK_NOT_FOUND",
+				message: "Could not find target notebook.",
+			});
+		});
+
+		it("returns 404 when the notebook does not exist", async () => {
+			const { cookies } = await createAuthenticatedUser(app);
+
+			const nonexistentId = crypto.randomUUID();
+
+			const response = await app.inject({
+				method: "GET",
+				url: `/api/notebooks/${nonexistentId}`,
+				cookies,
+			});
+
+			expect(response.statusCode).toBe(404);
+			expect(response.json()).toMatchObject({
+				code: "NOTEBOOK_NOT_FOUND",
+				message: "Could not find target notebook.",
+			});
+		});
+
+		it("returns 401 when the request is unauthenticated", async () => {
+			const { user } = await createAuthenticatedUser(app);
+
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			const response = await app.inject({
+				method: "GET",
+				url: `/api/notebooks/${notebook.id}`,
+			});
+
+			expect(response.statusCode).toBe(401);
+			expect(response.json()).toMatchObject({
+				code: "UNAUTHORIZED",
+				message: "Authentication required.",
+			});
+		});
+	});
 });
