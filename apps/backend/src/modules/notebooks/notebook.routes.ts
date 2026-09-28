@@ -103,6 +103,29 @@ const notebookRoutes: FastifyPluginCallback = (app, _options, done) => {
 		},
 	);
 
+	zodApp.delete(
+		"/notebooks/:id",
+		{
+			preHandler: app.requireAuthentication,
+			schema: {
+				params: z.object({ id: z.uuid() }),
+			},
+		},
+		async (request, reply) => {
+			const { id } = request.params;
+
+			const appUser = getAuthenticatedUser(request);
+
+			await notebookService.deleteNotebook({
+				appUserId: appUser.id,
+				notebookId: id,
+			});
+
+			reply.code(204);
+			return;
+		},
+	);
+
 	done();
 };
 
