@@ -1,6 +1,10 @@
-import { CreateNotebookRequestSchema, NotebookSummarySchema } from "@notetaker-v2/contracts";
+import type { ZodTypeProvider } from "@fastify/type-provider-zod";
+import {
+	CreateNotebookRequestSchema,
+	NotebookSummarySchema,
+	UpdateNotebookRequestSchema,
+} from "@notetaker-v2/contracts";
 import type { FastifyPluginCallback } from "fastify";
-import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import z from "zod";
 import { db } from "../../database/client.ts";
 import { createServiceContext } from "../../shared/services/serviceContext.ts";
@@ -47,15 +51,13 @@ const notebookRoutes: FastifyPluginCallback = (app, _options, done) => {
 		},
 	);
 
-	zodApp.get<{ Params: { id: string } }>(
+	zodApp.get(
 		"/notebooks/:id",
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
 				response: { 200: NotebookSummarySchema },
-				params: z.object({
-					id: z.uuid(),
-				}),
+				params: z.object({ id: z.uuid() }),
 			},
 		},
 		async (request, _reply) => {
@@ -66,6 +68,38 @@ const notebookRoutes: FastifyPluginCallback = (app, _options, done) => {
 			const notebook = await notebookService.getNotebook({ appUserId: appUser.id, notebookId: id });
 
 			return toNotebookSummaryDTO({ notebook, myRole: notebook.myRole });
+		},
+	);
+
+	zodApp.patch(
+		"/notebooks/:id",
+		{
+			preHandler: app.requireAuthentication,
+			schema: {
+				body: UpdateNotebookRequestSchema,
+				response: { 200: NotebookSummarySchema },
+				params: z.object({ id: z.uuid() }),
+			},
+		},
+		async (request, _reply) => {
+			const { id } = request.params;
+
+			const appUser = getAuthenticatedUser(request);
+
+			const data = {
+				...(request.body.title !== undefined && { title: request.body.title }),
+				...(request.body.description !== undefined && {
+					description: request.body.description,
+				}),
+			};
+
+			const updatedNotebook = await notebookService.updateNotebook({
+				appUserId: appUser.id,
+				notebookId: id,
+				data,
+			});
+
+			return toNotebookSummaryDTO({ notebook: updatedNotebook, myRole: updatedNotebook.myRole });
 		},
 	);
 

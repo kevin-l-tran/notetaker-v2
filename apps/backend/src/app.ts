@@ -1,5 +1,5 @@
+import { serializerCompiler, validatorCompiler } from "@fastify/type-provider-zod";
 import Fastify, { type FastifyInstance } from "fastify";
-import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import { db } from "./database/client.ts";
 import { createAuth } from "./modules/auth/createAuth.ts";
 import errorHandler from "./plugins/errorHandler.plugin.ts";
