@@ -7,10 +7,10 @@ interface NotebookRowProps {
 
 export default function NotebookRow({ notebook }: NotebookRowProps) {
 	return (
-		<div className={styles.row}>
-			<h2>{notebook.title}</h2>
-			<p>{notebook.description}</p>
-			<p>{notebook.updatedAt}</p>
+		<div className={`${styles.rowLayout} ${styles.row}`}>
+			<h2 className={styles.rowLineTitle}>{notebook.title}</h2>
+			<p className={styles.rowLineDescription}>{notebook.description}</p>
+			<p className={styles.rowLineDate}>{notebook.updatedAt}</p>
 		</div>
 	);
 }

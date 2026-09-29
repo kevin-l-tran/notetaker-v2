@@ -1,0 +1,59 @@
+.rowLayout {
+	padding: var(--space-7) var(--space-8);
+	border-bottom: var(--border-width-1) solid var(--border-default);
+}
+
+.rowLayout:last-child {
+	border-bottom: 0;
+}
+
+.rowLineTitle {
+	margin: 0 0 var(--space-2);
+	font-size: var(--font-size-3);
+	font-weight: var(--font-weight-semibold);
+}
+
+.rowLineDescription {
+	margin: 0;
+	color: var(--text-secondary);
+	font-size: var(--font-size-2);
+	line-height: var(--line-height-3);
+}
+
+.rowLineDate {
+	margin-top: var(--space-2);
+	color: var(--text-muted);
+}
+
+.row {
+	cursor: pointer;
+}
+
+.row:hover {
+	background: var(--surface-hover);
+}
+
+.skeletonLine {
+	border-radius: var(--radius-2);
+	background: linear-gradient(
+		90deg,
+		var(--surface-3) 25%,
+		var(--surface-4) 50%,
+		var(--surface-3) 75%
+	);
+	background-size: 200% 100%;
+	color: transparent;
+	user-select: none;
+}
+
+.skeletonLineTitle {
+	max-width: 10rem;
+}
+
+.skeletonLineDescription {
+	max-width: 20rem;
+}
+
+.skeletonLineDate {
+	max-width: 7rem;
+}

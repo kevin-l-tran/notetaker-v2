@@ -1,6 +1,6 @@
-import { NotebookSummarySchema } from "@notetaker-v2/contracts";
+import { type NotebookSummary, NotebookSummarySchema } from "@notetaker-v2/contracts";
 
-export async function fetchNotebooks() {
+export async function fetchNotebooks(): Promise<NotebookSummary[]> {
 	const response = await fetch("/api/notebooks");
 
 	if (!response.ok) {

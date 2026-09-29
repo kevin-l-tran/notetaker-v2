@@ -1,0 +1,36 @@
+.nullState {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: var(--space-12) var(--space-8);
+	text-align: center;
+}
+
+.nullState h2 {
+	margin: 0;
+	font-size: var(--font-size-3);
+	font-weight: var(--font-weight-semibold);
+}
+
+.nullState p {
+	margin: var(--space-3) 0 var(--space-7);
+	color: var(--text-secondary);
+	font-size: var(--font-size-2);
+}
+
+.secondaryButton {
+	box-sizing: border-box;
+	height: var(--control-size-2);
+	padding: 0 var(--space-7);
+	border: var(--border-width-1) solid var(--border-default);
+	border-radius: var(--radius-4);
+	background: var(--control-background);
+	color: var(--text-primary);
+	font: inherit;
+	font-weight: var(--font-weight-medium);
+	cursor: pointer;
+}
+
+.secondaryButton:hover {
+	background: var(--control-background-hover);
+}
