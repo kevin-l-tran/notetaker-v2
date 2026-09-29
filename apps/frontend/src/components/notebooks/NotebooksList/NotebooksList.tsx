@@ -1,3 +1,4 @@
+import type { Dialog } from "@base-ui/react";
 import type { Notebook } from "@notetaker-v2/contracts";
 import NotebookRow from "./NotebookRow/NotebookRow";
 import NotebooksEmptyState from "./NotebooksEmptyState";
@@ -8,16 +9,16 @@ interface NotebookListProps {
 	notebooks?: Notebook[];
 	isPending: boolean;
 	error: Error | null;
+	createNotebookHandle: Dialog.Handle<unknown>;
 	onRetry: () => void;
-	onNewNotebook: () => void;
 }
 
 export default function NotebookList({
 	notebooks,
 	isPending,
 	error,
+	createNotebookHandle,
 	onRetry,
-	onNewNotebook,
 }: NotebookListProps) {
 	if (isPending) {
 		return <NotebooksSkeleton />;
@@ -28,7 +29,7 @@ export default function NotebookList({
 	}
 
 	if (!notebooks || notebooks.length === 0) {
-		return <NotebooksEmptyState onNewNotebook={onNewNotebook} />;
+		return <NotebooksEmptyState createNotebookHandle={createNotebookHandle} />;
 	}
 
 	return notebooks.map((notebook) => <NotebookRow notebook={notebook} key={notebook.id} />);

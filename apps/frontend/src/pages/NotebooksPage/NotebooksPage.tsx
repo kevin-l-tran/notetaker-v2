@@ -1,9 +1,12 @@
-import { Button, Input } from "@base-ui/react";
+import { Dialog, Input } from "@base-ui/react";
 import { useQuery } from "@tanstack/react-query";
+import CreateNotebookDialog from "../../components/notebooks/CreateNotebookDialog/CreateNotebookDialog";
 import NotebookList from "../../components/notebooks/NotebooksList/NotebooksList";
 import AppHeader from "../../components/shared/Headers/AppHeader";
 import { notebooksQuery } from "../../data/api/queries/notebooks";
 import styles from "./NotebooksPage.module.css";
+
+const createDialog = Dialog.createHandle();
 
 export default function NotebooksPage() {
 	const { isPending, error, data, refetch } = useQuery(notebooksQuery());
@@ -20,9 +23,9 @@ export default function NotebooksPage() {
 				<div className={styles.heading}>
 					<h1>Notebooks</h1>
 
-					<Button className={styles.newNotebook} type="button" onClick={handleNewNotebook}>
+					<Dialog.Trigger className={styles.newNotebook} handle={createDialog}>
 						New Notebook
-					</Button>
+					</Dialog.Trigger>
 				</div>
 
 				<Input
@@ -37,9 +40,11 @@ export default function NotebooksPage() {
 						isPending={isPending}
 						error={error}
 						onRetry={() => void refetch()}
-						onNewNotebook={handleNewNotebook}
+						createNotebookHandle={createDialog}
 					/>
 				</div>
+
+				<CreateNotebookDialog handle={createDialog} onNewNotebook={handleNewNotebook} />
 			</main>
 		</div>
 	);
