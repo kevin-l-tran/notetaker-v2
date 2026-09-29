@@ -1,6 +1,6 @@
 import { Tabs } from "@base-ui/react";
 import { Check, Pencil } from "lucide-react";
-import NodeContentPanel from "../NodeContentPanel/NodeContentPanel";
+import NodeContentPanel from "./NodeContentPanel/NodeContentPanel";
 import styles from "./NodeEditor.module.css";
 
 /*
