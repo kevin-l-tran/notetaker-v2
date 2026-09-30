@@ -17,6 +17,9 @@ export async function fetchNotebooks(): Promise<NotebookSummary[]> {
 export async function createNotebook(input: CreateNotebookRequest): Promise<NotebookSummary> {
 	const response = await fetch("/api/notebooks", {
 		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
 		body: JSON.stringify(input),
 	});
 

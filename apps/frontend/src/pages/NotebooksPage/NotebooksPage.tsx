@@ -11,10 +11,6 @@ const createDialog = Dialog.createHandle();
 export default function NotebooksPage() {
 	const { isPending, error, data, refetch } = useQuery(notebooksQuery());
 
-	const handleNewNotebook = () => {
-		// open create notebook ui
-	};
-
 	return (
 		<div className={styles.page}>
 			<AppHeader />
@@ -44,7 +40,7 @@ export default function NotebooksPage() {
 					/>
 				</div>
 
-				<CreateNotebookDialog handle={createDialog} onNewNotebook={handleNewNotebook} />
+				<CreateNotebookDialog handle={createDialog} />
 			</main>
 		</div>
 	);
