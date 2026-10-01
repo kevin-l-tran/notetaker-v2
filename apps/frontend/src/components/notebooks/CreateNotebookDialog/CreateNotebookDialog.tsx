@@ -54,7 +54,7 @@ export default function CreateNotebookDialog({ handle }: CreateNotebookDialogPro
 							<Field.Label className={styles.label}>
 								<p>Title</p>
 
-								<p>{titleLength} / 60</p>
+								<p className={styles.characterCount}>{titleLength} / 60</p>
 							</Field.Label>
 							<Field.Control
 								maxLength={60}
@@ -71,7 +71,7 @@ export default function CreateNotebookDialog({ handle }: CreateNotebookDialogPro
 							<Field.Label className={styles.label}>
 								<p>Description (optional)</p>
 
-								<p>{descriptionLength} / 300</p>
+								<p className={styles.characterCount}>{descriptionLength} / 300</p>
 							</Field.Label>
 							<Field.Control
 								render={<textarea />}
