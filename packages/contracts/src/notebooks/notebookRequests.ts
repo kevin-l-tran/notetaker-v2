@@ -8,11 +8,11 @@ export const CreateNotebookRequestSchema = z.object({
 		.string()
 		.trim()
 		.min(1, { error: "Title is required." })
-		.max(100, { error: "Title must be 100 characters or fewer." }),
+		.max(60, { error: "Title must be 60 characters or fewer." }),
 	description: z
 		.string()
 		.trim()
-		.max(500, { error: "Description must be 500 characters or fewer." })
+		.max(300, { error: "Description must be 300 characters or fewer." })
 		.optional(),
 });
 

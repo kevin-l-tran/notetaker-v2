@@ -10,6 +10,8 @@ interface CreateNotebookDialogProps {
 }
 
 export default function CreateNotebookDialog({ handle }: CreateNotebookDialogProps) {
+	const [titleLength, setTitleLength] = useState(0);
+	const [descriptionLength, setDescriptionLength] = useState(0);
 	const [errors, setErrors] = useState({});
 
 	const mutation = useCreateNotebook();
@@ -39,21 +41,44 @@ export default function CreateNotebookDialog({ handle }: CreateNotebookDialogPro
 					<Form
 						errors={errors}
 						onFormSubmit={async (formValues) => {
+							setTitleLength(0);
+							setDescriptionLength(0);
+							setErrors({});
+
 							const response = await submitForm(formValues);
 							setErrors(response.errors);
 						}}
 						className={styles.form}
 					>
 						<Field.Root name="title" className={styles.field}>
-							<Field.Label className={styles.label}>Title</Field.Label>
-							<Field.Control className={styles.control} placeholder="Enter title..." />
+							<Field.Label className={styles.label}>
+								<p>Title</p>
+
+								<p>{titleLength} / 60</p>
+							</Field.Label>
+							<Field.Control
+								maxLength={60}
+								onChange={(event) => {
+									setTitleLength(event.currentTarget.value.length);
+								}}
+								className={styles.control}
+								placeholder="Enter title..."
+							/>
 							<Field.Error className={styles.error} />
 						</Field.Root>
 
 						<Field.Root name="description" className={styles.field}>
-							<Field.Label className={styles.label}>Description (optional)</Field.Label>
+							<Field.Label className={styles.label}>
+								<p>Description (optional)</p>
+
+								<p>{descriptionLength} / 300</p>
+							</Field.Label>
 							<Field.Control
 								render={<textarea />}
+								maxLength={300}
+								onChange={(event) => {
+									setDescriptionLength(event.currentTarget.value.length);
+								}}
 								className={`${styles.control} ${styles.textarea}`}
 								placeholder="Enter description..."
 							/>
