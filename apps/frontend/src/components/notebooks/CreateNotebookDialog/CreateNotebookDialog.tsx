@@ -2,6 +2,7 @@ import { Button, Dialog, Field, Form } from "@base-ui/react";
 import { CreateNotebookRequestSchema } from "@notetaker-v2/contracts";
 import { useState } from "react";
 import z from "zod";
+import { ApiError, UnexpectedApiResponseError } from "../../../data/api/errors";
 import { useCreateNotebook } from "../../../data/api/mutations/createNotebook";
 import styles from "./CreateNotebookDialog.module.css";
 
@@ -10,9 +11,10 @@ interface CreateNotebookDialogProps {
 }
 
 export default function CreateNotebookDialog({ handle }: CreateNotebookDialogProps) {
-	const [titleLength, setTitleLength] = useState(0);
-	const [descriptionLength, setDescriptionLength] = useState(0);
+	const [title, setTitle] = useState("");
+	const [description, setDescription] = useState("");
 	const [errors, setErrors] = useState({});
+	const [formError, setFormError] = useState<string | null>(null);
 
 	const mutation = useCreateNotebook();
 
@@ -25,7 +27,33 @@ export default function CreateNotebookDialog({ handle }: CreateNotebookDialogPro
 			};
 		}
 
-		await mutation.mutateAsync(parsedFormValues.data);
+		try {
+			await mutation.mutateAsync(parsedFormValues.data);
+
+			setTitle("");
+			setDescription("");
+			handle.close();
+		} catch (error) {
+			if (error instanceof ApiError) {
+				switch (error.code) {
+					case "VALIDATION_ERROR":
+						setFormError("Couldn't create the notebook. Please check your input and try again.");
+						break;
+
+					case "INTERNAL_SERVER_ERROR":
+						setFormError("An unexpected error occured. Please try again.");
+						break;
+
+					default:
+						setFormError("An unexpected error occured. Please try again.");
+						break;
+				}
+			} else if (error instanceof UnexpectedApiResponseError) {
+				setFormError("An unexpected error occured. Please try again.");
+			} else {
+				setFormError("An unexpected error occured. Please try again.");
+			}
+		}
 
 		return { errors: {} };
 	};
@@ -41,10 +69,6 @@ export default function CreateNotebookDialog({ handle }: CreateNotebookDialogPro
 					<Form
 						errors={errors}
 						onFormSubmit={async (formValues) => {
-							setTitleLength(0);
-							setDescriptionLength(0);
-							setErrors({});
-
 							const response = await submitForm(formValues);
 							setErrors(response.errors);
 						}}
@@ -52,15 +76,14 @@ export default function CreateNotebookDialog({ handle }: CreateNotebookDialogPro
 					>
 						<Field.Root name="title" className={styles.field}>
 							<Field.Label className={styles.label}>
-								<p>Title</p>
+								<span>Title</span>
 
-								<p className={styles.characterCount}>{titleLength} / 60</p>
+								<span className={styles.characterCount}>{title.length} / 60</span>
 							</Field.Label>
 							<Field.Control
+								value={title}
+								onChange={(event) => setTitle(event.currentTarget.value)}
 								maxLength={60}
-								onChange={(event) => {
-									setTitleLength(event.currentTarget.value.length);
-								}}
 								className={styles.control}
 								placeholder="Enter title..."
 							/>
@@ -69,24 +92,29 @@ export default function CreateNotebookDialog({ handle }: CreateNotebookDialogPro
 
 						<Field.Root name="description" className={styles.field}>
 							<Field.Label className={styles.label}>
-								<p>Description (optional)</p>
+								<span>Description (optional)</span>
 
-								<p className={styles.characterCount}>{descriptionLength} / 300</p>
+								<span className={styles.characterCount}>{description.length} / 300</span>
 							</Field.Label>
 							<Field.Control
 								render={<textarea />}
+								value={description}
+								onChange={(event) => setDescription(event.currentTarget.value)}
 								maxLength={300}
-								onChange={(event) => {
-									setDescriptionLength(event.currentTarget.value.length);
-								}}
 								className={`${styles.control} ${styles.textarea}`}
 								placeholder="Enter description..."
 							/>
 							<Field.Error className={styles.error} />
 						</Field.Root>
 
-						<Button type="submit" className={styles.submit}>
-							Create
+						{formError && (
+							<p className={styles.error} role="alert">
+								{formError}
+							</p>
+						)}
+
+						<Button type="submit" disabled={mutation.isPending} className={styles.submit}>
+							{mutation.isPending ? "Creating..." : "Create"}
 						</Button>
 					</Form>
 				</Dialog.Popup>

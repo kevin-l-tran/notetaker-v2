@@ -15,6 +15,16 @@ export class ApiError extends Error {
 	}
 }
 
+export class UnexpectedApiResponseError extends Error {
+	readonly status: number;
+
+	constructor(status: number) {
+		super("The server returned an unexpected error response.");
+		this.name = "UnexpectedApiResponseError";
+		this.status = status;
+	}
+}
+
 export async function parseApiError(response: Response): Promise<Error> {
 	try {
 		const body: unknown = await response.json();
@@ -27,5 +37,5 @@ export async function parseApiError(response: Response): Promise<Error> {
 		// response was not valid JSON.
 	}
 
-	return new Error(`Request failed with status ${response.status}.`);
+	return new UnexpectedApiResponseError(response.status);
 }
