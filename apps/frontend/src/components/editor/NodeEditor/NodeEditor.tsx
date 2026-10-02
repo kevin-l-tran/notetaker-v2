@@ -1,5 +1,5 @@
 import { Tabs } from "@base-ui/react";
-import { Check, Pencil } from "lucide-react";
+import { CheckIcon, PencilIcon } from "lucide-react";
 import NodeContentPanel from "./NodeContentPanel/NodeContentPanel";
 import styles from "./NodeEditor.module.css";
 
@@ -18,10 +18,10 @@ export default function NodeEditor({ description = "" }: NodeEditorProps) {
 			<div className={styles.header}>
 				<div className={styles.nodeTitle}>
 					Node Name
-					<Pencil />
+					<PencilIcon />
 				</div>
 				<div className={styles.publishStatus}>
-					<Check />
+					<CheckIcon />
 					Published
 				</div>
 			</div>

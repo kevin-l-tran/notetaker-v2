@@ -1,5 +1,6 @@
 .rowLayout {
-	padding: var(--space-7) var(--space-8);
+	position: relative;
+	padding: var(--space-7) var(--space-12) var(--space-7) var(--space-8);
 	border-bottom: var(--border-width-1) solid var(--border-default);
 }
 
@@ -27,6 +28,7 @@
 
 .row {
 	cursor: pointer;
+	transition: background var(--duration-2) var(--ease-standard);
 }
 
 .row:hover {

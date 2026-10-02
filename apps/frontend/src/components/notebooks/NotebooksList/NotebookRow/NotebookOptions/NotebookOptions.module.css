@@ -1,0 +1,63 @@
+.trigger {
+	position: absolute;
+	top: var(--space-5);
+	right: var(--space-5);
+
+	width: var(--control-size-1);
+	height: var(--control-size-1);
+	padding: 0;
+	place-items: center;
+
+	border: 0;
+	border-radius: var(--radius-4);
+	background: transparent;
+	color: var(--text-muted);
+	font: inherit;
+	font-size: var(--font-size-3);
+	cursor: pointer;
+}
+
+.trigger:hover {
+	background: var(--surface-active);
+	color: var(--text-primary);
+}
+
+.positioner {
+	z-index: var(--z-dropdown);
+}
+
+.popup {
+	min-width: 10rem;
+	padding: var(--space-2);
+	border: var(--border-width-1) solid var(--border-default);
+	border-radius: var(--radius-4);
+	background: var(--surface-1);
+	box-shadow: var(--shadow-3);
+}
+
+.item {
+	width: 100%;
+	padding: var(--space-4) var(--space-5);
+	border: 0;
+	border-radius: var(--radius-3);
+	background: transparent;
+	color: var(--text-primary);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	font-size: var(--font-size-2);
+}
+
+.item:hover {
+	background: var(--surface-hover);
+}
+
+.delete {
+	color: var(--text-danger);
+}
+
+.separator {
+	height: var(--border-width-1);
+	margin: var(--space-2) 0;
+	background: var(--border-default);
+}
