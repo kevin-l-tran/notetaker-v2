@@ -10,6 +10,7 @@ interface NotebookListProps {
 	isPending: boolean;
 	error: Error | null;
 	createNotebookHandle: Dialog.Handle<unknown>;
+	updateNotebookHandle: Dialog.Handle<Notebook>;
 	onRetry: () => void;
 }
 
@@ -18,6 +19,7 @@ export default function NotebookList({
 	isPending,
 	error,
 	createNotebookHandle,
+	updateNotebookHandle,
 	onRetry,
 }: NotebookListProps) {
 	if (isPending) {
@@ -32,5 +34,11 @@ export default function NotebookList({
 		return <NotebooksEmptyState createNotebookHandle={createNotebookHandle} />;
 	}
 
-	return notebooks.map((notebook) => <NotebookRow notebook={notebook} key={notebook.id} />);
+	return notebooks.map((notebook) => (
+		<NotebookRow
+			notebook={notebook}
+			key={notebook.id}
+			updateNotebookHandle={updateNotebookHandle}
+		/>
+	));
 }

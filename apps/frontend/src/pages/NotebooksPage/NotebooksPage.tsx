@@ -1,12 +1,15 @@
 import { Dialog, Input } from "@base-ui/react";
+import type { Notebook } from "@notetaker-v2/contracts";
 import { useQuery } from "@tanstack/react-query";
 import CreateNotebookDialog from "../../components/notebooks/CreateNotebookDialog/CreateNotebookDialog";
 import NotebookList from "../../components/notebooks/NotebooksList/NotebooksList";
+import UpdateNotebookDialog from "../../components/notebooks/UpdateNotebookDialog/UpdateNotebookDialog";
 import AppHeader from "../../components/shared/Headers/AppHeader";
 import { notebooksQuery } from "../../data/api/queries/notebooks";
 import styles from "./NotebooksPage.module.css";
 
 const createDialog = Dialog.createHandle();
+const updateDialog = Dialog.createHandle<Notebook>();
 
 export default function NotebooksPage() {
 	const { isPending, error, data, refetch } = useQuery(notebooksQuery());
@@ -37,10 +40,12 @@ export default function NotebooksPage() {
 						error={error}
 						onRetry={() => void refetch()}
 						createNotebookHandle={createDialog}
+						updateNotebookHandle={updateDialog}
 					/>
 				</div>
 
 				<CreateNotebookDialog handle={createDialog} />
+				<UpdateNotebookDialog handle={updateDialog} />
 			</main>
 		</div>
 	);

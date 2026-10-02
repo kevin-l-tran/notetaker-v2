@@ -2,7 +2,11 @@ import { Menu } from "@base-ui/react";
 import { EllipsisIcon } from "lucide-react";
 import styles from "./NotebookOptions.module.css";
 
-export default function NotebookOptions() {
+interface NotebookOptionsProps {
+	onUpdateNotebook: () => void;
+}
+
+export default function NotebookOptions({ onUpdateNotebook }: NotebookOptionsProps) {
 	return (
 		<Menu.Root>
 			<Menu.Trigger className={styles.trigger}>
@@ -12,7 +16,7 @@ export default function NotebookOptions() {
 			<Menu.Portal>
 				<Menu.Positioner className={styles.positioner} sideOffset={4}>
 					<Menu.Popup className={styles.popup}>
-						<Menu.Item className={styles.item} nativeButton>
+						<Menu.Item className={styles.item} onClick={onUpdateNotebook}>
 							Edit details
 						</Menu.Item>
 
