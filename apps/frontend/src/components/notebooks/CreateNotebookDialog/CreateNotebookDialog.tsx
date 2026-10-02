@@ -32,6 +32,7 @@ export default function CreateNotebookDialog({ handle }: CreateNotebookDialogPro
 
 			setTitle("");
 			setDescription("");
+			setFormError(null);
 			handle.close();
 		} catch (error) {
 			if (error instanceof ApiError) {
