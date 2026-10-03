@@ -9,7 +9,7 @@ interface NotebookOptionsProps {
 export default function NotebookOptions({ onUpdateNotebook }: NotebookOptionsProps) {
 	return (
 		<Menu.Root>
-			<Menu.Trigger className={styles.trigger}>
+			<Menu.Trigger aria-label="Notebook options" className={styles.trigger}>
 				<EllipsisIcon size={16} />
 			</Menu.Trigger>
 

@@ -38,7 +38,7 @@ function UpdateNotebookForm({
 	handle: Dialog.Handle<Notebook>;
 }) {
 	const [title, setTitle] = useState(notebook.title);
-	const [description, setDescription] = useState(notebook.description);
+	const [description, setDescription] = useState(notebook.description ?? "");
 	const [errors, setErrors] = useState({});
 	const [formError, setFormError] = useState<string | null>(null);
 
@@ -112,7 +112,7 @@ function UpdateNotebookForm({
 				<Field.Label className={styles.label}>
 					<span>Description (optional)</span>
 
-					<span className={styles.characterCount}>{description?.length ?? 0} / 300</span>
+					<span className={styles.characterCount}>{description.length} / 300</span>
 				</Field.Label>
 				<Field.Control
 					render={<textarea />}
@@ -131,9 +131,15 @@ function UpdateNotebookForm({
 				</p>
 			)}
 
-			<Button type="submit" disabled={mutation.isPending} className={styles.submit}>
-				{mutation.isPending ? "Updating..." : "Update"}
-			</Button>
+			<div className={styles.buttonRow}>
+				<Button onClick={() => handle.close()} className={styles.cancel}>
+					Cancel
+				</Button>
+
+				<Button type="submit" disabled={mutation.isPending} className={styles.submit}>
+					{mutation.isPending ? "Updating..." : "Update"}
+				</Button>
+			</div>
 		</Form>
 	);
 }

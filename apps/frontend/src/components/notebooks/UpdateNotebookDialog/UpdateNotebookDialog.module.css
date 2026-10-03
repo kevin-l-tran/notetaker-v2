@@ -80,8 +80,28 @@
 	font-size: var(--font-size-1);
 }
 
+.buttonRow {
+	display: flex;
+	align-items: center;
+	justify-content: end;
+	gap: var(--space-5);
+}
+
+.cancel {
+	height: var(--control-size-2);
+	padding: 0 var(--space-7);
+	background-color: transparent;
+	border: 0;
+	border-radius: var(--radius-4);
+	cursor: pointer;
+	color: var(--text-secondary);
+}
+
+.cancel:hover {
+	background: var(--surface-hover);
+}
+
 .submit {
-	align-self: flex-end;
 	height: var(--control-size-2);
 	padding: 0 var(--space-7);
 	border: 0;

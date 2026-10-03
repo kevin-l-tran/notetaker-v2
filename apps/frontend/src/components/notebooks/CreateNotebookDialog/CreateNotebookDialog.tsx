@@ -114,9 +114,15 @@ export default function CreateNotebookDialog({ handle }: CreateNotebookDialogPro
 							</p>
 						)}
 
-						<Button type="submit" disabled={mutation.isPending} className={styles.submit}>
-							{mutation.isPending ? "Creating..." : "Create"}
-						</Button>
+						<div className={styles.buttonRow}>
+							<Button onClick={() => handle.close()} className={styles.cancel}>
+								Cancel
+							</Button>
+
+							<Button type="submit" disabled={mutation.isPending} className={styles.submit}>
+								{mutation.isPending ? "Creating..." : "Create"}
+							</Button>
+						</div>
 					</Form>
 				</Dialog.Popup>
 			</Dialog.Portal>
