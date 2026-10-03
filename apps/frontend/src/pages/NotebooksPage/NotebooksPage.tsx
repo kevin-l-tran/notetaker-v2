@@ -1,6 +1,7 @@
 import { AlertDialog, Dialog, Input } from "@base-ui/react";
 import type { Notebook } from "@notetaker-v2/contracts";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import CreateNotebookDialog from "../../components/notebooks/CreateNotebookDialog/CreateNotebookDialog";
 import DeleteNotebookDialog from "../../components/notebooks/DeleteNotebookDialog/DeleteNotebookDialog";
 import NotebookList from "../../components/notebooks/NotebooksList/NotebooksList";
@@ -16,6 +17,12 @@ const deleteDialog = AlertDialog.createHandle<Notebook>();
 export default function NotebooksPage() {
 	const { isPending, error, data, refetch } = useQuery(notebooksQuery());
 
+	const [query, setQuery] = useState("");
+
+	const processedNotebooks = data?.filter((n) =>
+		n.title.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+	);
+
 	return (
 		<div className={styles.page}>
 			<AppHeader />
@@ -30,6 +37,8 @@ export default function NotebooksPage() {
 				</div>
 
 				<Input
+					value={query}
+					onValueChange={setQuery}
 					className={styles.search}
 					placeholder="Search notebooks..."
 					disabled={isPending || !!error}
@@ -37,7 +46,7 @@ export default function NotebooksPage() {
 
 				<div className={styles.notebooks}>
 					<NotebookList
-						notebooks={data}
+						notebooks={processedNotebooks}
 						isPending={isPending}
 						error={error}
 						onRetry={() => void refetch()}
