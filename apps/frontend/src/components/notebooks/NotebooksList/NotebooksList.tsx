@@ -1,4 +1,4 @@
-import type { Dialog } from "@base-ui/react";
+import type { AlertDialog, Dialog } from "@base-ui/react";
 import type { Notebook } from "@notetaker-v2/contracts";
 import NotebookRow from "./NotebookRow/NotebookRow";
 import NotebooksEmptyState from "./NotebooksEmptyState";
@@ -11,6 +11,7 @@ interface NotebookListProps {
 	error: Error | null;
 	createNotebookHandle: Dialog.Handle<unknown>;
 	updateNotebookHandle: Dialog.Handle<Notebook>;
+	deleteNotebookHandle: AlertDialog.Handle<Notebook>;
 	onRetry: () => void;
 }
 
@@ -20,6 +21,7 @@ export default function NotebookList({
 	error,
 	createNotebookHandle,
 	updateNotebookHandle,
+	deleteNotebookHandle,
 	onRetry,
 }: NotebookListProps) {
 	if (isPending) {
@@ -39,6 +41,7 @@ export default function NotebookList({
 			notebook={notebook}
 			key={notebook.id}
 			updateNotebookHandle={updateNotebookHandle}
+			deleteNotebookHandle={deleteNotebookHandle}
 		/>
 	));
 }

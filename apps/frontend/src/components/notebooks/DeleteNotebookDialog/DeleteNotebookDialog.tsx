@@ -63,7 +63,7 @@ function DeleteNotebookPopup({
 		<AlertDialog.Popup className={styles.popup}>
 			<AlertDialog.Title className={styles.title}>Delete Notebook?</AlertDialog.Title>
 			<AlertDialog.Description className={styles.description}>
-				Delete "${notebook.title}"? This action cannot be undone.
+				Delete "{notebook.title}"? This action cannot be undone.
 			</AlertDialog.Description>
 
 			{formError && (

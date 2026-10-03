@@ -4,9 +4,13 @@ import styles from "./NotebookOptions.module.css";
 
 interface NotebookOptionsProps {
 	onUpdateNotebook: () => void;
+	onDeleteNotebook: () => void;
 }
 
-export default function NotebookOptions({ onUpdateNotebook }: NotebookOptionsProps) {
+export default function NotebookOptions({
+	onUpdateNotebook,
+	onDeleteNotebook,
+}: NotebookOptionsProps) {
 	return (
 		<Menu.Root>
 			<Menu.Trigger aria-label="Notebook options" className={styles.trigger}>
@@ -16,13 +20,17 @@ export default function NotebookOptions({ onUpdateNotebook }: NotebookOptionsPro
 			<Menu.Portal>
 				<Menu.Positioner className={styles.positioner} sideOffset={4}>
 					<Menu.Popup className={styles.popup}>
-						<Menu.Item className={styles.item} onClick={onUpdateNotebook}>
+						<Menu.Item className={styles.item} nativeButton onClick={onUpdateNotebook}>
 							Edit details
 						</Menu.Item>
 
 						<Menu.Separator className={styles.separator} />
 
-						<Menu.Item className={`${styles.item} ${styles.delete}`} nativeButton>
+						<Menu.Item
+							className={`${styles.item} ${styles.delete}`}
+							nativeButton
+							onClick={onDeleteNotebook}
+						>
 							Delete notebook
 						</Menu.Item>
 					</Menu.Popup>

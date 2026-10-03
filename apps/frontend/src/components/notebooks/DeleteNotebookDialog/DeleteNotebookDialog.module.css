@@ -59,9 +59,10 @@
 }
 
 .delete {
+	box-sizing: border-box;
 	height: var(--control-size-2);
 	padding: 0 var(--space-7);
-	border: 0;
+	border-width: var(--border-width-1);
 	border-radius: var(--radius-4);
 	background: var(--control-background);
 	color: var(--text-danger);
