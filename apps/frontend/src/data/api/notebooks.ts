@@ -53,3 +53,11 @@ export async function updateNotebook({
 
 	return NotebookSummarySchema.parse(data);
 }
+
+export async function deleteNotebook({ notebookId }: { notebookId: NotebookId }): Promise<void> {
+	const response = await fetch(`/api/notebooks/${notebookId}`, { method: "DELETE" });
+
+	if (!response.ok) throw new Error("Failed to delete notebook");
+
+	return;
+}
