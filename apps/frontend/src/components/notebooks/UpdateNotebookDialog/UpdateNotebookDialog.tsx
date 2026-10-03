@@ -66,17 +66,17 @@ function UpdateNotebookForm({
 						break;
 
 					case "INTERNAL_SERVER_ERROR":
-						setFormError("An unexpected error occured. Please try again.");
+						setFormError("An unexpected error occurred. Please try again.");
 						break;
 
 					default:
-						setFormError("An unexpected error occured. Please try again.");
+						setFormError("An unexpected error occurred. Please try again.");
 						break;
 				}
 			} else if (error instanceof UnexpectedApiResponseError) {
-				setFormError("An unexpected error occured. Please try again.");
+				setFormError("An unexpected error occurred. Please try again.");
 			} else {
-				setFormError("An unexpected error occured. Please try again.");
+				setFormError("An unexpected error occurred. Please try again.");
 			}
 		}
 

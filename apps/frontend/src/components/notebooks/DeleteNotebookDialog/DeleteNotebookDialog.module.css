@@ -1,0 +1,75 @@
+.backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: var(--z-overlay);
+	background: var(--overlay);
+}
+
+.popup {
+	box-sizing: border-box;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	z-index: var(--z-modal);
+	width: var(--popup-width);
+	padding: var(--space-9);
+	transform: translate(-50%, -50%);
+	border: var(--border-width-1) solid var(--border-default);
+	border-radius: var(--radius-6);
+	background: var(--surface-1);
+	box-shadow: var(--shadow-4);
+}
+
+.title {
+	margin: 0 0 var(--space-8);
+	font-size: var(--font-size-4);
+	font-weight: var(--font-weight-semibold);
+}
+
+.description {
+	margin: 0 0 var(--space-8);
+	color: var(--text-secondary);
+	font-size: var(--font-size-2);
+}
+
+.error {
+	color: var(--text-danger);
+	font-size: var(--font-size-1);
+}
+
+.buttonRow {
+	display: flex;
+	align-items: center;
+	justify-content: end;
+	gap: var(--space-5);
+}
+
+.cancel {
+	height: var(--control-size-2);
+	padding: 0 var(--space-7);
+	background-color: transparent;
+	border: 0;
+	border-radius: var(--radius-4);
+	cursor: pointer;
+	color: var(--text-secondary);
+}
+
+.cancel:hover {
+	background: var(--surface-hover);
+}
+
+.delete {
+	height: var(--control-size-2);
+	padding: 0 var(--space-7);
+	border: 0;
+	border-radius: var(--radius-4);
+	background: var(--control-background);
+	color: var(--text-danger);
+	font: inherit;
+	font-weight: var(--font-weight-medium);
+	cursor: pointer;
+}
+
+.delete:hover {
+	background: var(--control-background-hover);
+}
