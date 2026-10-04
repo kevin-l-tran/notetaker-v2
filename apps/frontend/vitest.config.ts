@@ -5,5 +5,6 @@ export default defineProject({
 	test: {
 		env: loadEnv("test", import.meta.dirname, ""),
 		environment: "jsdom",
+		setupFiles: ["./test/setup.ts"],
 	},
 });
