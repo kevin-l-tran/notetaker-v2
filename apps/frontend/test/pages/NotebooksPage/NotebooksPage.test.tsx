@@ -162,7 +162,7 @@ describe("NotebooksPage", () => {
 		renderNotebooksPage();
 		const user = userEvent.setup();
 
-		await user.click(screen.getByRole("button", { name: "New Notebook" }));
+		await user.click(screen.getByRole("button", { name: "Create notebook" }));
 
 		expect(await screen.findByRole("dialog")).toBeInTheDocument();
 
