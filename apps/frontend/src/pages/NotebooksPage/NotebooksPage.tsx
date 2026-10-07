@@ -57,7 +57,11 @@ export default function NotebooksPage() {
 				<div className={styles.heading}>
 					<h1>Notebooks</h1>
 
-					<Dialog.Trigger className={styles.newNotebook} handle={createDialog}>
+					<Dialog.Trigger
+						aria-label="Create notebook"
+						className={styles.newNotebook}
+						handle={createDialog}
+					>
 						New Notebook
 					</Dialog.Trigger>
 				</div>
