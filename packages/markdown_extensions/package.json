@@ -11,7 +11,8 @@
 		".": "./src/index.ts"
 	},
 	"scripts": {
-		"test": "vitest"
+		"test": "vitest",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
 	},
 	"dependencies": {
 		"@types/mdast": "4.0.4",

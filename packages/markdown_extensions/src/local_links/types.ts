@@ -1,3 +1,4 @@
+import "micromark-util-types";
 import type { Literal } from "mdast";
 
 export type LocalLink = Literal & {
@@ -13,5 +14,14 @@ declare module "mdast" {
 	}
 	interface PhrasingContentMap {
 		localLink: LocalLink;
+	}
+}
+
+declare module "micromark-util-types" {
+	interface TokenTypeMap {
+		localLink: "localLink";
+		localLinkMarker: "localLinkMarker";
+		localLinkLabel: "localLinkLabel";
+		localLinkTarget: "localLinkTarget";
 	}
 }

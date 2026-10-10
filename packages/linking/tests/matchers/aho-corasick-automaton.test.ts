@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-	AhoCorasickAutomaton,
-	type AhoCorasickPattern,
-} from "../../src/matchers/aho-corasick-automaton.ts";
-import type { TextToken } from "../../src/types.ts";
+import { AhoCorasickAutomaton } from "../../src/matchers/aho-corasick-automaton.ts";
+import type { AhoCorasickPattern, TextToken } from "../../src/types.ts";
 
 function token(value: string, start: number, end: number, normalized = value): TextToken {
 	return {

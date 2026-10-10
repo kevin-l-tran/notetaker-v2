@@ -9,7 +9,8 @@
 	"type": "module",
 	"main": "index.js",
 	"scripts": {
-		"test": "vitest"
+		"test": "vitest",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
 	},
 	"dependencies": {
 		"@notetaker-v2/markdown_extensions": "workspace:*"
