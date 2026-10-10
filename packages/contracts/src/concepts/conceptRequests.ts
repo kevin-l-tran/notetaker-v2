@@ -1,6 +1,9 @@
 import z from "zod";
 import { NotebookIdSchema } from "../ids.ts";
 
+export type CreateConceptRequest = z.infer<typeof CreateConceptRequestSchema>;
+export type UpdateConceptRequest = z.infer<typeof UpdateConceptRequestSchema>;
+
 export const CreateConceptRequestSchema = z.object({
 	notebookId: NotebookIdSchema,
 	title: z
