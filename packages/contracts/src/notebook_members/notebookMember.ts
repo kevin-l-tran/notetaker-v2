@@ -14,10 +14,14 @@ export const NotebookMemberSchema = z.object({
 	notebookId: NotebookIdSchema,
 	userId: UserIdSchema,
 	role: NotebookMemberRoleSchema,
+	createdAt: z.iso.datetime(),
+	updatedAt: z.iso.datetime(),
 });
 
 export const NotebookMemberSummarySchema = z.object({
 	id: NotebookMemberIdSchema,
 	user: z.object({ id: UserSchema.shape.id, displayName: UserSchema.shape.displayName }),
 	role: NotebookMemberRoleSchema,
+	createdAt: z.iso.datetime(),
+	updatedAt: z.iso.datetime(),
 });

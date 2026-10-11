@@ -925,7 +925,7 @@ describe("notebook service", () => {
 				},
 			});
 
-			expect(result).toEqual({
+			expect(result).toMatchObject({
 				id: viewerMembership.id,
 				appUserId: viewer.id,
 				notebookId: notebook.id,
@@ -1154,7 +1154,7 @@ describe("notebook service", () => {
 				memberId: editorMembership.id,
 			});
 
-			expect(result).toEqual({
+			expect(result).toMatchObject({
 				id: editorMembership.id,
 				appUserId: editor.id,
 				notebookId: notebook.id,
@@ -1434,13 +1434,13 @@ describe("notebook service", () => {
 				id: editorMembership.id,
 			});
 
-			expect(updatedOwnerMembership).toEqual({
+			expect(updatedOwnerMembership).toMatchObject({
 				id: ownerMembership.id,
 				appUserId: owner.id,
 				notebookId: notebook.id,
 				role: "editor",
 			});
-			expect(updatedEditorMembership).toEqual({
+			expect(updatedEditorMembership).toMatchObject({
 				id: editorMembership.id,
 				appUserId: editor.id,
 				notebookId: notebook.id,
@@ -1476,13 +1476,13 @@ describe("notebook service", () => {
 				id: viewerMembership.id,
 			});
 
-			expect(updatedOwnerMembership).toEqual({
+			expect(updatedOwnerMembership).toMatchObject({
 				id: ownerMembership.id,
 				appUserId: owner.id,
 				notebookId: notebook.id,
 				role: "editor",
 			});
-			expect(updatedViewerMembership).toEqual({
+			expect(updatedViewerMembership).toMatchObject({
 				id: viewerMembership.id,
 				appUserId: viewer.id,
 				notebookId: notebook.id,
@@ -1513,13 +1513,17 @@ describe("notebook service", () => {
 				memberId: targetMembership.id,
 			});
 
-			expect(result).toEqual({
+			expect(result).toMatchObject({
 				yourMembership: {
-					...ownerMembership,
+					id: ownerMembership.id,
+					appUserId: owner.id,
+					notebookId: notebook.id,
 					role: "editor",
 				},
 				targetMembership: {
-					...targetMembership,
+					id: targetMembership.id,
+					appUserId: targetUser.id,
+					notebookId: notebook.id,
 					role: "owner",
 				},
 			});

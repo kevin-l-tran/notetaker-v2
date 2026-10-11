@@ -1,5 +1,5 @@
 import { NotebookMemberRoles } from "@notetaker-v2/contracts";
-import { pgEnum, snakeCase, unique, uuid } from "drizzle-orm/pg-core";
+import { pgEnum, snakeCase, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import { appUsers } from "./appUsers.ts";
 import { notebooks } from "./notebooks.ts";
 
@@ -16,6 +16,11 @@ export const notebookMembers = snakeCase.table(
 			.references(() => notebooks.id, { onDelete: "cascade" })
 			.notNull(),
 		role: notebookMemberRole().notNull(),
+		createdAt: timestamp({ precision: 6, withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp({ precision: 6, withTimezone: true })
+			.defaultNow()
+			.$onUpdate(() => new Date())
+			.notNull(),
 	},
 	(t) => [unique().on(t.appUserId, t.notebookId)],
 );
