@@ -8,3 +8,6 @@ export const concepts = snakeCase.table("concepts", {
 		.notNull(),
 	descriptionSource: text().notNull(),
 });
+
+export type Concept = typeof concepts.$inferSelect;
+export type NewConcept = typeof concepts.$inferInsert;
