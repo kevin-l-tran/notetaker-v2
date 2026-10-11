@@ -162,6 +162,10 @@ export function createNotebookService(context: ServiceContext) {
 			return notebookMemberRepo.findForNotebookWithUsers({ notebookId: input.notebookId });
 		},
 
+		async getNotebookMembership(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
+			return await requireMembership(notebookMemberRepo, input.appUserId, input.notebookId);
+		},
+
 		async addNotebookMember(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];

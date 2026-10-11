@@ -587,6 +587,105 @@ describe("notebook service", () => {
 		});
 	});
 
+	describe("getNotebookMembership", () => {
+		it("returns the caller's membership for each role", async () => {
+			for (const role of ["owner", "editor", "viewer"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+				const membership = await notebookMemberRepo.create({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					role,
+				});
+
+				const result = await service.getNotebookMembership({
+					appUserId: user.id,
+					notebookId: notebook.id,
+				});
+
+				expect(result).toEqual(membership);
+			}
+		});
+
+		it("returns the caller's membership rather than another member's", async () => {
+			const owner = await userRepo.create();
+			const viewer = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			const viewerMembership = await notebookMemberRepo.create({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			const result = await service.getNotebookMembership({
+				appUserId: viewer.id,
+				notebookId: notebook.id,
+			});
+
+			expect(result).toEqual(viewerMembership);
+		});
+
+		it("returns the membership for the requested notebook", async () => {
+			const user = await userRepo.create();
+			const notebookA = await notebookRepo.create({ title: "Notebook A" });
+			const notebookB = await notebookRepo.create({ title: "Notebook B" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebookA.id,
+				role: "owner",
+			});
+			const membershipB = await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebookB.id,
+				role: "editor",
+			});
+
+			const result = await service.getNotebookMembership({
+				appUserId: user.id,
+				notebookId: notebookB.id,
+			});
+
+			expect(result).toEqual(membershipB);
+		});
+
+		it("rejects callers who are not members of the requested notebook", async () => {
+			const owner = await userRepo.create();
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Target" });
+			const otherNotebook = await notebookRepo.create({ title: "Other" });
+
+			await notebookMemberRepo.create({
+				appUserId: owner.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: otherNotebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.getNotebookMembership({ appUserId: user.id, notebookId: notebook.id }),
+			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+		});
+
+		it("rejects when the notebook does not exist", async () => {
+			const user = await userRepo.create();
+
+			await expect(
+				service.getNotebookMembership({ appUserId: user.id, notebookId: crypto.randomUUID() }),
+			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+		});
+	});
+
 	describe("addNotebookMember", () => {
 		it("allows owners to add a notebook editor", async () => {
 			const owner = await userRepo.create();
