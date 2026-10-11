@@ -11,7 +11,7 @@ export const baseNodes = snakeCase.table("base_nodes", {
 		.notNull(),
 	type: nodeType().notNull(),
 	title: varchar().notNull(),
-	aliases: varchar().array().notNull(),
+	aliases: varchar().array().notNull().default([]),
 	createdAt: timestamp({ precision: 6, withTimezone: true }).defaultNow().notNull(),
 	updatedAt: timestamp({ precision: 6, withTimezone: true })
 		.defaultNow()
