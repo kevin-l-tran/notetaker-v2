@@ -1,4 +1,11 @@
 /** biome-ignore-all lint/performance/noBarrelFile: this is a package index file */
+export {
+	type BaseNode,
+	BaseNodeSchema,
+	type NodeType,
+	NodeTypeSchema,
+	NodeTypes,
+} from "./base_nodes/baseNode.ts";
 export { type Claim, ClaimSchema } from "./claims/claim.ts";
 export { type Concept, ConceptSchema } from "./concepts/concept.ts";
 export {
