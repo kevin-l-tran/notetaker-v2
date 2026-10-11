@@ -1,6 +1,8 @@
 import z from "zod";
 import { NodeIdSchema } from "../ids.ts";
 
+// Base nodes are objects that have an independent place
+// on the knowledge graph.
 export type BaseNode = z.infer<typeof BaseNodeSchema>;
 
 export const BaseNodeSchema = z.object({
