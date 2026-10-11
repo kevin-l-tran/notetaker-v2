@@ -9,7 +9,7 @@ export const baseNodes = snakeCase.table("base_nodes", {
 	notebookId: uuid()
 		.references(() => notebooks.id, { onDelete: "cascade" })
 		.notNull(),
-    type: nodeType().notNull(),
+	type: nodeType().notNull(),
 	title: varchar().notNull(),
 	aliases: varchar().array().notNull(),
 	createdAt: timestamp({ precision: 6, withTimezone: true }).defaultNow().notNull(),
