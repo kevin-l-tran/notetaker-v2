@@ -1,13 +1,19 @@
 import z from "zod";
-import { NodeIdSchema } from "../ids.ts";
+import { NodeIdSchema, NotebookIdSchema } from "../ids.ts";
 
 // Base nodes are objects that have an independent place
 // on the knowledge graph.
+export type NodeType = z.infer<typeof NodeTypeSchema>;
 export type BaseNode = z.infer<typeof BaseNodeSchema>;
+
+export const NodeTypes = ["claim", "concept"] as const;
+
+export const NodeTypeSchema = z.enum(NodeTypes);
 
 export const BaseNodeSchema = z.object({
 	id: NodeIdSchema,
-	notebookId: z.uuid(),
+	notebookId: NotebookIdSchema,
+	type: NodeTypeSchema,
 	title: z.string(),
 	aliases: z.string().array(),
 	createdAt: z.iso.datetime(),
