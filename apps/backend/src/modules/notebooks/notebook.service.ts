@@ -10,6 +10,7 @@ import {
 } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { createUserService } from "../users/user.service.ts";
+import { requireMembership, requireOwnership, requireTargetMembership } from "./notebook.access.ts";
 import { createNotebookRepository } from "./notebook.repository.ts";
 import { createNotebookMemberRepository } from "./notebookMember.repository.ts";
 
@@ -26,50 +27,6 @@ export function createNotebookService(context: ServiceContext) {
 		if (!notebook) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
 
 		return notebook;
-	}
-
-	async function requireMembership(
-		notebookMemberRepo: ReturnType<typeof createNotebookMemberRepository>,
-		appUserId: AppUser["id"],
-		notebookId: Notebook["id"],
-	) {
-		const membership = await notebookMemberRepo.findByUserAndNotebook({ appUserId, notebookId });
-
-		if (!membership) throw new ForbiddenError("Could not find notebook membership.");
-
-		return membership;
-	}
-
-	async function requireOwnership(
-		notebookMemberRepo: ReturnType<typeof createNotebookMemberRepository>,
-		appUserId: AppUser["id"],
-		notebookId: Notebook["id"],
-	) {
-		const membership = await notebookMemberRepo.findByUserAndNotebook({ appUserId, notebookId });
-
-		if (membership?.role !== "owner")
-			throw new ForbiddenError("Must be the notebook owner to perform this operation.");
-
-		return membership;
-	}
-
-	async function requireTargetMembership(
-		notebookMemberRepo: ReturnType<typeof createNotebookMemberRepository>,
-		memberId: NotebookMember["id"],
-		notebookId: Notebook["id"],
-	) {
-		const targetMembership = await notebookMemberRepo.findByIdAndNotebook({
-			id: memberId,
-			notebookId: notebookId,
-		});
-
-		if (!targetMembership)
-			throw new NotFoundError(
-				"NOTEBOOK_MEMBERSHIP_NOT_FOUND",
-				"Could not find notebook membership.",
-			);
-
-		return targetMembership;
 	}
 
 	return {
@@ -112,12 +69,11 @@ export function createNotebookService(context: ServiceContext) {
 		}) {
 			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
-				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
 				await lockNotebook(txNotebookRepo, input.notebookId);
 
 				const membership = await requireOwnership(
-					txNotebookMemberRepo,
+					transactionContext,
 					input.appUserId,
 					input.notebookId,
 				);
@@ -137,12 +93,11 @@ export function createNotebookService(context: ServiceContext) {
 		async deleteNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
 			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
-				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
 				await lockNotebook(txNotebookRepo, input.notebookId);
 
 				const membership = await requireOwnership(
-					txNotebookMemberRepo,
+					transactionContext,
 					input.appUserId,
 					input.notebookId,
 				);
@@ -157,13 +112,13 @@ export function createNotebookService(context: ServiceContext) {
 		},
 
 		async listNotebookMembers(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
-			await requireMembership(notebookMemberRepo, input.appUserId, input.notebookId);
+			await requireMembership(context, input.appUserId, input.notebookId);
 
 			return notebookMemberRepo.findForNotebookWithUsers({ notebookId: input.notebookId });
 		},
 
 		async getNotebookMembership(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
-			return await requireMembership(notebookMemberRepo, input.appUserId, input.notebookId);
+			return await requireMembership(context, input.appUserId, input.notebookId);
 		},
 
 		async addNotebookMember(input: {
@@ -184,7 +139,7 @@ export function createNotebookService(context: ServiceContext) {
 
 				await lockNotebook(txNotebookRepo, input.notebookId);
 
-				await requireOwnership(txNotebookMemberRepo, input.appUserId, input.notebookId);
+				await requireOwnership(transactionContext, input.appUserId, input.notebookId);
 
 				const existingMembership = await txNotebookMemberRepo.findByUserAndNotebook({
 					appUserId: input.data.targetAppUserId,
@@ -230,13 +185,13 @@ export function createNotebookService(context: ServiceContext) {
 				await lockNotebook(txNotebookRepo, input.notebookId);
 
 				const yourMembership = await requireOwnership(
-					txNotebookMemberRepo,
+					transactionContext,
 					input.appUserId,
 					input.notebookId,
 				);
 
 				const targetMembership = await requireTargetMembership(
-					txNotebookMemberRepo,
+					transactionContext,
 					input.data.memberId,
 					input.notebookId,
 				);
@@ -262,10 +217,10 @@ export function createNotebookService(context: ServiceContext) {
 
 				await lockNotebook(txNotebookRepo, input.notebookId);
 
-				await requireOwnership(txNotebookMemberRepo, input.appUserId, input.notebookId);
+				await requireOwnership(transactionContext, input.appUserId, input.notebookId);
 
 				const targetMembership = await requireTargetMembership(
-					txNotebookMemberRepo,
+					transactionContext,
 					input.memberId,
 					input.notebookId,
 				);
@@ -285,7 +240,7 @@ export function createNotebookService(context: ServiceContext) {
 				await lockNotebook(txNotebookRepo, input.notebookId);
 
 				const membership = await requireMembership(
-					txNotebookMemberRepo,
+					transactionContext,
 					input.appUserId,
 					input.notebookId,
 				);
@@ -311,13 +266,13 @@ export function createNotebookService(context: ServiceContext) {
 				await lockNotebook(txNotebookRepo, input.notebookId);
 
 				const yourMembership = await requireOwnership(
-					txNotebookMemberRepo,
+					transactionContext,
 					input.appUserId,
 					input.notebookId,
 				);
 
 				const targetMembership = await requireTargetMembership(
-					txNotebookMemberRepo,
+					transactionContext,
 					input.memberId,
 					input.notebookId,
 				);
