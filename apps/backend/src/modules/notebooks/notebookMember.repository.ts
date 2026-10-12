@@ -32,6 +32,22 @@ export function createNotebookMemberRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
+		async findByIdAndNotebookForUpdate(input: {
+			id: NotebookMember["id"];
+			notebookId: Notebook["id"];
+		}) {
+			const res = await database
+				.select()
+				.from(notebookMembers)
+				.for("update")
+				.where(
+					and(eq(notebookMembers.id, input.id), eq(notebookMembers.notebookId, input.notebookId)),
+				)
+				.limit(1);
+
+			return res[0];
+		},
+
 		async findForNotebookWithUsers(input: { notebookId: Notebook["id"] }) {
 			return await database
 				.select()
@@ -44,6 +60,44 @@ export function createNotebookMemberRepository(database: DatabaseExecutor) {
 			const res = await database
 				.select()
 				.from(notebookMembers)
+				.where(
+					and(
+						eq(notebookMembers.appUserId, input.appUserId),
+						eq(notebookMembers.notebookId, input.notebookId),
+					),
+				)
+				.limit(1);
+
+			return res[0];
+		},
+
+		async findByUserAndNotebookForShare(input: {
+			appUserId: AppUser["id"];
+			notebookId: Notebook["id"];
+		}) {
+			const res = await database
+				.select()
+				.from(notebookMembers)
+				.for("share")
+				.where(
+					and(
+						eq(notebookMembers.appUserId, input.appUserId),
+						eq(notebookMembers.notebookId, input.notebookId),
+					),
+				)
+				.limit(1);
+
+			return res[0];
+		},
+
+		async findByUserAndNotebookForUpdate(input: {
+			appUserId: AppUser["id"];
+			notebookId: Notebook["id"];
+		}) {
+			const res = await database
+				.select()
+				.from(notebookMembers)
+				.for("update")
 				.where(
 					and(
 						eq(notebookMembers.appUserId, input.appUserId),

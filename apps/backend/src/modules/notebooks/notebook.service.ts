@@ -2,23 +2,12 @@ import type { AppUser } from "../../database/schema/appUsers.ts";
 import type { NewNotebook, Notebook } from "../../database/schema/notebooks.ts";
 import { NotFoundError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
-import { requireOwnership } from "./notebook.access.ts";
+import { requireNotebookForUpdate, requireOwnership } from "./notebook.access.ts";
 import { createNotebookRepository } from "./notebook.repository.ts";
 import { createNotebookMemberRepository } from "./notebookMember.repository.ts";
 
 export function createNotebookService(context: ServiceContext) {
 	const notebookRepo = createNotebookRepository(context.database);
-
-	async function lockNotebook(
-		txNotebookRepo: ReturnType<typeof createNotebookRepository>,
-		notebookId: Notebook["id"],
-	) {
-		const notebook = await txNotebookRepo.findByIdForUpdate({ id: notebookId });
-
-		if (!notebook) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
-
-		return notebook;
-	}
 
 	return {
 		async listNotebooksForUser(input: { appUserId: AppUser["id"] }) {
@@ -61,7 +50,7 @@ export function createNotebookService(context: ServiceContext) {
 			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 
-				await lockNotebook(txNotebookRepo, input.notebookId);
+				await requireNotebookForUpdate(transactionContext, input.notebookId);
 
 				const membership = await requireOwnership(
 					transactionContext,
@@ -85,7 +74,7 @@ export function createNotebookService(context: ServiceContext) {
 			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 
-				await lockNotebook(txNotebookRepo, input.notebookId);
+				await requireNotebookForUpdate(transactionContext, input.notebookId);
 
 				const membership = await requireOwnership(
 					transactionContext,

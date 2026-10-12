@@ -1,31 +1,20 @@
 import type { AppUser } from "../../database/schema/appUsers.ts";
 import type { NewNotebookMember, NotebookMember } from "../../database/schema/notebookMembers.ts";
 import type { Notebook } from "../../database/schema/notebooks.ts";
-import {
-	BadRequestError,
-	ForbiddenError,
-	InvariantError,
-	NotFoundError,
-} from "../../shared/errors/appError.ts";
+import { BadRequestError, ForbiddenError, InvariantError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { createUserService } from "../users/user.service.ts";
-import { requireMembership, requireOwnership, requireTargetMembership } from "./notebook.access.ts";
-import { createNotebookRepository } from "./notebook.repository.ts";
+import {
+	requireMembership,
+	requireMembershipForUpdate,
+	requireOwnershipForShare,
+	requireOwnershipForUpdate,
+	requireTargetMembershipForUpdate,
+} from "./notebook.access.ts";
 import { createNotebookMemberRepository } from "./notebookMember.repository.ts";
 
 export function createNotebookMemberService(context: ServiceContext) {
 	const notebookMemberRepo = createNotebookMemberRepository(context.database);
-
-	async function lockNotebook(
-		txNotebookRepo: ReturnType<typeof createNotebookRepository>,
-		notebookId: Notebook["id"],
-	) {
-		const notebook = await txNotebookRepo.findByIdForUpdate({ id: notebookId });
-
-		if (!notebook) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
-
-		return notebook;
-	}
 
 	return {
 		async listNotebookMembers(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
@@ -50,13 +39,10 @@ export function createNotebookMemberService(context: ServiceContext) {
 				throw new BadRequestError("INVALID_MEMBERSHIP_ROLE", "Cannot create a new notebook owner.");
 
 			return await context.transaction(async (transactionContext) => {
-				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 				const txUserService = createUserService(transactionContext);
 
-				await lockNotebook(txNotebookRepo, input.notebookId);
-
-				await requireOwnership(transactionContext, input.appUserId, input.notebookId);
+				await requireOwnershipForShare(transactionContext, input.appUserId, input.notebookId);
 
 				const existingMembership = await txNotebookMemberRepo.findByUserAndNotebook({
 					appUserId: input.data.targetAppUserId,
@@ -96,18 +82,15 @@ export function createNotebookMemberService(context: ServiceContext) {
 				);
 
 			return await context.transaction(async (transactionContext) => {
-				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
-				await lockNotebook(txNotebookRepo, input.notebookId);
-
-				const yourMembership = await requireOwnership(
+				const yourMembership = await requireOwnershipForShare(
 					transactionContext,
 					input.appUserId,
 					input.notebookId,
 				);
 
-				const targetMembership = await requireTargetMembership(
+				const targetMembership = await requireTargetMembershipForUpdate(
 					transactionContext,
 					input.data.memberId,
 					input.notebookId,
@@ -129,14 +112,11 @@ export function createNotebookMemberService(context: ServiceContext) {
 			memberId: NotebookMember["id"];
 		}) {
 			return await context.transaction(async (transactionContext) => {
-				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
-				await lockNotebook(txNotebookRepo, input.notebookId);
+				await requireOwnershipForShare(transactionContext, input.appUserId, input.notebookId);
 
-				await requireOwnership(transactionContext, input.appUserId, input.notebookId);
-
-				const targetMembership = await requireTargetMembership(
+				const targetMembership = await requireTargetMembershipForUpdate(
 					transactionContext,
 					input.memberId,
 					input.notebookId,
@@ -151,12 +131,9 @@ export function createNotebookMemberService(context: ServiceContext) {
 
 		async leaveNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
 			return await context.transaction(async (transactionContext) => {
-				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
-				await lockNotebook(txNotebookRepo, input.notebookId);
-
-				const membership = await requireMembership(
+				const membership = await requireMembershipForUpdate(
 					transactionContext,
 					input.appUserId,
 					input.notebookId,
@@ -177,18 +154,15 @@ export function createNotebookMemberService(context: ServiceContext) {
 			memberId: NotebookMember["id"];
 		}) {
 			return await context.transaction(async (transactionContext) => {
-				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 				const txNotebookMemberRepo = createNotebookMemberRepository(transactionContext.database);
 
-				await lockNotebook(txNotebookRepo, input.notebookId);
-
-				const yourMembership = await requireOwnership(
+				const yourMembership = await requireOwnershipForUpdate(
 					transactionContext,
 					input.appUserId,
 					input.notebookId,
 				);
 
-				const targetMembership = await requireTargetMembership(
+				const targetMembership = await requireTargetMembershipForUpdate(
 					transactionContext,
 					input.memberId,
 					input.notebookId,

@@ -27,6 +27,17 @@ export function createNotebookRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
+		async findByIdForKeyShare(input: { id: Notebook["id"] }) {
+			const res = await database
+				.select()
+				.from(notebooks)
+				.for("key share")
+				.where(eq(notebooks.id, input.id))
+				.limit(1);
+
+			return res[0];
+		},
+
 		async findForUser(input: { appUserId: AppUser["id"] }) {
 			return await database
 				.select({ ...getColumns(notebooks), myRole: notebookMembers.role })
