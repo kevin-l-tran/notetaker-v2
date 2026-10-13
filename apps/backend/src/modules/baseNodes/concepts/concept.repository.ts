@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import type { BaseNode } from "../../database/schema/baseNodes.ts";
-import { type Concept, concepts } from "../../database/schema/concepts.ts";
-import type { DatabaseExecutor } from "../../database/types.ts";
+import type { BaseNode } from "../../../database/schema/baseNodes.ts";
+import { type Concept, concepts } from "../../../database/schema/concepts.ts";
+import type { DatabaseExecutor } from "../../../database/types.ts";
 
 export function createConceptRepository(database: DatabaseExecutor) {
 	return {

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { type BaseNode, baseNodes, type NewBaseNode } from "../../database/schema/baseNodes.ts";
 import type { Notebook } from "../../database/schema/notebooks.ts";
 import type { DatabaseExecutor } from "../../database/types.ts";
@@ -10,6 +10,27 @@ export function createBaseNodeRepository(database: DatabaseExecutor) {
 				.select()
 				.from(baseNodes)
 				.where(eq(baseNodes.id, input.id))
+				.limit(1);
+
+			return res[0];
+		},
+
+		async findByIdAndNotebook(input: { id: BaseNode["id"]; notebookId: Notebook["id"] }) {
+			const res = await database
+				.select()
+				.from(baseNodes)
+				.where(and(eq(baseNodes.id, input.id), eq(baseNodes.notebookId, input.notebookId)))
+				.limit(1);
+
+			return res[0];
+		},
+
+		async findByIdAndNotebookForUpdate(input: { id: BaseNode["id"]; notebookId: Notebook["id"] }) {
+			const res = await database
+				.select()
+				.from(baseNodes)
+				.for("update")
+				.where(and(eq(baseNodes.id, input.id), eq(baseNodes.notebookId, input.notebookId)))
 				.limit(1);
 
 			return res[0];
@@ -37,7 +58,7 @@ export function createBaseNodeRepository(database: DatabaseExecutor) {
 			notebookId: Notebook["id"];
 			type: NewBaseNode["type"];
 			title: NewBaseNode["title"];
-			aliases: NewBaseNode["aliases"];
+			aliases?: NewBaseNode["aliases"];
 		}) {
 			const res = await database.insert(baseNodes).values(input).returning();
 

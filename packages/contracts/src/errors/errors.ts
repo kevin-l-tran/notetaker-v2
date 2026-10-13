@@ -18,6 +18,9 @@ export const ERROR_CODES = [
 	"NOTEBOOK_MEMBERSHIP_ALREADY_EXISTS",
 	"INVALID_MEMBERSHIP_ROLE",
 	"UPDATE_SELF_MEMBERSHIP",
+
+	// base node errors,
+	"NODE_NOT_FOUND",
 ] as const;
 
 export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;
