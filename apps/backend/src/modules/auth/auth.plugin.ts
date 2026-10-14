@@ -7,10 +7,10 @@ import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { createAuthService } from "./auth.service.ts";
 import type { Auth } from "./createAuth.ts";
 
-interface AuthenticationOptions {
+type AuthenticationOptions = {
 	serviceContext: ServiceContext;
 	auth: Auth;
-}
+};
 
 declare module "fastify" {
 	interface FastifyRequest {

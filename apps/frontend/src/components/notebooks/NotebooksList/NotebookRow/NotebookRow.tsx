@@ -4,11 +4,11 @@ import { formatRelativePastTime } from "../../../../utils/formatTime";
 import NotebookOptions from "./NotebookOptions/NotebookOptions";
 import styles from "./NotebookRow.module.css";
 
-interface NotebookRowProps {
+type NotebookRowProps = {
 	notebook: Notebook;
 	updateNotebookHandle: Dialog.Handle<Notebook>;
 	deleteNotebookHandle: AlertDialog.Handle<Notebook>;
-}
+};
 
 export default function NotebookRow({
 	notebook,

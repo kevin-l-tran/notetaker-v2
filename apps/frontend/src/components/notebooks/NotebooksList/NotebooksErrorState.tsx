@@ -1,9 +1,9 @@
 import { Button } from "@base-ui/react";
 import styles from "./NotebooksList.module.css";
 
-interface NotebooksErrorStateProps {
+type NotebooksErrorStateProps = {
 	onRetry: () => void;
-}
+};
 
 export default function NotebooksErrorState({ onRetry }: NotebooksErrorStateProps) {
 	return (

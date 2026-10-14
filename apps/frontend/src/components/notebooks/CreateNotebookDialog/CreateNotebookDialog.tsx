@@ -6,9 +6,9 @@ import { ApiError, UnexpectedApiResponseError } from "../../../data/api/errors";
 import { useCreateNotebook } from "../../../data/api/mutations/createNotebook";
 import styles from "./CreateNotebookDialog.module.css";
 
-interface CreateNotebookDialogProps {
+type CreateNotebookDialogProps = {
 	handle: Dialog.Handle<unknown>;
-}
+};
 
 export default function CreateNotebookDialog({ handle }: CreateNotebookDialogProps) {
 	const [title, setTitle] = useState("");

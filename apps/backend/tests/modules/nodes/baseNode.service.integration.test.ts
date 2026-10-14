@@ -3,9 +3,9 @@ import { db } from "../../../src/database/client.ts";
 import { baseNodes } from "../../../src/database/schema/baseNodes.ts";
 import { notebookMembers } from "../../../src/database/schema/notebookMembers.ts";
 import { type Notebook, notebooks } from "../../../src/database/schema/notebooks.ts";
-import { createBaseNodeRepository } from "../../../src/modules/baseNodes/baseNode.repository.ts";
-import { createBaseNodeService } from "../../../src/modules/baseNodes/baseNode.service.ts";
-import { createConceptRepository } from "../../../src/modules/baseNodes/concepts/concept.repository.ts";
+import { createBaseNodeRepository } from "../../../src/modules/nodes/baseNode.repository.ts";
+import { createConceptRepository } from "../../../src/modules/nodes/concepts/concept.repository.ts";
+import { createNodeService } from "../../../src/modules/nodes/node.service.ts";
 import { createNotebookRepository } from "../../../src/modules/notebooks/notebook.repository.ts";
 import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
 import { createUserRepository } from "../../../src/modules/users/user.repository.ts";
@@ -13,7 +13,7 @@ import { ForbiddenError, NotFoundError } from "../../../src/shared/errors/appErr
 import { createServiceContext } from "../../../src/shared/services/serviceContext.ts";
 
 describe("base node service", () => {
-	const service = createBaseNodeService(createServiceContext(db));
+	const service = createNodeService(createServiceContext(db));
 	const baseNodeRepo = createBaseNodeRepository(db);
 	const conceptRepo = createConceptRepository(db);
 	const notebookRepo = createNotebookRepository(db);

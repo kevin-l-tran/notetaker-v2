@@ -1,10 +1,10 @@
 import type { Database, DatabaseExecutor } from "../../database/types.ts";
 
-export interface ServiceContext {
+export type ServiceContext = {
 	readonly database: DatabaseExecutor;
 
 	transaction<T>(callback: (context: ServiceContext) => Promise<T>): Promise<T>;
-}
+};
 
 export function createServiceContext(database: Database): ServiceContext {
 	return {

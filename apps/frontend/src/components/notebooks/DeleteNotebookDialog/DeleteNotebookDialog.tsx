@@ -5,9 +5,9 @@ import { ApiError, UnexpectedApiResponseError } from "../../../data/api/errors";
 import { useDeleteNotebook } from "../../../data/api/mutations/deleteNotebook";
 import styles from "./DeleteNotebookDialog.module.css";
 
-interface DeleteNotebookDialogProps {
+type DeleteNotebookDialogProps = {
 	handle: AlertDialog.Handle<Notebook>;
-}
+};
 
 export default function DeleteNotebookDialog({ handle }: DeleteNotebookDialogProps) {
 	return (

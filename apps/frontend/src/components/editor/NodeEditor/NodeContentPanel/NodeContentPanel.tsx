@@ -3,9 +3,9 @@ import DocumentEditor from "./DocumentEditor/DocumentEditor";
 import DocumentRenderer from "./DocumentRenderer/DocumentRenderer";
 import styles from "./NodeContentPanel.module.css";
 
-interface NodeContentPanelProps {
+type NodeContentPanelProps = {
 	description?: string;
-}
+};
 
 export default function NodeContentPanel({ description = "" }: NodeContentPanelProps) {
 	const [source, setSource] = useState<string>(description);

@@ -8,9 +8,9 @@ import styles from "./NodeEditor.module.css";
  *  For now, CSS classes will serve as element descriptors
  */
 
-interface NodeEditorProps {
+type NodeEditorProps = {
 	description?: string;
-}
+};
 
 export default function NodeEditor({ description = "" }: NodeEditorProps) {
 	return (

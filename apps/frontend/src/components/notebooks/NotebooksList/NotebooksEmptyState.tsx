@@ -1,9 +1,9 @@
 import { Dialog } from "@base-ui/react";
 import styles from "./NotebooksList.module.css";
 
-interface NotebooksEmptyStateProps {
+type NotebooksEmptyStateProps = {
 	createNotebookHandle: Dialog.Handle<unknown>;
-}
+};
 
 export default function NotebooksEmptyState({ createNotebookHandle }: NotebooksEmptyStateProps) {
 	return (

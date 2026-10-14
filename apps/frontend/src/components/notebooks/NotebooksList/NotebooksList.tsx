@@ -5,7 +5,7 @@ import NotebooksEmptyState from "./NotebooksEmptyState";
 import NotebooksErrorState from "./NotebooksErrorState";
 import NotebooksSkeleton from "./NotebooksSkeleton";
 
-interface NotebookListProps {
+type NotebookListProps = {
 	notebooks?: Notebook[];
 	isPending: boolean;
 	error: Error | null;
@@ -13,7 +13,7 @@ interface NotebookListProps {
 	updateNotebookHandle: Dialog.Handle<Notebook>;
 	deleteNotebookHandle: AlertDialog.Handle<Notebook>;
 	onRetry: () => void;
-}
+};
 
 export default function NotebookList({
 	notebooks,

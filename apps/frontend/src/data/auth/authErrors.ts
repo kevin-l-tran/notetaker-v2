@@ -1,6 +1,6 @@
 import type { authClient } from "./authClient";
 
-export interface AuthError {
+export type AuthError = {
 	kind:
 		| "invalid_credentials"
 		| "email_not_verified"
@@ -9,12 +9,12 @@ export interface AuthError {
 		| "rate_limited"
 		| "unexpected";
 	message: string;
-}
+};
 
-interface BetterAuthError {
+type BetterAuthError = {
 	code?: string;
 	status?: number;
-}
+};
 
 const signInErrorMap = {
 	USER_NOT_FOUND: {

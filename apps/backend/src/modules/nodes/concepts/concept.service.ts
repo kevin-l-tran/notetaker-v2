@@ -1,11 +1,11 @@
 import type { AppUser } from "../../../database/schema/appUsers.ts";
-import type { BaseNode, NewBaseNode } from "../../../database/schema/baseNodes.ts";
-import type { NewConcept } from "../../../database/schema/concepts.ts";
+import type { BaseNode } from "../../../database/schema/baseNodes.ts";
 import type { Notebook } from "../../../database/schema/notebooks.ts";
 import { NotFoundError } from "../../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../../shared/services/serviceContext.ts";
 import { requireEditPermissionsForShare } from "../../notebooks/notebook.access.ts";
 import { createBaseNodeRepository } from "../baseNode.repository.ts";
+import type { CreateConceptData, UpdateConceptData } from "../node.types.ts";
 import { requireConceptForUpdate } from "./concept.access.ts";
 import { createConceptRepository } from "./concept.repository.ts";
 
@@ -14,11 +14,7 @@ export function createConceptService(context: ServiceContext) {
 		async createConcept(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			data: {
-				title: NewBaseNode["title"];
-				aliases?: NewBaseNode["aliases"];
-				descriptionSource: NewConcept["descriptionSource"];
-			};
+			data: CreateConceptData;
 		}) {
 			return await context.transaction(async (transactionContext) => {
 				const txBaseNodeRepo = createBaseNodeRepository(transactionContext.database);
@@ -46,11 +42,7 @@ export function createConceptService(context: ServiceContext) {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
 			baseNodeId: BaseNode["id"];
-			data: {
-				title?: NewBaseNode["title"];
-				aliases?: NewBaseNode["aliases"];
-				descriptionSource?: NewConcept["descriptionSource"];
-			};
+			data: UpdateConceptData;
 		}) {
 			return await context.transaction(async (transactionContext) => {
 				const txBaseNodeRepo = createBaseNodeRepository(transactionContext.database);

@@ -6,9 +6,9 @@ import { ApiError, UnexpectedApiResponseError } from "../../../data/api/errors";
 import { useUpdateNotebook } from "../../../data/api/mutations/updateNotebook";
 import styles from "./UpdateNotebookDialog.module.css";
 
-interface UpdateNotebookDialogProps {
+type UpdateNotebookDialogProps = {
 	handle: Dialog.Handle<Notebook>;
-}
+};
 
 export default function UpdateNotebookDialog({ handle }: UpdateNotebookDialogProps) {
 	return (

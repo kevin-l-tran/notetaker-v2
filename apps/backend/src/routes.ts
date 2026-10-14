@@ -7,10 +7,10 @@ import notebookRoutes from "./modules/notebooks/notebook.routes.ts";
 import userRoutes from "./modules/users/user.routes.ts";
 import type { ServiceContext } from "./shared/services/serviceContext.ts";
 
-interface RoutesOptions {
+type RoutesOptions = {
 	serviceContext: ServiceContext;
 	auth: Auth;
-}
+};
 
 const routes: FastifyPluginCallback<RoutesOptions> = (app, options, done) => {
 	app.register(authentication, {

@@ -2,10 +2,10 @@ import { Menu } from "@base-ui/react";
 import { EllipsisIcon } from "lucide-react";
 import styles from "./NotebookOptions.module.css";
 
-interface NotebookOptionsProps {
+type NotebookOptionsProps = {
 	onUpdateNotebook: () => void;
 	onDeleteNotebook: () => void;
-}
+};
 
 export default function NotebookOptions({
 	onUpdateNotebook,

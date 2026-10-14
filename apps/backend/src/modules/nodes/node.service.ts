@@ -9,7 +9,7 @@ import { createBaseNodeRepository } from "./baseNode.repository.ts";
 import { requireConcept } from "./concepts/concept.access.ts";
 import { createConceptRepository } from "./concepts/concept.repository.ts";
 
-export function createBaseNodeService(context: ServiceContext) {
+export function createNodeService(context: ServiceContext) {
 	const baseNodeRepo = createBaseNodeRepository(context.database);
 	const conceptRepo = createConceptRepository(context.database);
 
