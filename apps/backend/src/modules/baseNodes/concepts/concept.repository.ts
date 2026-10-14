@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import type { BaseNode } from "../../../database/schema/baseNodes.ts";
 import { type Concept, concepts } from "../../../database/schema/concepts.ts";
 import type { DatabaseExecutor } from "../../../database/types.ts";
@@ -9,6 +9,26 @@ export function createConceptRepository(database: DatabaseExecutor) {
 			const res = await database
 				.select()
 				.from(concepts)
+				.where(eq(concepts.baseNodeId, input.baseNodeId))
+				.limit(1);
+
+			return res[0];
+		},
+
+		async findByBaseNodeIds(input: { baseNodeIds: BaseNode["id"][] }) {
+			if (input.baseNodeIds.length === 0) return [];
+
+			return await database
+				.select()
+				.from(concepts)
+				.where(inArray(concepts.baseNodeId, input.baseNodeIds));
+		},
+
+		async findByBaseNodeIdForUpdate(input: { baseNodeId: BaseNode["id"] }) {
+			const res = await database
+				.select()
+				.from(concepts)
+				.for("update")
 				.where(eq(concepts.baseNodeId, input.baseNodeId))
 				.limit(1);
 
@@ -29,7 +49,7 @@ export function createConceptRepository(database: DatabaseExecutor) {
 
 		async update(input: {
 			baseNodeId: BaseNode["id"];
-			descriptionSource: Concept["descriptionSource"];
+			descriptionSource?: Concept["descriptionSource"];
 		}) {
 			const res = await database
 				.update(concepts)

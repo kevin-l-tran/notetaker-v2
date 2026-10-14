@@ -71,6 +71,25 @@ export function createNotebookMemberRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
+		async findByUserAndNotebookForKeyShare(input: {
+			appUserId: AppUser["id"];
+			notebookId: Notebook["id"];
+		}) {
+			const res = await database
+				.select()
+				.from(notebookMembers)
+				.for("key share")
+				.where(
+					and(
+						eq(notebookMembers.appUserId, input.appUserId),
+						eq(notebookMembers.notebookId, input.notebookId),
+					),
+				)
+				.limit(1);
+
+			return res[0];
+		},
+
 		async findByUserAndNotebookForShare(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];

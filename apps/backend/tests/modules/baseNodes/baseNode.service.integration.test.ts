@@ -2,9 +2,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../../src/database/client.ts";
 import { baseNodes } from "../../../src/database/schema/baseNodes.ts";
 import { notebookMembers } from "../../../src/database/schema/notebookMembers.ts";
-import { notebooks } from "../../../src/database/schema/notebooks.ts";
+import { type Notebook, notebooks } from "../../../src/database/schema/notebooks.ts";
 import { createBaseNodeRepository } from "../../../src/modules/baseNodes/baseNode.repository.ts";
 import { createBaseNodeService } from "../../../src/modules/baseNodes/baseNode.service.ts";
+import { createConceptRepository } from "../../../src/modules/baseNodes/concepts/concept.repository.ts";
 import { createNotebookRepository } from "../../../src/modules/notebooks/notebook.repository.ts";
 import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
 import { createUserRepository } from "../../../src/modules/users/user.repository.ts";
@@ -14,9 +15,25 @@ import { createServiceContext } from "../../../src/shared/services/serviceContex
 describe("base node service", () => {
 	const service = createBaseNodeService(createServiceContext(db));
 	const baseNodeRepo = createBaseNodeRepository(db);
+	const conceptRepo = createConceptRepository(db);
 	const notebookRepo = createNotebookRepository(db);
 	const notebookMemberRepo = createNotebookMemberRepository(db);
 	const userRepo = createUserRepository(db);
+
+	async function createConceptNode(notebookId: Notebook["id"], title: string) {
+		return await db.transaction(async (tx) => {
+			const baseNode = await createBaseNodeRepository(tx).create({
+				notebookId,
+				type: "concept",
+				title,
+			});
+			const extension = await createConceptRepository(tx).create({
+				baseNodeId: baseNode.id,
+				descriptionSource: `Description of ${title}`,
+			});
+			return { baseNode, extension };
+		});
+	}
 
 	beforeEach(async () => {
 		await db.transaction(async (tx) => {
@@ -27,7 +44,7 @@ describe("base node service", () => {
 	});
 
 	describe("listNodesForNotebook", () => {
-		it("allows any notebook member to list nodes", async () => {
+		it("allows any notebook member to list complete nodes", async () => {
 			for (const role of ["owner", "editor", "viewer"] as const) {
 				const user = await userRepo.create();
 				const notebook = await notebookRepo.create({ title: "Title" });
@@ -38,11 +55,7 @@ describe("base node service", () => {
 					role,
 				});
 
-				const node = await baseNodeRepo.create({
-					notebookId: notebook.id,
-					type: "claim",
-					title: "Node",
-				});
+				const node = await createConceptNode(notebook.id, "Node");
 
 				const result = await service.listNodesForNotebook({
 					appUserId: user.id,
@@ -53,7 +66,7 @@ describe("base node service", () => {
 			}
 		});
 
-		it("returns all nodes in the requested notebook, but not nodes in other notebooks", async () => {
+		it("returns all complete nodes in the requested notebook, but not other notebooks", async () => {
 			const user = await userRepo.create();
 			const notebook = await notebookRepo.create({ title: "Notebook" });
 			const otherNotebook = await notebookRepo.create({ title: "Other Notebook" });
@@ -66,21 +79,9 @@ describe("base node service", () => {
 				});
 			}
 
-			const nodeA = await baseNodeRepo.create({
-				notebookId: notebook.id,
-				type: "claim",
-				title: "Node A",
-			});
-			const nodeB = await baseNodeRepo.create({
-				notebookId: notebook.id,
-				type: "claim",
-				title: "Node B",
-			});
-			await baseNodeRepo.create({
-				notebookId: otherNotebook.id,
-				type: "claim",
-				title: "Other Node",
-			});
+			const nodeA = await createConceptNode(notebook.id, "Node A");
+			const nodeB = await createConceptNode(notebook.id, "Node B");
+			await createConceptNode(otherNotebook.id, "Other Node");
 
 			const result = await service.listNodesForNotebook({
 				appUserId: user.id,
@@ -112,12 +113,7 @@ describe("base node service", () => {
 		it("doesn't allow non-members to list nodes", async () => {
 			const user = await userRepo.create();
 			const notebook = await notebookRepo.create({ title: "Title" });
-
-			await baseNodeRepo.create({
-				notebookId: notebook.id,
-				type: "claim",
-				title: "Node",
-			});
+			await createConceptNode(notebook.id, "Node");
 
 			await expect(
 				service.listNodesForNotebook({ appUserId: user.id, notebookId: notebook.id }),
@@ -126,7 +122,7 @@ describe("base node service", () => {
 	});
 
 	describe("getNode", () => {
-		it("allows any notebook member to get a node", async () => {
+		it("allows any notebook member to get a complete node", async () => {
 			for (const role of ["owner", "editor", "viewer"] as const) {
 				const user = await userRepo.create();
 				const notebook = await notebookRepo.create({ title: "Title" });
@@ -137,16 +133,12 @@ describe("base node service", () => {
 					role,
 				});
 
-				const node = await baseNodeRepo.create({
-					notebookId: notebook.id,
-					type: "claim",
-					title: "Node",
-				});
+				const node = await createConceptNode(notebook.id, "Node");
 
 				const result = await service.getNode({
 					appUserId: user.id,
 					notebookId: notebook.id,
-					baseNodeId: node.id,
+					baseNodeId: node.baseNode.id,
 				});
 
 				expect(result).toEqual(node);
@@ -163,21 +155,13 @@ describe("base node service", () => {
 				role: "owner",
 			});
 
-			const node = await baseNodeRepo.create({
-				notebookId: notebook.id,
-				type: "claim",
-				title: "Target Node",
-			});
-			await baseNodeRepo.create({
-				notebookId: notebook.id,
-				type: "claim",
-				title: "Other Node",
-			});
+			const node = await createConceptNode(notebook.id, "Target Node");
+			await createConceptNode(notebook.id, "Other Node");
 
 			const result = await service.getNode({
 				appUserId: user.id,
 				notebookId: notebook.id,
-				baseNodeId: node.id,
+				baseNodeId: node.baseNode.id,
 			});
 
 			expect(result).toEqual(node);
@@ -186,17 +170,13 @@ describe("base node service", () => {
 		it("doesn't allow non-members to get a node", async () => {
 			const user = await userRepo.create();
 			const notebook = await notebookRepo.create({ title: "Title" });
-			const node = await baseNodeRepo.create({
-				notebookId: notebook.id,
-				type: "claim",
-				title: "Node",
-			});
+			const node = await createConceptNode(notebook.id, "Node");
 
 			await expect(
 				service.getNode({
 					appUserId: user.id,
 					notebookId: notebook.id,
-					baseNodeId: node.id,
+					baseNodeId: node.baseNode.id,
 				}),
 			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
 		});
@@ -214,17 +194,13 @@ describe("base node service", () => {
 				});
 			}
 
-			const node = await baseNodeRepo.create({
-				notebookId: otherNotebook.id,
-				type: "claim",
-				title: "Node",
-			});
+			const node = await createConceptNode(otherNotebook.id, "Node");
 
 			await expect(
 				service.getNode({
 					appUserId: user.id,
 					notebookId: notebook.id,
-					baseNodeId: node.id,
+					baseNodeId: node.baseNode.id,
 				}),
 			).rejects.toThrow(new NotFoundError("NODE_NOT_FOUND", "Could not find node."));
 		});
@@ -250,7 +226,7 @@ describe("base node service", () => {
 	});
 
 	describe("deleteNode", () => {
-		it("allows owners and editors to delete nodes", async () => {
+		it("allows owners and editors to delete nodes and their extensions", async () => {
 			for (const role of ["editor", "owner"] as const) {
 				const user = await userRepo.create();
 				const notebook = await notebookRepo.create({ title: "Title" });
@@ -261,22 +237,19 @@ describe("base node service", () => {
 					role,
 				});
 
-				const node = await baseNodeRepo.create({
-					notebookId: notebook.id,
-					type: "claim",
-					title: "Node",
-				});
+				const node = await createConceptNode(notebook.id, "Node");
 
 				const result = await service.deleteNode({
 					appUserId: user.id,
 					notebookId: notebook.id,
-					baseNodeId: node.id,
+					baseNodeId: node.baseNode.id,
 				});
 
-				expect(result).toMatchObject({ id: node.id, notebookId: notebook.id });
-
-				const deletedNode = await baseNodeRepo.findById({ id: node.id });
-				expect(deletedNode).toBeUndefined();
+				expect(result).toMatchObject({ id: node.baseNode.id, notebookId: notebook.id });
+				expect(await baseNodeRepo.findById({ id: node.baseNode.id })).toBeUndefined();
+				expect(
+					await conceptRepo.findByBaseNodeId({ baseNodeId: node.baseNode.id }),
+				).toBeUndefined();
 			}
 		});
 
@@ -292,24 +265,20 @@ describe("base node service", () => {
 						role,
 					});
 
-				const node = await baseNodeRepo.create({
-					notebookId: notebook.id,
-					type: "claim",
-					title: "Node",
-				});
+				const node = await createConceptNode(notebook.id, "Node");
 
 				await expect(
 					service.deleteNode({
 						appUserId: user.id,
 						notebookId: notebook.id,
-						baseNodeId: node.id,
+						baseNodeId: node.baseNode.id,
 					}),
 				).rejects.toThrow(
 					new ForbiddenError("Must have editor permissions to perform this operation."),
 				);
 
-				const preservedNode = await baseNodeRepo.findById({ id: node.id });
-				expect(preservedNode).toBeDefined();
+				expect(await baseNodeRepo.findById({ id: node.baseNode.id })).toBeDefined();
+				expect(await conceptRepo.findByBaseNodeId({ baseNodeId: node.baseNode.id })).toBeDefined();
 			}
 		});
 
@@ -323,25 +292,19 @@ describe("base node service", () => {
 				role: "owner",
 			});
 
-			const node = await baseNodeRepo.create({
-				notebookId: notebook.id,
-				type: "claim",
-				title: "Node",
-			});
-			const otherNode = await baseNodeRepo.create({
-				notebookId: notebook.id,
-				type: "claim",
-				title: "Node",
-			});
+			const node = await createConceptNode(notebook.id, "Node");
+			const otherNode = await createConceptNode(notebook.id, "Other Node");
 
 			await service.deleteNode({
 				appUserId: user.id,
 				notebookId: notebook.id,
-				baseNodeId: node.id,
+				baseNodeId: node.baseNode.id,
 			});
 
-			const preservedNode = await baseNodeRepo.findById({ id: otherNode.id });
-			expect(preservedNode).toBeDefined();
+			expect(await baseNodeRepo.findById({ id: otherNode.baseNode.id })).toBeDefined();
+			expect(
+				await conceptRepo.findByBaseNodeId({ baseNodeId: otherNode.baseNode.id }),
+			).toBeDefined();
 		});
 
 		it("doesn't delete nodes from notebooks outside the targeted notebook", async () => {
@@ -355,17 +318,13 @@ describe("base node service", () => {
 				role: "owner",
 			});
 
-			const node = await baseNodeRepo.create({
-				notebookId: otherNotebook.id,
-				type: "claim",
-				title: "Node",
-			});
+			const node = await createConceptNode(otherNotebook.id, "Node");
 
 			await expect(
 				service.deleteNode({
 					appUserId: user.id,
 					notebookId: notebook.id,
-					baseNodeId: node.id,
+					baseNodeId: node.baseNode.id,
 				}),
 			).rejects.toThrow(new NotFoundError("NODE_NOT_FOUND", "Could not find node."));
 		});

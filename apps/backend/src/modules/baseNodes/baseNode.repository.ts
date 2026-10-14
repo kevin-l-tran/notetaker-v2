@@ -70,8 +70,8 @@ export function createBaseNodeRepository(database: DatabaseExecutor) {
 
 		async update(input: {
 			id: BaseNode["id"];
-			title: NewBaseNode["title"];
-			aliases: NewBaseNode["aliases"];
+			title?: NewBaseNode["title"];
+			aliases?: NewBaseNode["aliases"];
 		}) {
 			const res = await database
 				.update(baseNodes)

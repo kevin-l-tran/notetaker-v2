@@ -31,6 +31,27 @@ export async function requireMembership(
 	return membership;
 }
 
+export async function requireMembershipForKeyShare(
+	context: ServiceContext,
+	appUserId: AppUser["id"],
+	notebookId: Notebook["id"],
+) {
+	const notebookRepo = createNotebookRepository(context.database);
+	const notebook = await notebookRepo.findByIdForKeyShare({ id: notebookId });
+
+	if (!notebook) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
+
+	const notebookMemberRepo = createNotebookMemberRepository(context.database);
+	const membership = await notebookMemberRepo.findByUserAndNotebookForKeyShare({
+		appUserId,
+		notebookId,
+	});
+
+	if (!membership) throw new ForbiddenError("Could not find notebook membership.");
+
+	return membership;
+}
+
 export async function requireMembershipForUpdate(
 	context: ServiceContext,
 	appUserId: AppUser["id"],
