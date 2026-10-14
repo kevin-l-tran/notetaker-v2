@@ -121,7 +121,7 @@ describe("node service", () => {
 
 			await expect(
 				service.listNodesForNotebook({ appUserId: user.id, notebookId: notebook.id }),
-			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
 
 		it("throws an invariant error when a concept extension is missing", async () => {
@@ -205,7 +205,7 @@ describe("node service", () => {
 					notebookId: notebook.id,
 					baseNodeId: node.baseNode.id,
 				}),
-			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
 
 		it("doesn't return nodes from outside the targeted notebook", async () => {
@@ -357,7 +357,9 @@ describe("node service", () => {
 						data: { type: "concept", title: "Node", descriptionSource: "Description" },
 					}),
 				).rejects.toThrow(
-					new ForbiddenError("Must have editor permissions to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must have editor permissions to perform this operation."),
 				);
 
 				expect(await baseNodeRepo.findForNotebook({ notebookId: notebook.id })).toEqual([]);
@@ -508,7 +510,9 @@ describe("node service", () => {
 						data: { type: "concept", descriptionSource: "Updated Description" },
 					}),
 				).rejects.toThrow(
-					new ForbiddenError("Must have editor permissions to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must have editor permissions to perform this operation."),
 				);
 
 				expect(await baseNodeRepo.findById({ id: node.baseNode.id })).toEqual(node.baseNode);
@@ -618,7 +622,9 @@ describe("node service", () => {
 						baseNodeId: node.baseNode.id,
 					}),
 				).rejects.toThrow(
-					new ForbiddenError("Must have editor permissions to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must have editor permissions to perform this operation."),
 				);
 
 				expect(await baseNodeRepo.findById({ id: node.baseNode.id })).toBeDefined();

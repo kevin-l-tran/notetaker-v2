@@ -395,6 +395,24 @@ describe("notebook routes", () => {
 			});
 		});
 
+		it("returns 404 when the user is not a notebook member", async () => {
+			const { cookies } = await createAuthenticatedUser(app);
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const response = await app.inject({
+				method: "PATCH",
+				url: `/api/notebooks/${notebook.id}`,
+				body: { title: "New Title" },
+				cookies,
+			});
+
+			expect(response.statusCode).toBe(404);
+			expect(response.json()).toMatchObject({
+				code: "NOTEBOOK_NOT_FOUND",
+				message: "Could not find target notebook.",
+			});
+		});
+
 		it("returns 403 when the caller has insufficient permissions", async () => {
 			const { user, cookies } = await createAuthenticatedUser(app);
 
@@ -474,6 +492,23 @@ describe("notebook routes", () => {
 			const dbNotebook = await notebookRepo.findById({ id: notebook.id });
 
 			expect(dbNotebook).toBeUndefined();
+		});
+
+		it("returns 404 when the user is not a notebook member", async () => {
+			const { cookies } = await createAuthenticatedUser(app);
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			const response = await app.inject({
+				method: "DELETE",
+				url: `/api/notebooks/${notebook.id}`,
+				cookies,
+			});
+
+			expect(response.statusCode).toBe(404);
+			expect(response.json()).toMatchObject({
+				code: "NOTEBOOK_NOT_FOUND",
+				message: "Could not find target notebook.",
+			});
 		});
 
 		it("returns 403 when the caller has insufficient permissions", async () => {

@@ -26,7 +26,7 @@ export async function requireMembership(
 	const notebookMemberRepo = createNotebookMemberRepository(context.database);
 	const membership = await notebookMemberRepo.findByUserAndNotebook({ appUserId, notebookId });
 
-	if (!membership) throw new ForbiddenError("Could not find notebook membership.");
+	if (!membership) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
 
 	return membership;
 }
@@ -47,7 +47,7 @@ export async function requireMembershipForKeyShare(
 		notebookId,
 	});
 
-	if (!membership) throw new ForbiddenError("Could not find notebook membership.");
+	if (!membership) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
 
 	return membership;
 }
@@ -68,7 +68,7 @@ export async function requireMembershipForUpdate(
 		notebookId,
 	});
 
-	if (!membership) throw new ForbiddenError("Could not find notebook membership.");
+	if (!membership) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
 
 	return membership;
 }
@@ -81,7 +81,8 @@ export async function requireEditPermissions(
 	const notebookMemberRepo = createNotebookMemberRepository(context.database);
 	const membership = await notebookMemberRepo.findByUserAndNotebook({ appUserId, notebookId });
 
-	if (membership?.role !== "owner" && membership?.role !== "editor")
+	if (!membership) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
+	if (membership.role !== "owner" && membership.role !== "editor")
 		throw new ForbiddenError("Must have editor permissions to perform this operation.");
 
 	return membership;
@@ -103,7 +104,8 @@ export async function requireEditPermissionsForShare(
 		notebookId,
 	});
 
-	if (membership?.role !== "owner" && membership?.role !== "editor")
+	if (!membership) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
+	if (membership.role !== "owner" && membership.role !== "editor")
 		throw new ForbiddenError("Must have editor permissions to perform this operation.");
 
 	return membership;
@@ -117,7 +119,8 @@ export async function requireOwnership(
 	const notebookMemberRepo = createNotebookMemberRepository(context.database);
 	const membership = await notebookMemberRepo.findByUserAndNotebook({ appUserId, notebookId });
 
-	if (membership?.role !== "owner")
+	if (!membership) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
+	if (membership.role !== "owner")
 		throw new ForbiddenError("Must be the notebook owner to perform this operation.");
 
 	return membership;
@@ -139,7 +142,8 @@ export async function requireOwnershipForShare(
 		notebookId,
 	});
 
-	if (membership?.role !== "owner")
+	if (!membership) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
+	if (membership.role !== "owner")
 		throw new ForbiddenError("Must be the notebook owner to perform this operation.");
 
 	return membership;
@@ -161,7 +165,8 @@ export async function requireOwnershipForUpdate(
 		notebookId,
 	});
 
-	if (membership?.role !== "owner")
+	if (!membership) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
+	if (membership.role !== "owner")
 		throw new ForbiddenError("Must be the notebook owner to perform this operation.");
 
 	return membership;

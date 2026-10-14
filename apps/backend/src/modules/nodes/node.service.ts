@@ -1,6 +1,5 @@
 import type { AppUser } from "../../database/schema/appUsers.ts";
 import type { BaseNode } from "../../database/schema/baseNodes.ts";
-import type { Concept } from "../../database/schema/concepts.ts";
 import type { Notebook } from "../../database/schema/notebooks.ts";
 import { InvariantError, NotFoundError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
@@ -9,7 +8,7 @@ import { requireNodeForUpdate } from "./baseNode.access.ts";
 import { createBaseNodeRepository } from "./baseNode.repository.ts";
 import { createConceptService } from "./concepts/concept.service.ts";
 import { createNodeRepository } from "./node.repository.ts";
-import type { CreateNodeData, UpdateNodeData } from "./node.types.ts";
+import type { CreateNodeData, NodeData, UpdateNodeData } from "./node.types.ts";
 
 export function createNodeService(context: ServiceContext) {
 	const nodeRepo = createNodeRepository(context.database);
@@ -19,7 +18,7 @@ export function createNodeService(context: ServiceContext) {
 		async listNodesForNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
 			await requireMembership(context, input.appUserId, input.notebookId);
 
-			const nodes: { baseNode: BaseNode; extension: Concept }[] = [];
+			const nodes: NodeData[] = [];
 
 			const nodeData = await nodeRepo.findForNotebookWithExtension({
 				notebookId: input.notebookId,

@@ -89,7 +89,7 @@ describe("notebook membership service", () => {
 
 			await expect(
 				service.listNotebookMembers({ appUserId: user.id, notebookId: notebook.id }),
-			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
 
 		it("does not return memberships from other notebooks", async () => {
@@ -207,7 +207,7 @@ describe("notebook membership service", () => {
 
 			await expect(
 				service.getNotebookMembership({ appUserId: user.id, notebookId: notebook.id }),
-			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
 
 		it("rejects when the notebook does not exist", async () => {
@@ -215,7 +215,7 @@ describe("notebook membership service", () => {
 
 			await expect(
 				service.getNotebookMembership({ appUserId: user.id, notebookId: crypto.randomUUID() }),
-			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
 	});
 
@@ -328,7 +328,9 @@ describe("notebook membership service", () => {
 						},
 					}),
 				).rejects.toThrow(
-					new ForbiddenError("Must be the notebook owner to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must be the notebook owner to perform this operation."),
 				);
 			}
 		});
@@ -356,7 +358,9 @@ describe("notebook membership service", () => {
 						},
 					}),
 				).rejects.toThrow(
-					new ForbiddenError("Must be the notebook owner to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must be the notebook owner to perform this operation."),
 				);
 			}
 		});
@@ -646,7 +650,9 @@ describe("notebook membership service", () => {
 						},
 					}),
 				).rejects.toThrow(
-					new ForbiddenError("Must be the notebook owner to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must be the notebook owner to perform this operation."),
 				);
 			}
 		});
@@ -678,9 +684,7 @@ describe("notebook membership service", () => {
 						role: "editor",
 					},
 				}),
-			).rejects.toThrow(
-				new ForbiddenError("Must be the notebook owner to perform this operation."),
-			);
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
 
 		it("doesn't allow owners to change nonexistent memberships", async () => {
@@ -794,7 +798,7 @@ describe("notebook membership service", () => {
 			});
 		});
 
-		it("doesn't allow non-members to remove other members", async () => {
+		it("doesn't allow non-owners and non-members to remove other members", async () => {
 			for (const role of ["editor", "viewer", "none"] as const) {
 				const user = await userRepo.create();
 				const viewer = await userRepo.create();
@@ -820,7 +824,9 @@ describe("notebook membership service", () => {
 						memberId: viewerMembership.id,
 					}),
 				).rejects.toThrow(
-					new ForbiddenError("Must be the notebook owner to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must be the notebook owner to perform this operation."),
 				);
 			}
 		});
@@ -871,9 +877,7 @@ describe("notebook membership service", () => {
 					notebookId: otherNotebook.id,
 					memberId: membership.id,
 				}),
-			).rejects.toThrow(
-				new ForbiddenError("Must be the notebook owner to perform this operation."),
-			);
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
 
 		it("only removes the member being targeted", async () => {
@@ -985,7 +989,7 @@ describe("notebook membership service", () => {
 
 			await expect(
 				service.leaveNotebook({ appUserId: user.id, notebookId: notebook.id }),
-			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
 
 		it("only affects the caller's membership", async () => {
@@ -1219,7 +1223,9 @@ describe("notebook membership service", () => {
 						memberId: targetMembership.id,
 					}),
 				).rejects.toThrow(
-					new ForbiddenError("Must be the notebook owner to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must be the notebook owner to perform this operation."),
 				);
 			}
 		});

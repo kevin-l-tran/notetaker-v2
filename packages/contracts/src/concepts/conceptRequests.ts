@@ -1,11 +1,9 @@
 import z from "zod";
-import { NotebookIdSchema } from "../ids.ts";
 
 export type CreateConceptRequest = z.infer<typeof CreateConceptRequestSchema>;
 export type UpdateConceptRequest = z.infer<typeof UpdateConceptRequestSchema>;
 
 export const CreateConceptRequestSchema = z.object({
-	notebookId: NotebookIdSchema,
 	title: z
 		.string()
 		.trim()
@@ -22,6 +20,11 @@ export const CreateConceptRequestSchema = z.object({
 
 export const UpdateConceptRequestSchema = z
 	.object({
+		title: z
+			.string()
+			.trim()
+			.min(1, { error: "Title is required." })
+			.max(60, { error: "Title must be 60 characters or fewer." }),
 		aliases: z
 			.string()
 			.trim()

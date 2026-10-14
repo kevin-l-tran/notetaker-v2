@@ -1,6 +1,7 @@
 import type { ZodTypeProvider } from "@fastify/type-provider-zod";
 import {
 	CreateNotebookRequestSchema,
+	NotebookIdSchema,
 	NotebookSummarySchema,
 	UpdateNotebookRequestSchema,
 } from "@notetaker-v2/contracts";
@@ -32,6 +33,26 @@ const notebookRoutes: FastifyPluginCallback = (app, _options, done) => {
 		},
 	);
 
+	zodApp.get(
+		"/notebooks/:id",
+		{
+			preHandler: app.requireAuthentication,
+			schema: {
+				response: { 200: NotebookSummarySchema },
+				params: z.object({ id: NotebookIdSchema }),
+			},
+		},
+		async (request, _reply) => {
+			const { id } = request.params;
+
+			const appUser = getAuthenticatedUser(request);
+
+			const notebook = await notebookService.getNotebook({ appUserId: appUser.id, notebookId: id });
+
+			return toNotebookSummaryDTO({ notebook, myRole: notebook.myRole });
+		},
+	);
+
 	zodApp.post(
 		"/notebooks",
 		{
@@ -51,26 +72,6 @@ const notebookRoutes: FastifyPluginCallback = (app, _options, done) => {
 		},
 	);
 
-	zodApp.get(
-		"/notebooks/:id",
-		{
-			preHandler: app.requireAuthentication,
-			schema: {
-				response: { 200: NotebookSummarySchema },
-				params: z.object({ id: z.uuid() }),
-			},
-		},
-		async (request, _reply) => {
-			const { id } = request.params;
-
-			const appUser = getAuthenticatedUser(request);
-
-			const notebook = await notebookService.getNotebook({ appUserId: appUser.id, notebookId: id });
-
-			return toNotebookSummaryDTO({ notebook, myRole: notebook.myRole });
-		},
-	);
-
 	zodApp.patch(
 		"/notebooks/:id",
 		{
@@ -78,7 +79,7 @@ const notebookRoutes: FastifyPluginCallback = (app, _options, done) => {
 			schema: {
 				body: UpdateNotebookRequestSchema,
 				response: { 200: NotebookSummarySchema },
-				params: z.object({ id: z.uuid() }),
+				params: z.object({ id: NotebookIdSchema }),
 			},
 		},
 		async (request, _reply) => {
@@ -108,7 +109,7 @@ const notebookRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				params: z.object({ id: z.uuid() }),
+				params: z.object({ id: NotebookIdSchema }),
 			},
 		},
 		async (request, reply) => {
@@ -121,8 +122,7 @@ const notebookRoutes: FastifyPluginCallback = (app, _options, done) => {
 				notebookId: id,
 			});
 
-			reply.code(204);
-			return;
+			return reply.code(204).send();
 		},
 	);
 

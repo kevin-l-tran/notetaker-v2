@@ -49,7 +49,7 @@ export function createConceptRepository(database: DatabaseExecutor) {
 
 		async update(input: {
 			baseNodeId: BaseNode["id"];
-			descriptionSource?: Concept["descriptionSource"];
+			descriptionSource?: Concept["descriptionSource"] | undefined;
 		}) {
 			const res = await database
 				.update(concepts)

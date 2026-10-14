@@ -25,6 +25,13 @@ export {
 	type UserId,
 	UserIdSchema,
 } from "./ids.ts";
+export { type Node, NodeSchema } from "./nodes/node.ts";
+export {
+	type CreateNodeRequest,
+	CreateNodeRequestSchema,
+	type UpdateNodeRequest,
+	UpdateNodeRequestSchema,
+} from "./nodes/nodeRequests.ts";
 export type { NotebookMemberRole } from "./notebook_members/notebookMember.ts";
 export {
 	type NotebookMember,

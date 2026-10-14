@@ -371,7 +371,9 @@ describe("notebook service", () => {
 						data: { title: "New Title" },
 					}),
 				).rejects.toThrow(
-					new ForbiddenError("Must be the notebook owner to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must be the notebook owner to perform this operation."),
 				);
 
 				const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
@@ -425,7 +427,9 @@ describe("notebook service", () => {
 				await expect(
 					service.deleteNotebook({ appUserId: user.id, notebookId: notebook.id }),
 				).rejects.toThrow(
-					new ForbiddenError("Must be the notebook owner to perform this operation."),
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must be the notebook owner to perform this operation."),
 				);
 
 				const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
