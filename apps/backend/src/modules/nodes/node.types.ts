@@ -12,3 +12,7 @@ export type UpdateConceptData = {
 	aliases?: NewBaseNode["aliases"];
 	descriptionSource?: NewConcept["descriptionSource"];
 };
+
+export type CreateNodeData = { type: "concept" } & CreateConceptData;
+
+export type UpdateNodeData = { type: "concept" } & UpdateConceptData;

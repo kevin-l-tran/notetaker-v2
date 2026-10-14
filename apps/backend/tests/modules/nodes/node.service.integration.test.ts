@@ -9,10 +9,14 @@ import { createNodeService } from "../../../src/modules/nodes/node.service.ts";
 import { createNotebookRepository } from "../../../src/modules/notebooks/notebook.repository.ts";
 import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
 import { createUserRepository } from "../../../src/modules/users/user.repository.ts";
-import { ForbiddenError, NotFoundError } from "../../../src/shared/errors/appError.ts";
+import {
+	ForbiddenError,
+	InvariantError,
+	NotFoundError,
+} from "../../../src/shared/errors/appError.ts";
 import { createServiceContext } from "../../../src/shared/services/serviceContext.ts";
 
-describe("base node service", () => {
+describe("node service", () => {
 	const service = createNodeService(createServiceContext(db));
 	const baseNodeRepo = createBaseNodeRepository(db);
 	const conceptRepo = createConceptRepository(db);
@@ -119,6 +123,29 @@ describe("base node service", () => {
 				service.listNodesForNotebook({ appUserId: user.id, notebookId: notebook.id }),
 			).rejects.toThrow(new ForbiddenError("Could not find notebook membership."));
 		});
+
+		it("throws an invariant error when a concept extension is missing", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await baseNodeRepo.create({
+				notebookId: notebook.id,
+				type: "concept",
+				title: "Node",
+			});
+
+			await expect(
+				service.listNodesForNotebook({ appUserId: user.id, notebookId: notebook.id }),
+			).rejects.toThrow(
+				new InvariantError("Expected base node with concept type to have concept object."),
+			);
+		});
 	});
 
 	describe("getNode", () => {
@@ -220,6 +247,323 @@ describe("base node service", () => {
 					appUserId: user.id,
 					notebookId: notebook.id,
 					baseNodeId: crypto.randomUUID(),
+				}),
+			).rejects.toThrow(new NotFoundError("NODE_NOT_FOUND", "Could not find node."));
+		});
+
+		it("throws an invariant error when a concept extension is missing", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "viewer",
+			});
+
+			const node = await baseNodeRepo.create({
+				notebookId: notebook.id,
+				type: "concept",
+				title: "Node",
+			});
+
+			await expect(
+				service.getNode({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					baseNodeId: node.id,
+				}),
+			).rejects.toThrow(
+				new InvariantError("Expected base node with concept type to have concept object."),
+			);
+		});
+	});
+
+	describe("createNode", () => {
+		it("allows owners and editors to create concepts with their extensions", async () => {
+			for (const role of ["owner", "editor"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				await notebookMemberRepo.create({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					role,
+				});
+
+				const result = await service.createNode({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					data: {
+						type: "concept",
+						title: "Node",
+						aliases: ["Other Name"],
+						descriptionSource: "Description",
+					},
+				});
+
+				expect(result.baseNode).toMatchObject({
+					notebookId: notebook.id,
+					type: "concept",
+					title: "Node",
+					aliases: ["Other Name"],
+				});
+				expect(result.extension).toEqual({
+					baseNodeId: result.baseNode.id,
+					descriptionSource: "Description",
+				});
+				expect(await baseNodeRepo.findById({ id: result.baseNode.id })).toEqual(result.baseNode);
+				expect(await conceptRepo.findByBaseNodeId({ baseNodeId: result.baseNode.id })).toEqual(
+					result.extension,
+				);
+			}
+		});
+
+		it("uses default aliases when none are provided", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.createNode({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				data: { type: "concept", title: "Node", descriptionSource: "Description" },
+			});
+
+			expect(result.baseNode.aliases).toEqual([]);
+		});
+
+		it("doesn't allow non-editors to create nodes", async () => {
+			for (const role of ["viewer", "none"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				await expect(
+					service.createNode({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						data: { type: "concept", title: "Node", descriptionSource: "Description" },
+					}),
+				).rejects.toThrow(
+					new ForbiddenError("Must have editor permissions to perform this operation."),
+				);
+
+				expect(await baseNodeRepo.findForNotebook({ notebookId: notebook.id })).toEqual([]);
+			}
+		});
+	});
+
+	describe("updateNode", () => {
+		it("allows owners and editors to update shared fields and concept extensions", async () => {
+			for (const role of ["owner", "editor"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				await notebookMemberRepo.create({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					role,
+				});
+
+				const node = await createConceptNode(notebook.id, "Node");
+
+				const result = await service.updateNode({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					baseNodeId: node.baseNode.id,
+					data: {
+						type: "concept",
+						title: "Updated Node",
+						aliases: ["Other Name"],
+						descriptionSource: "Updated Description",
+					},
+				});
+
+				expect(result.baseNode).toMatchObject({
+					id: node.baseNode.id,
+					title: "Updated Node",
+					aliases: ["Other Name"],
+				});
+				expect(result.extension).toEqual({
+					baseNodeId: node.baseNode.id,
+					descriptionSource: "Updated Description",
+				});
+				expect(await baseNodeRepo.findById({ id: node.baseNode.id })).toEqual(result.baseNode);
+				expect(await conceptRepo.findByBaseNodeId({ baseNodeId: node.baseNode.id })).toEqual(
+					result.extension,
+				);
+			}
+		});
+
+		it("updates only the title when other fields are omitted", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const node = await createConceptNode(notebook.id, "Node");
+			const result = await service.updateNode({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				baseNodeId: node.baseNode.id,
+				data: { type: "concept", title: "Updated Node" },
+			});
+
+			expect(result.baseNode.title).toBe("Updated Node");
+			expect(result.baseNode.aliases).toEqual(node.baseNode.aliases);
+			expect(result.extension).toEqual(node.extension);
+			expect(await conceptRepo.findByBaseNodeId({ baseNodeId: node.baseNode.id })).toEqual(
+				node.extension,
+			);
+		});
+
+		it("updates only aliases when other fields are omitted", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const node = await createConceptNode(notebook.id, "Node");
+			const result = await service.updateNode({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				baseNodeId: node.baseNode.id,
+				data: { type: "concept", aliases: ["Other Name"] },
+			});
+
+			expect(result.baseNode.title).toBe(node.baseNode.title);
+			expect(result.baseNode.aliases).toEqual(["Other Name"]);
+			expect(result.extension).toEqual(node.extension);
+		});
+
+		it("updates only the concept description and persists the base node timestamp", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const node = await createConceptNode(notebook.id, "Node");
+			const result = await service.updateNode({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				baseNodeId: node.baseNode.id,
+				data: { type: "concept", descriptionSource: "Updated Description" },
+			});
+
+			expect(result.baseNode.title).toBe(node.baseNode.title);
+			expect(result.baseNode.aliases).toEqual(node.baseNode.aliases);
+			expect(result.baseNode.updatedAt.getTime()).toBeGreaterThanOrEqual(
+				node.baseNode.updatedAt.getTime(),
+			);
+			expect(result.extension.descriptionSource).toBe("Updated Description");
+			expect(await baseNodeRepo.findById({ id: node.baseNode.id })).toEqual(result.baseNode);
+			expect(await conceptRepo.findByBaseNodeId({ baseNodeId: node.baseNode.id })).toEqual(
+				result.extension,
+			);
+		});
+
+		it("doesn't allow non-editors to update a node", async () => {
+			for (const role of ["viewer", "none"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				const node = await createConceptNode(notebook.id, "Node");
+
+				await expect(
+					service.updateNode({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						baseNodeId: node.baseNode.id,
+						data: { type: "concept", descriptionSource: "Updated Description" },
+					}),
+				).rejects.toThrow(
+					new ForbiddenError("Must have editor permissions to perform this operation."),
+				);
+
+				expect(await baseNodeRepo.findById({ id: node.baseNode.id })).toEqual(node.baseNode);
+				expect(await conceptRepo.findByBaseNodeId({ baseNodeId: node.baseNode.id })).toEqual(
+					node.extension,
+				);
+			}
+		});
+
+		it("doesn't update nodes from notebooks outside the targeted notebook", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			const otherNotebook = await notebookRepo.create({ title: "Other Title" });
+
+			for (const notebookId of [notebook.id, otherNotebook.id]) {
+				await notebookMemberRepo.create({
+					appUserId: user.id,
+					notebookId,
+					role: "owner",
+				});
+			}
+
+			const node = await createConceptNode(otherNotebook.id, "Node");
+
+			await expect(
+				service.updateNode({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					baseNodeId: node.baseNode.id,
+					data: { type: "concept", title: "Updated Node" },
+				}),
+			).rejects.toThrow(new NotFoundError("NODE_NOT_FOUND", "Could not find node."));
+
+			expect(await baseNodeRepo.findById({ id: node.baseNode.id })).toEqual(node.baseNode);
+			expect(await conceptRepo.findByBaseNodeId({ baseNodeId: node.baseNode.id })).toEqual(
+				node.extension,
+			);
+		});
+
+		it("returns a NOT_FOUND error when the node doesn't exist", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.updateNode({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					baseNodeId: crypto.randomUUID(),
+					data: { type: "concept", title: "Updated Node" },
 				}),
 			).rejects.toThrow(new NotFoundError("NODE_NOT_FOUND", "Could not find node."));
 		});
