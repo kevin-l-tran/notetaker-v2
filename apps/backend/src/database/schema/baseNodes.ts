@@ -1,8 +1,7 @@
-import { NodeTypes } from "@notetaker-v2/contracts";
 import { pgEnum, snakeCase, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { notebooks } from "./notebooks.ts";
 
-export const nodeType = pgEnum("node_type", NodeTypes);
+export const nodeType = pgEnum("node_type", ["concept"]);
 
 export const baseNodes = snakeCase.table("base_nodes", {
 	id: uuid().defaultRandom().primaryKey(),

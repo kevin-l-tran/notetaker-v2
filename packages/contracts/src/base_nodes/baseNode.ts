@@ -6,8 +6,7 @@ import { NodeIdSchema, NotebookIdSchema } from "../ids.ts";
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 export type BaseNode = z.infer<typeof BaseNodeSchema>;
 
-// will add claim once backend implements it
-export const NodeTypes = ["concept"] as const;
+export const NodeTypes = ["claim", "concept"] as const;
 
 export const NodeTypeSchema = z.enum(NodeTypes);
 
