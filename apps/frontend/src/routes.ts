@@ -1,4 +1,4 @@
-import { index, layout, type RouteConfig, route } from "@react-router/dev/routes";
+import { index, layout, prefix, type RouteConfig, route } from "@react-router/dev/routes";
 
 export default [
 	index("./pages/LandingPage/LandingPage.tsx"),
@@ -7,5 +7,12 @@ export default [
 
 	layout("./layouts/AuthenticatedLayout/AuthenticatedLayout.tsx", [
 		route("notebooks", "./pages/NotebooksPage/NotebooksPage.tsx"),
+
+		...prefix("notebooks", [
+			layout("./layouts/NotebookLayout/NotebookLayout.tsx", [
+				route(":notebookId/edit", "./pages/EditorPage/EditorPage.tsx"),
+				route(":notebookId/view", "./pages/WorkspacePage/WorkspacePage.tsx"),
+			]),
+		]),
 	]),
 ] satisfies RouteConfig;
