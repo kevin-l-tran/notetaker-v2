@@ -29,9 +29,11 @@ async function createNotebook(page: Page, title: string, description = "") {
 }
 
 async function openNotebookOptions(page: Page, title: string) {
-	const row = page.getByRole("heading", { name: title }).locator("..");
+	const link = page.getByRole("link").filter({
+		has: page.getByRole("heading", { name: title, exact: true }),
+	});
 
-	await row.getByRole("button", { name: "Notebook options" }).click();
+	await link.locator("..").getByRole("button", { name: "Notebook options" }).click();
 }
 
 async function updateNotebook(

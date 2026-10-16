@@ -173,11 +173,12 @@ describe("NotebooksPage", () => {
 		renderNotebooksPage();
 		const user = userEvent.setup();
 
-		const heading = await screen.findByRole("heading", {
-			name: "Linear Algebra",
+		const link = await screen.findByRole("link", {
+			name: /Linear Algebra/,
 		});
 
-		const row = heading.parentElement as HTMLElement;
+		const row = link.parentElement as HTMLElement;
+
 		const optionsButton = within(row).getByRole("button", {
 			name: "Notebook options",
 		});

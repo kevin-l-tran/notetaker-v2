@@ -20,17 +20,13 @@ export default function NotebookOptions({
 			<Menu.Portal>
 				<Menu.Positioner className={styles.positioner} sideOffset={4}>
 					<Menu.Popup className={styles.popup}>
-						<Menu.Item className={styles.item} nativeButton onClick={onUpdateNotebook}>
+						<Menu.Item className={styles.item} onClick={onUpdateNotebook}>
 							Edit details
 						</Menu.Item>
 
 						<Menu.Separator className={styles.separator} />
 
-						<Menu.Item
-							className={`${styles.item} ${styles.delete}`}
-							nativeButton
-							onClick={onDeleteNotebook}
-						>
+						<Menu.Item className={`${styles.item} ${styles.delete}`} onClick={onDeleteNotebook}>
 							Delete notebook
 						</Menu.Item>
 					</Menu.Popup>
