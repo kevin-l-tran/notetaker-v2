@@ -8,8 +8,8 @@ export function useDeleteNotebook(notebookId: NotebookId) {
 
 	return useMutation({
 		mutationFn: () => deleteNotebook({ notebookId }),
-		onSuccess() {
-			queryClient.invalidateQueries({
+		onSuccess: async () => {
+			return await queryClient.invalidateQueries({
 				queryKey: notebooksQueryKey(),
 			});
 		},

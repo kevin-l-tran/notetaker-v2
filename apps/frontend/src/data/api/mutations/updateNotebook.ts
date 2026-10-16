@@ -8,8 +8,8 @@ export function useUpdateNotebook(notebookId: NotebookId) {
 
 	return useMutation({
 		mutationFn: (input: UpdateNotebookRequest) => updateNotebook({ notebookId, input }),
-		onSuccess() {
-			queryClient.invalidateQueries({
+		onSuccess: async () => {
+			return await queryClient.invalidateQueries({
 				queryKey: notebooksQueryKey(),
 			});
 		},

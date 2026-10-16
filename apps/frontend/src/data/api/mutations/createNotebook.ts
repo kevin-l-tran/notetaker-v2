@@ -7,8 +7,8 @@ export function useCreateNotebook() {
 
 	return useMutation({
 		mutationFn: createNotebook,
-		onSuccess() {
-			queryClient.invalidateQueries({
+		onSuccess: async () => {
+			return await queryClient.invalidateQueries({
 				queryKey: notebooksQueryKey(),
 			});
 		},
