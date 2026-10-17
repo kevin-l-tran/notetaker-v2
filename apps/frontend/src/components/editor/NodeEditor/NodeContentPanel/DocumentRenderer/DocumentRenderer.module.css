@@ -1,0 +1,12 @@
+.renderer {
+	padding: var(--space-8);
+	font-family: var(--font-serif);
+	font-size: var(--font-size-2);
+	line-height: var(--line-height-3);
+}
+
+.renderer h1,
+.renderer h2 {
+	font-family: var(--font-sans);
+	line-height: var(--line-height-2);
+}

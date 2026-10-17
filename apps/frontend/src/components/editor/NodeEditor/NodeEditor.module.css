@@ -1,23 +1,104 @@
+.page {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background: var(--surface-1);
+}
+
 .header {
 	display: flex;
-	flex-direction: row;
+	align-items: center;
 	justify-content: space-between;
-	gap: var(--space-6);
+	gap: var(--space-7);
+	min-height: var(--control-size-3);
+	padding: 0 var(--space-7);
+}
+
+.nodeInfo,
+.nodeTitle,
+.publishStatus,
+.actions {
+	display: flex;
+	align-items: center;
+}
+
+.nodeInfo {
+	gap: var(--space-7);
 }
 
 .nodeTitle {
-	display: flex;
-	flex-direction: row;
 	gap: var(--space-4);
+	font-size: var(--font-size-3);
+	font-weight: var(--font-weight-semibold);
 }
 
 .publishStatus {
-	display: flex;
-	flex-direction: row;
 	gap: var(--space-2);
+	color: var(--text-muted);
+	font-size: var(--font-size-1);
+}
+
+.actions {
+	gap: var(--space-4);
+}
+
+.action {
+	box-sizing: border-box;
+	height: var(--control-size-1);
+	padding: 0 var(--space-7);
+	border: var(--border-width-1) solid var(--border-default);
+	border-radius: var(--radius-3);
+	background: var(--control-background);
+	cursor: pointer;
+}
+
+.action:hover:not(:disabled) {
+	background: var(--control-background-hover);
+}
+
+.primaryAction {
+	border-color: var(--primary-background);
+	background: var(--primary-background);
+	color: var(--primary-text);
+}
+
+.primaryAction:hover:not(:disabled) {
+	background: var(--primary-background-hover);
+}
+
+.action:disabled {
+	opacity: var(--opacity-disabled);
+	cursor: default;
+}
+
+.tabs {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.tabList {
+	display: flex;
+	gap: var(--space-8);
+	padding: 0 var(--space-7);
+	border-bottom: var(--border-width-1) solid var(--border-default);
+}
+
+.tab {
+	padding: var(--space-4) 0;
+	border: 0;
+	background: transparent;
+	color: var(--text-secondary);
+	font: inherit;
+	cursor: pointer;
+}
+
+.tab[data-active] {
+	box-shadow: 0 var(--border-width-1) var(--text-primary);
+	color: var(--text-primary);
 }
 
 .contentPanel {
-	display: flex;
-	flex-direction: row;
+	flex: 1;
+	min-height: 0;
 }

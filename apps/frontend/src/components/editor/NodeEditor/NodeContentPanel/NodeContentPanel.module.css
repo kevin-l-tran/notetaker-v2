@@ -1,4 +1,30 @@
-.contentPanel {
+.content {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	height: 100%;
+}
+
+.pane {
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+}
+
+.pane + .pane {
+	border-left: var(--border-width-1) solid var(--border-default);
+}
+
+.paneHeader {
+	padding: var(--space-4) var(--space-7);
+	color: var(--text-muted);
+	font-size: var(--font-size-1);
+	font-weight: var(--font-weight-medium);
+	background: var(--surface-2);
+}
+
+.body {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
 }

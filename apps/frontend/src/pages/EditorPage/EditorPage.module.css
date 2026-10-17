@@ -1,5 +1,6 @@
 .editorPage {
-	display: flex;
-	flex-direction: row;
-	gap: var(--space-6);
+	display: grid;
+	grid-template-columns: calc(var(--space-18) + var(--space-12)) minmax(0, 1fr);
+	height: calc(100dvh - var(--control-size-3) - var(--border-width-1));
+	overflow: hidden;
 }

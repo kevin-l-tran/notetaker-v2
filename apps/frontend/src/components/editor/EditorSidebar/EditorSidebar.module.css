@@ -1,13 +1,62 @@
 .sidebar {
-	box-sizing: border-box;
-	width: var(--space-18);
-	padding-right: var(--space-4);
-	border-right: var(--border-width-1) solid;
-	height: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-6);
+	min-height: 0;
+	padding: var(--space-7);
+	border-right: var(--border-width-1) solid var(--border-default);
+	background: var(--surface-2);
 }
 
-.header {
+.count {
+	color: var(--text-muted);
+	font-size: var(--font-size-1);
+	font-weight: var(--font-weight-regular);
+}
+
+.search {
+	box-sizing: border-box;
+	width: 100%;
+	height: var(--control-size-2);
+	padding: 0 var(--space-6);
+	border: var(--border-width-1) solid var(--border-default);
+	border-radius: var(--radius-3);
+	background: var(--surface-1);
+	font: inherit;
+}
+
+.nodeList {
 	display: flex;
-	align-items: center;
-	justify-content: space-between;
+	flex: 1;
+	flex-direction: column;
+	gap: var(--space-1);
+	overflow-y: auto;
+}
+
+.node {
+	padding-inline: var(--space-6);
+	padding-block: var(--space-3);
+	border-radius: var(--radius-3);
+}
+
+.node:hover {
+	background: var(--surface-hover);
+}
+
+.selected {
+	background: var(--surface-selected);
+	font-weight: var(--font-weight-medium);
+}
+
+.newButton {
+	min-height: var(--control-size-2);
+	border: var(--border-width-1) solid var(--border-default);
+	border-radius: var(--radius-3);
+	background: var(--surface-1);
+	font: inherit;
+	cursor: pointer;
+}
+
+.newButton:hover {
+	background: var(--surface-hover);
 }

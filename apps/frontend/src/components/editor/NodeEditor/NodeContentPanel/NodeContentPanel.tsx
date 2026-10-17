@@ -11,9 +11,20 @@ export default function NodeContentPanel({ description = "" }: NodeContentPanelP
 	const [source, setSource] = useState<string>(description);
 
 	return (
-		<div className={styles.contentPanel}>
-			<DocumentEditor initialValue={description} onChange={setSource} />
-			<DocumentRenderer source={source} />
+		<div className={styles.content}>
+			<section className={styles.pane}>
+				<div className={styles.paneHeader}>Description</div>
+				<div className={styles.body}>
+					<DocumentEditor initialValue={description} onChange={setSource} />
+				</div>
+			</section>
+
+			<section className={styles.pane}>
+				<div className={styles.paneHeader}>Preview</div>
+				<div className={styles.body}>
+					<DocumentRenderer source={source} />
+				</div>
+			</section>
 		</div>
 	);
 }

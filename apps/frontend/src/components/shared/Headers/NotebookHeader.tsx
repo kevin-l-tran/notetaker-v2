@@ -8,11 +8,9 @@ export default function NotebookHeader() {
 
 	return (
 		<header className={styles.header}>
-			<div className={styles.navigation}>
-				<Logo />
+			<Logo />
 
-				<NotebookTabs />
-			</div>
+			<NotebookTabs />
 
 			<button onClick={logout} disabled={isLoggingOut} type="button" className={styles.logout}>
 				Log out
