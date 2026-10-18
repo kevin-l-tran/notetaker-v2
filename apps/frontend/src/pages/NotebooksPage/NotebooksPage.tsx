@@ -72,7 +72,7 @@ export default function NotebooksPage() {
 						onValueChange={setQuery}
 						className={styles.search}
 						placeholder="Search notebooks..."
-						disabled={isPending || !!error}
+						disabled={isPending || (error !== null && data === undefined)}
 					/>
 
 					<Select.Root items={sortOptions} value={sort} onValueChange={setSort}>
@@ -106,7 +106,7 @@ export default function NotebooksPage() {
 					<NotebookList
 						notebooks={processedNotebooks}
 						isPending={isPending}
-						error={error}
+						error={data === undefined ? error : null}
 						onRetry={() => void refetch()}
 						createNotebookHandle={createDialog}
 						updateNotebookHandle={updateDialog}

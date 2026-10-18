@@ -10,7 +10,7 @@ export default [
 
 		...prefix("notebooks", [
 			layout("./layouts/NotebookLayout/NotebookLayout.tsx", [
-				route(":notebookId/edit", "./pages/EditorPage/EditorPage.tsx"),
+				route(":notebookId/edit/:nodeId?", "./pages/EditorPage/EditorPage.tsx"),
 				route(":notebookId/view", "./pages/WorkspacePage/WorkspacePage.tsx"),
 			]),
 		]),
