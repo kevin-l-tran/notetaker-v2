@@ -11,38 +11,25 @@ type EditorSidebarProps = {
 };
 
 export default function EditorSidebar({ notebookId, selectedNodeId }: EditorSidebarProps) {
-	const { isPending, data, refetch } = useQuery(nodesQuery(notebookId));
-
-	const renderNodeList = () => {
-		if (isPending) return <div className={styles.listState}>Loading nodes...</div>;
-
-		if (!data)
-			return (
-				<div className={styles.listState}>
-					<strong className={styles.listTitle}>Couldn't load nodes</strong>
-					<span>Check your connection and try again.</span>
-					<button type="button" className={styles.retry} onClick={() => void refetch()}>
-						Retry
-					</button>
-				</div>
-			);
-
-		return data.map((node) => (
-			<NavLink
-				key={node.id}
-				to={`/notebooks/${notebookId}/edit/${node.id}`}
-				className={node.id === selectedNodeId ? `${styles.node} ${styles.selected}` : styles.node}
-			>
-				{node.title}
-			</NavLink>
-		));
-	};
+	const { data } = useQuery(nodesQuery(notebookId));
 
 	return (
 		<aside className={styles.sidebar}>
-			<Input className={styles.search} placeholder="Search nodes..." disabled={!data?.length} />
+			<Input className={styles.search} placeholder="Search nodes..." />
 
-			<div className={styles.nodeList}>{renderNodeList()}</div>
+			<div className={styles.nodeList}>
+				{data?.map((node) => (
+					<NavLink
+						key={node.id}
+						to={`/notebooks/${notebookId}/edit/${node.id}`}
+						className={
+							node.id === selectedNodeId ? `${styles.node} ${styles.selected}` : styles.node
+						}
+					>
+						{node.title}
+					</NavLink>
+				))}
+			</div>
 
 			<Button className={styles.newButton}>+ New node</Button>
 		</aside>

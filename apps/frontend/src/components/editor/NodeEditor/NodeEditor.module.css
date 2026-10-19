@@ -118,6 +118,10 @@
 	color: var(--text-muted);
 }
 
+.stateIcon[data-loading="true"] {
+	animation: spin 1s linear infinite;
+}
+
 .stateTitle {
 	margin: 0;
 	font-size: var(--font-size-3);
@@ -130,4 +134,10 @@
 	color: var(--text-muted);
 	font-size: var(--font-size-2);
 	line-height: var(--line-height-3);
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
 }

@@ -1,15 +1,9 @@
-import { Tabs } from "@base-ui/react";
+import { Button, Tabs } from "@base-ui/react";
 import type { NodeId, NotebookId } from "@notetaker-v2/contracts";
 import { useQuery } from "@tanstack/react-query";
-import {
-	AlertCircleIcon,
-	CheckIcon,
-	FileQuestionIcon,
-	FileTextIcon,
-	LoaderCircleIcon,
-	type LucideIcon,
-} from "lucide-react";
+import { AlertCircleIcon, CheckIcon, FileIcon, FileQuestionIcon } from "lucide-react";
 import { nodesQuery } from "../../../data/api/queries/nodes";
+import LoadingIcon from "../../shared/LoadingIcon/LoadingIcon";
 import NodeContentPanel from "./NodeContentPanel/NodeContentPanel";
 import styles from "./NodeEditor.module.css";
 
@@ -22,46 +16,78 @@ export default function NodeEditor({ notebookId, selectedNodeId }: NodeEditorPro
 	const { isPending, data, refetch } = useQuery(nodesQuery(notebookId));
 	const selectedNode = data?.find((node) => node.id === selectedNodeId);
 
-	const renderState = (Icon: LucideIcon, title: string, description: string, retry = false) => (
-		<div className={styles.page}>
-			<div className={styles.emptyState}>
-				<Icon className={styles.stateIcon} size={24} aria-hidden="true" />
-				<h2 className={styles.stateTitle}>{title}</h2>
-				<p className={styles.stateDescription}>{description}</p>
-				{retry && (
-					<button className={styles.action} type="button" onClick={() => void refetch()}>
-						Retry
-					</button>
-				)}
+	if (isPending)
+		return (
+			<div className={styles.page}>
+				<div className={styles.emptyState}>
+					<LoadingIcon
+						className={styles.stateIcon}
+						data-loading={isPending}
+						size={24}
+						aria-hidden="true"
+					/>
+					<h2 className={styles.stateTitle}>Loading nodes</h2>
+					<p className={styles.stateDescription}>Please wait...</p>
+				</div>
 			</div>
-		</div>
-	);
-
-	if (isPending) return renderState(LoaderCircleIcon, "Loading nodes", "Please wait...");
+		);
 
 	if (!data)
-		return renderState(
-			AlertCircleIcon,
-			"Couldn't load nodes",
-			"Check your connection and try again.",
-			true,
+		return (
+			<div className={styles.page}>
+				<div className={styles.emptyState}>
+					<AlertCircleIcon
+						className={styles.stateIcon}
+						data-loading={isPending}
+						size={24}
+						aria-hidden="true"
+					/>
+					<h2 className={styles.stateTitle}>Couldn't load nodes</h2>
+					<p className={styles.stateDescription}>Check your connection and try again.</p>
+					<Button className={styles.action} type="button" onClick={() => void refetch()}>
+						Retry
+					</Button>
+				</div>
+			</div>
 		);
 
 	if (selectedNodeId && !selectedNode)
-		return renderState(
-			FileQuestionIcon,
-			"Node not found",
-			"This node may have been deleted. Select another from the sidebar.",
+		return (
+			<div className={styles.page}>
+				<div className={styles.emptyState}>
+					<FileQuestionIcon
+						className={styles.stateIcon}
+						data-loading={isPending}
+						size={24}
+						aria-hidden="true"
+					/>
+					<h2 className={styles.stateTitle}>Node not found</h2>
+					<p className={styles.stateDescription}>
+						This node may have been deleted. Select another from the sidebar.
+					</p>
+				</div>
+			</div>
 		);
 
 	if (!selectedNode)
-		return data.length
-			? renderState(
-					FileTextIcon,
-					"Select a node",
-					"Choose a node from the sidebar to start editing.",
-				)
-			: renderState(FileTextIcon, "No nodes yet", "Create your first node to start writing.");
+		return (
+			<div className={styles.page}>
+				<div className={styles.emptyState}>
+					<FileIcon
+						className={styles.stateIcon}
+						data-loading={isPending}
+						size={24}
+						aria-hidden="true"
+					/>
+					<h2 className={styles.stateTitle}>{data.length ? "Select a node" : "No nodes yet"}</h2>
+					<p className={styles.stateDescription}>
+						{data.length
+							? "Choose a node from the sidebar to start editing."
+							: "Create your first node to start writing."}
+					</p>
+				</div>
+			</div>
+		);
 
 	return (
 		<div className={styles.page}>
@@ -74,12 +100,12 @@ export default function NodeEditor({ notebookId, selectedNodeId }: NodeEditorPro
 					</div>
 				</div>
 				<div className={styles.actions}>
-					<button className={styles.action} type="button">
+					<Button className={styles.action} type="button">
 						Compile links
-					</button>
-					<button className={`${styles.action} ${styles.primaryAction}`} type="button">
+					</Button>
+					<Button className={`${styles.action} ${styles.primaryAction}`} type="button">
 						Save
-					</button>
+					</Button>
 				</div>
 			</div>
 

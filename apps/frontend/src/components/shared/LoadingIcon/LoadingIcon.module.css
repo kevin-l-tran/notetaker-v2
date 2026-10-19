@@ -1,0 +1,23 @@
+.spinner {
+	animation: spin 1s linear infinite;
+}
+
+.staticIcon {
+	display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.spinner {
+		display: none;
+	}
+
+	.staticIcon {
+		display: inline;
+	}
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
