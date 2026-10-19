@@ -45,6 +45,7 @@ describe("node routes", () => {
 					type: "concept",
 					title: input.title ?? "Original Concept",
 					aliases: input.aliases ?? ["Original Alias"],
+					isPublished: false,
 				})
 				.returning();
 
@@ -437,6 +438,7 @@ describe("node routes", () => {
 					type: "concept",
 					title: "Updated Title",
 					aliases: ["Updated Alias"],
+					isPublished: true,
 					descriptionSource: "Updated description.",
 				},
 				cookies,
@@ -451,6 +453,7 @@ describe("node routes", () => {
 				type: "concept",
 				title: "Updated Title",
 				aliases: ["Updated Alias"],
+				isPublished: true,
 				descriptionSource: "Updated description.",
 			});
 
@@ -492,6 +495,7 @@ describe("node routes", () => {
 				title: "New Title",
 				aliases: ["Original Alias"],
 				descriptionSource: "New description.",
+				isPublished: false,
 			});
 		});
 

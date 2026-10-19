@@ -1,6 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
 import type { BaseNode } from "../../../database/schema/baseNodes.ts";
-import { type Concept, concepts } from "../../../database/schema/concepts.ts";
+import { concepts, type NewConcept } from "../../../database/schema/concepts.ts";
 import type { DatabaseExecutor } from "../../../database/types.ts";
 
 export function createConceptRepository(database: DatabaseExecutor) {
@@ -37,7 +37,7 @@ export function createConceptRepository(database: DatabaseExecutor) {
 
 		async create(input: {
 			baseNodeId: BaseNode["id"];
-			descriptionSource: Concept["descriptionSource"];
+			descriptionSource: NewConcept["descriptionSource"];
 		}) {
 			const res = await database.insert(concepts).values(input).returning();
 
@@ -49,7 +49,7 @@ export function createConceptRepository(database: DatabaseExecutor) {
 
 		async update(input: {
 			baseNodeId: BaseNode["id"];
-			descriptionSource?: Concept["descriptionSource"] | undefined;
+			descriptionSource?: NewConcept["descriptionSource"] | undefined;
 		}) {
 			const res = await database
 				.update(concepts)

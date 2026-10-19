@@ -1,4 +1,4 @@
-import { pgEnum, snakeCase, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, pgEnum, snakeCase, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { notebooks } from "./notebooks.ts";
 
 export const nodeType = pgEnum("node_type", ["concept"]);
@@ -9,6 +9,7 @@ export const baseNodes = snakeCase.table("base_nodes", {
 		.references(() => notebooks.id, { onDelete: "cascade" })
 		.notNull(),
 	type: nodeType().notNull(),
+	isPublished: boolean().notNull().default(false),
 	title: varchar().notNull(),
 	aliases: varchar().array().notNull().default([]),
 	createdAt: timestamp({ precision: 6, withTimezone: true }).defaultNow().notNull(),

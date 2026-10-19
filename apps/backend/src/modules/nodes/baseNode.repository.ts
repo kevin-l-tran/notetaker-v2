@@ -59,6 +59,7 @@ export function createBaseNodeRepository(database: DatabaseExecutor) {
 			type: NewBaseNode["type"];
 			title: NewBaseNode["title"];
 			aliases?: NewBaseNode["aliases"];
+			isPublished?: NewBaseNode["isPublished"];
 		}) {
 			const res = await database.insert(baseNodes).values(input).returning();
 
@@ -72,10 +73,11 @@ export function createBaseNodeRepository(database: DatabaseExecutor) {
 			id: BaseNode["id"];
 			title?: NewBaseNode["title"] | undefined;
 			aliases?: NewBaseNode["aliases"];
+			isPublished?: NewBaseNode["isPublished"];
 		}) {
 			const res = await database
 				.update(baseNodes)
-				.set({ title: input.title, aliases: input.aliases })
+				.set({ title: input.title, aliases: input.aliases, isPublished: input.isPublished })
 				.where(eq(baseNodes.id, input.id))
 				.returning();
 

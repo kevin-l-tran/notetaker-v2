@@ -14,7 +14,9 @@ export const CreateConceptRequestSchema = z.object({
 		.trim()
 		.min(1, { error: "Alias cannot be nonempty." })
 		.array()
-		.refine((a) => a.length === [...new Set(a)].length),
+		.refine((a) => a.length === [...new Set(a)].length)
+		.optional(),
+	isPublished: z.boolean().optional(),
 	descriptionSource: z.string().trim(),
 });
 
@@ -31,6 +33,7 @@ export const UpdateConceptRequestSchema = z
 			.min(1, { error: "Alias cannot be nonempty." })
 			.array()
 			.refine((a) => a.length === [...new Set(a)].length),
+		isPublished: z.boolean(),
 		descriptionSource: z.string().trim(),
 	})
 	.partial()

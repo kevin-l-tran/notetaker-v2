@@ -27,6 +27,7 @@ export function createConceptService(context: ServiceContext) {
 					type: "concept",
 					title: input.data.title,
 					aliases: input.data.aliases,
+					isPublished: input.data.isPublished,
 				});
 
 				const newConcept = await txConceptRepo.create({
@@ -56,7 +57,9 @@ export function createConceptService(context: ServiceContext) {
 				);
 
 				const isUpdatingBaseNode =
-					input.data.title !== undefined || input.data.aliases !== undefined;
+					input.data.title !== undefined ||
+					input.data.aliases !== undefined ||
+					input.data.isPublished !== undefined;
 
 				const updatedBaseNode = isUpdatingBaseNode
 					? await txBaseNodeRepo.update({

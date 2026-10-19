@@ -14,6 +14,7 @@ export const BaseNodeSchema = z.object({
 	id: NodeIdSchema,
 	notebookId: NotebookIdSchema,
 	type: NodeTypeSchema,
+	isPublished: z.boolean(),
 	title: z.string(),
 	aliases: z.string().array(),
 	createdAt: z.iso.datetime(),

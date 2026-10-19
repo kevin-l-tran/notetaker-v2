@@ -298,6 +298,7 @@ describe("node service", () => {
 						type: "concept",
 						title: "Node",
 						aliases: ["Other Name"],
+						isPublished: true,
 						descriptionSource: "Description",
 					},
 				});
@@ -307,6 +308,7 @@ describe("node service", () => {
 					type: "concept",
 					title: "Node",
 					aliases: ["Other Name"],
+					isPublished: true,
 				});
 				expect(result.extension).toEqual({
 					baseNodeId: result.baseNode.id,
@@ -336,6 +338,25 @@ describe("node service", () => {
 			});
 
 			expect(result.baseNode.aliases).toEqual([]);
+		});
+
+		it("sets isPublished to false when it isn't provided", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			const result = await service.createNode({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				data: { type: "concept", title: "Node", descriptionSource: "Description" },
+			});
+
+			expect(result.baseNode.isPublished).toEqual(false);
 		});
 
 		it("doesn't allow non-editors to create nodes", async () => {
@@ -389,6 +410,7 @@ describe("node service", () => {
 						type: "concept",
 						title: "Updated Node",
 						aliases: ["Other Name"],
+						isPublished: true,
 						descriptionSource: "Updated Description",
 					},
 				});
@@ -397,6 +419,7 @@ describe("node service", () => {
 					id: node.baseNode.id,
 					title: "Updated Node",
 					aliases: ["Other Name"],
+					isPublished: true,
 				});
 				expect(result.extension).toEqual({
 					baseNodeId: node.baseNode.id,
@@ -409,7 +432,7 @@ describe("node service", () => {
 			}
 		});
 
-		it("updates only the title when other fields are omitted", async () => {
+		it("updates only the targetted field", async () => {
 			const user = await userRepo.create();
 			const notebook = await notebookRepo.create({ title: "Title" });
 
@@ -429,36 +452,14 @@ describe("node service", () => {
 
 			expect(result.baseNode.title).toBe("Updated Node");
 			expect(result.baseNode.aliases).toEqual(node.baseNode.aliases);
+			expect(result.baseNode.isPublished).toEqual(node.baseNode.isPublished);
 			expect(result.extension).toEqual(node.extension);
 			expect(await conceptRepo.findByBaseNodeId({ baseNodeId: node.baseNode.id })).toEqual(
 				node.extension,
 			);
 		});
 
-		it("updates only aliases when other fields are omitted", async () => {
-			const user = await userRepo.create();
-			const notebook = await notebookRepo.create({ title: "Title" });
-
-			await notebookMemberRepo.create({
-				appUserId: user.id,
-				notebookId: notebook.id,
-				role: "owner",
-			});
-
-			const node = await createConceptNode(notebook.id, "Node");
-			const result = await service.updateNode({
-				appUserId: user.id,
-				notebookId: notebook.id,
-				baseNodeId: node.baseNode.id,
-				data: { type: "concept", aliases: ["Other Name"] },
-			});
-
-			expect(result.baseNode.title).toBe(node.baseNode.title);
-			expect(result.baseNode.aliases).toEqual(["Other Name"]);
-			expect(result.extension).toEqual(node.extension);
-		});
-
-		it("updates only the concept description and persists the base node timestamp", async () => {
+		it("updates the base node timestamp when only the extension is updated", async () => {
 			const user = await userRepo.create();
 			const notebook = await notebookRepo.create({ title: "Title" });
 
@@ -478,6 +479,7 @@ describe("node service", () => {
 
 			expect(result.baseNode.title).toBe(node.baseNode.title);
 			expect(result.baseNode.aliases).toEqual(node.baseNode.aliases);
+			expect(result.baseNode.isPublished).toEqual(node.baseNode.isPublished);
 			expect(result.baseNode.updatedAt.getTime()).toBeGreaterThanOrEqual(
 				node.baseNode.updatedAt.getTime(),
 			);
