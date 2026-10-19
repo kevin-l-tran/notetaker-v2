@@ -1,5 +1,5 @@
 import type { AppUser } from "../../database/schema/appUsers.ts";
-import type { BaseNode } from "../../database/schema/baseNodes.ts";
+import type { BaseNodeRevision } from "../../database/schema/baseNodeRevisions.ts";
 import type { Notebook } from "../../database/schema/notebooks.ts";
 import { InvariantError, NotFoundError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
@@ -52,7 +52,7 @@ export function createNodeService(context: ServiceContext) {
 		async getNode(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			baseNodeId: BaseNode["id"];
+			baseNodeId: BaseNodeRevision["id"];
 		}) {
 			await requireMembership(context, input.appUserId, input.notebookId);
 
@@ -103,7 +103,7 @@ export function createNodeService(context: ServiceContext) {
 		async updateNode(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			baseNodeId: BaseNode["id"];
+			baseNodeId: BaseNodeRevision["id"];
 			data: UpdateNodeData;
 		}) {
 			if (input.data.type === "concept")
@@ -122,7 +122,7 @@ export function createNodeService(context: ServiceContext) {
 		async deleteNode(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			baseNodeId: BaseNode["id"];
+			baseNodeId: BaseNodeRevision["id"];
 		}) {
 			return await context.transaction(async (transactionContext) => {
 				const txBaseNodeRepo = createBaseNodeRepository(transactionContext.database);

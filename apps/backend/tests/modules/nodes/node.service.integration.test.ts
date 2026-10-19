@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../../src/database/client.ts";
-import { baseNodes } from "../../../src/database/schema/baseNodes.ts";
+import { baseNodeRevisions } from "../../../src/database/schema/baseNodeRevisions.ts";
 import { notebookMembers } from "../../../src/database/schema/notebookMembers.ts";
 import { type Notebook, notebooks } from "../../../src/database/schema/notebooks.ts";
 import { createBaseNodeRepository } from "../../../src/modules/nodes/baseNode.repository.ts";
@@ -43,7 +43,7 @@ describe("node service", () => {
 		await db.transaction(async (tx) => {
 			await tx.delete(notebookMembers);
 			await tx.delete(notebooks);
-			await tx.delete(baseNodes);
+			await tx.delete(baseNodeRevisions);
 		});
 	});
 

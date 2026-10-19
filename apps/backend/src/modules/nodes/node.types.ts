@@ -1,19 +1,22 @@
-import type { BaseNode, NewBaseNode } from "../../database/schema/baseNodes.ts";
-import type { Concept, NewConcept } from "../../database/schema/concepts.ts";
+import type {
+	BaseNodeRevision,
+	NewBaseNodeRevision,
+} from "../../database/schema/baseNodeRevisions.ts";
+import type { Concept, NewConcept } from "../../database/schema/conceptRevisions.ts";
 
-export type NodeData = { baseNode: BaseNode; extension: Concept };
+export type NodeData = { baseNode: BaseNodeRevision; extension: Concept };
 
 export type CreateConceptData = {
-	title: NewBaseNode["title"];
-	aliases?: NewBaseNode["aliases"];
-	isPublished?: NewBaseNode["isPublished"];
+	title: NewBaseNodeRevision["title"];
+	aliases?: NewBaseNodeRevision["aliases"];
+	isPublished?: NewBaseNodeRevision["isPublished"];
 	descriptionSource: NewConcept["descriptionSource"];
 };
 
 export type UpdateConceptData = {
-	title?: NewBaseNode["title"] | undefined;
-	aliases?: NewBaseNode["aliases"] | undefined;
-	isPublished?: NewBaseNode["isPublished"] | undefined;
+	title?: NewBaseNodeRevision["title"] | undefined;
+	aliases?: NewBaseNodeRevision["aliases"] | undefined;
+	isPublished?: NewBaseNodeRevision["isPublished"] | undefined;
 	descriptionSource?: NewConcept["descriptionSource"] | undefined;
 };
 

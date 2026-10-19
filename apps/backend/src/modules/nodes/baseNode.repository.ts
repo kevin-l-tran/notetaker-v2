@@ -1,47 +1,64 @@
 import { and, eq } from "drizzle-orm";
-import { type BaseNode, baseNodes, type NewBaseNode } from "../../database/schema/baseNodes.ts";
+import {
+	type BaseNodeRevision,
+	baseNodeRevisions,
+	type NewBaseNodeRevision,
+} from "../../database/schema/baseNodeRevisions.ts";
 import type { Notebook } from "../../database/schema/notebooks.ts";
 import type { DatabaseExecutor } from "../../database/types.ts";
 
 export function createBaseNodeRepository(database: DatabaseExecutor) {
 	return {
-		async findById(input: { id: BaseNode["id"] }) {
+		async findById(input: { id: BaseNodeRevision["id"] }) {
 			const res = await database
 				.select()
-				.from(baseNodes)
-				.where(eq(baseNodes.id, input.id))
+				.from(baseNodeRevisions)
+				.where(eq(baseNodeRevisions.id, input.id))
 				.limit(1);
 
 			return res[0];
 		},
 
-		async findByIdAndNotebook(input: { id: BaseNode["id"]; notebookId: Notebook["id"] }) {
+		async findByIdAndNotebook(input: { id: BaseNodeRevision["id"]; notebookId: Notebook["id"] }) {
 			const res = await database
 				.select()
-				.from(baseNodes)
-				.where(and(eq(baseNodes.id, input.id), eq(baseNodes.notebookId, input.notebookId)))
+				.from(baseNodeRevisions)
+				.where(
+					and(
+						eq(baseNodeRevisions.id, input.id),
+						eq(baseNodeRevisions.notebookId, input.notebookId),
+					),
+				)
 				.limit(1);
 
 			return res[0];
 		},
 
-		async findByIdAndNotebookForUpdate(input: { id: BaseNode["id"]; notebookId: Notebook["id"] }) {
+		async findByIdAndNotebookForUpdate(input: {
+			id: BaseNodeRevision["id"];
+			notebookId: Notebook["id"];
+		}) {
 			const res = await database
 				.select()
-				.from(baseNodes)
+				.from(baseNodeRevisions)
 				.for("update")
-				.where(and(eq(baseNodes.id, input.id), eq(baseNodes.notebookId, input.notebookId)))
+				.where(
+					and(
+						eq(baseNodeRevisions.id, input.id),
+						eq(baseNodeRevisions.notebookId, input.notebookId),
+					),
+				)
 				.limit(1);
 
 			return res[0];
 		},
 
-		async findByIdForUpdate(input: { id: BaseNode["id"] }) {
+		async findByIdForUpdate(input: { id: BaseNodeRevision["id"] }) {
 			const res = await database
 				.select()
-				.from(baseNodes)
+				.from(baseNodeRevisions)
 				.for("update")
-				.where(eq(baseNodes.id, input.id))
+				.where(eq(baseNodeRevisions.id, input.id))
 				.limit(1);
 
 			return res[0];
@@ -50,52 +67,24 @@ export function createBaseNodeRepository(database: DatabaseExecutor) {
 		async findForNotebook(input: { notebookId: Notebook["id"] }) {
 			return await database
 				.select()
-				.from(baseNodes)
-				.where(eq(baseNodes.notebookId, input.notebookId));
+				.from(baseNodeRevisions)
+				.where(eq(baseNodeRevisions.notebookId, input.notebookId));
 		},
 
-		async create(input: {
-			notebookId: Notebook["id"];
-			type: NewBaseNode["type"];
-			title: NewBaseNode["title"];
-			aliases?: NewBaseNode["aliases"];
-			isPublished?: NewBaseNode["isPublished"];
-		}) {
-			const res = await database.insert(baseNodes).values(input).returning();
+		async create(input: { notebookId: Notebook["id"]; type: NewBaseNodeRevision["type"] }) {
+			const res = await database.insert(baseNodeRevisions).values(input).returning();
 
-			const newBaseNode = res[0];
-			if (!newBaseNode) throw new Error("Base node creation failed.");
+			const newBaseNodeRevision = res[0];
+			if (!newBaseNodeRevision) throw new Error("Base node revision creation failed.");
 
-			return newBaseNode;
+			return newBaseNodeRevision;
 		},
 
-		async update(input: {
-			id: BaseNode["id"];
-			title?: NewBaseNode["title"] | undefined;
-			aliases?: NewBaseNode["aliases"];
-			isPublished?: NewBaseNode["isPublished"];
-		}) {
+		async delete(input: { id: BaseNodeRevision["id"] }) {
 			const res = await database
-				.update(baseNodes)
-				.set({ title: input.title, aliases: input.aliases, isPublished: input.isPublished })
-				.where(eq(baseNodes.id, input.id))
+				.delete(baseNodeRevisions)
+				.where(eq(baseNodeRevisions.id, input.id))
 				.returning();
-
-			return res[0];
-		},
-
-		async touch(input: { id: BaseNode["id"] }) {
-			const res = await database
-				.update(baseNodes)
-				.set({ updatedAt: new Date() })
-				.where(eq(baseNodes.id, input.id))
-				.returning();
-
-			return res[0];
-		},
-
-		async delete(input: { id: BaseNode["id"] }) {
-			const res = await database.delete(baseNodes).where(eq(baseNodes.id, input.id)).returning();
 
 			return res[0];
 		},

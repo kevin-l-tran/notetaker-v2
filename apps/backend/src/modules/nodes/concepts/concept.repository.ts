@@ -1,11 +1,11 @@
 import { eq, inArray } from "drizzle-orm";
-import type { BaseNode } from "../../../database/schema/baseNodes.ts";
-import { concepts, type NewConcept } from "../../../database/schema/concepts.ts";
+import type { BaseNodeRevision } from "../../../database/schema/baseNodeRevisions.ts";
+import { concepts } from "../../../database/schema/conceptRevisions.ts";
 import type { DatabaseExecutor } from "../../../database/types.ts";
 
 export function createConceptRepository(database: DatabaseExecutor) {
 	return {
-		async findByBaseNodeId(input: { baseNodeId: BaseNode["id"] }) {
+		async findByBaseNodeId(input: { baseNodeId: BaseNodeRevision["id"] }) {
 			const res = await database
 				.select()
 				.from(concepts)
@@ -15,7 +15,7 @@ export function createConceptRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
-		async findByBaseNodeIds(input: { baseNodeIds: BaseNode["id"][] }) {
+		async findByBaseNodeIds(input: { baseNodeIds: BaseNodeRevision["id"][] }) {
 			if (input.baseNodeIds.length === 0) return [];
 
 			return await database
@@ -24,7 +24,7 @@ export function createConceptRepository(database: DatabaseExecutor) {
 				.where(inArray(concepts.baseNodeId, input.baseNodeIds));
 		},
 
-		async findByBaseNodeIdForUpdate(input: { baseNodeId: BaseNode["id"] }) {
+		async findByBaseNodeIdForUpdate(input: { baseNodeId: BaseNodeRevision["id"] }) {
 			const res = await database
 				.select()
 				.from(concepts)
@@ -35,29 +35,13 @@ export function createConceptRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
-		async create(input: {
-			baseNodeId: BaseNode["id"];
-			descriptionSource: NewConcept["descriptionSource"];
-		}) {
+		async create(input: { baseNodeId: BaseNodeRevision["id"] }) {
 			const res = await database.insert(concepts).values(input).returning();
 
-			const newConcept = res[0];
-			if (!newConcept) throw new Error("Concept creation failed.");
+			const newConceptRevision = res[0];
+			if (!newConceptRevision) throw new Error("Concept revision creation failed.");
 
-			return newConcept;
-		},
-
-		async update(input: {
-			baseNodeId: BaseNode["id"];
-			descriptionSource?: NewConcept["descriptionSource"] | undefined;
-		}) {
-			const res = await database
-				.update(concepts)
-				.set({ descriptionSource: input.descriptionSource })
-				.where(eq(concepts.baseNodeId, input.baseNodeId))
-				.returning();
-
-			return res[0];
+			return newConceptRevision;
 		},
 	};
 }

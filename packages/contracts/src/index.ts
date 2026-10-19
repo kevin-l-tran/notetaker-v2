@@ -8,12 +8,6 @@ export {
 } from "./base_nodes/baseNode.ts";
 export { type Claim, ClaimSchema } from "./claims/claim.ts";
 export { type Concept, ConceptSchema } from "./concepts/concept.ts";
-export {
-	type CreateConceptRequest,
-	CreateConceptRequestSchema,
-	type UpdateConceptRequest,
-	UpdateConceptRequestSchema,
-} from "./concepts/conceptRequests.ts";
 export { type ApiErrorResponse, ApiErrorResponseSchema, ERROR_CODES } from "./errors/errors.ts";
 export {
 	type NodeId,
@@ -29,8 +23,6 @@ export { type Node, NodeSchema } from "./nodes/node.ts";
 export {
 	type CreateNodeRequest,
 	CreateNodeRequestSchema,
-	type UpdateNodeRequest,
-	UpdateNodeRequestSchema,
 } from "./nodes/nodeRequests.ts";
 export type { NotebookMemberRole } from "./notebook_members/notebookMember.ts";
 export {

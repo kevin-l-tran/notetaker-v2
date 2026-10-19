@@ -1,5 +1,5 @@
 import type { AppUser } from "../../database/schema/appUsers.ts";
-import type { BaseNode } from "../../database/schema/baseNodes.ts";
+import type { BaseNodeRevision } from "../../database/schema/baseNodeRevisions.ts";
 import type { Notebook } from "../../database/schema/notebooks.ts";
 import { NotFoundError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
@@ -10,7 +10,7 @@ export async function requireNode(
 	context: ServiceContext,
 	appUserId: AppUser["id"],
 	notebookId: Notebook["id"],
-	nodeId: BaseNode["id"],
+	nodeId: BaseNodeRevision["id"],
 ) {
 	await requireMembership(context, appUserId, notebookId);
 
@@ -29,7 +29,7 @@ export async function requireNodeForUpdate(
 	context: ServiceContext,
 	appUserId: AppUser["id"],
 	notebookId: Notebook["id"],
-	nodeId: BaseNode["id"],
+	nodeId: BaseNodeRevision["id"],
 ) {
 	await requireEditPermissionsForShare(context, appUserId, notebookId);
 

@@ -1,5 +1,5 @@
 import type { AppUser } from "../../../database/schema/appUsers.ts";
-import type { BaseNode } from "../../../database/schema/baseNodes.ts";
+import type { BaseNodeRevision } from "../../../database/schema/baseNodeRevisions.ts";
 import type { Notebook } from "../../../database/schema/notebooks.ts";
 import { InvariantError, NotFoundError } from "../../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../../shared/services/serviceContext.ts";
@@ -10,7 +10,7 @@ export async function requireConcept(
 	context: ServiceContext,
 	appUserId: AppUser["id"],
 	notebookId: Notebook["id"],
-	nodeId: BaseNode["id"],
+	nodeId: BaseNodeRevision["id"],
 ) {
 	const baseNode = await requireNode(context, appUserId, notebookId, nodeId);
 
@@ -32,7 +32,7 @@ export async function requireConceptForUpdate(
 	context: ServiceContext,
 	appUserId: AppUser["id"],
 	notebookId: Notebook["id"],
-	nodeId: BaseNode["id"],
+	nodeId: BaseNodeRevision["id"],
 ) {
 	const baseNode = await requireNodeForUpdate(context, appUserId, notebookId, nodeId);
 

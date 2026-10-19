@@ -1,20 +1,28 @@
 import { and, eq } from "drizzle-orm";
-import { type BaseNode, baseNodes } from "../../database/schema/baseNodes.ts";
-import { concepts } from "../../database/schema/concepts.ts";
+import {
+	type BaseNodeRevision,
+	baseNodeRevisions,
+} from "../../database/schema/baseNodeRevisions.ts";
+import { concepts } from "../../database/schema/conceptRevisions.ts";
 import type { Notebook } from "../../database/schema/notebooks.ts";
 import type { DatabaseExecutor } from "../../database/types.ts";
 
 export function createNodeRepository(database: DatabaseExecutor) {
 	return {
 		async findByBaseNodeIdAndNotebookIdWithExtension(input: {
-			baseNodeId: BaseNode["id"];
+			baseNodeId: BaseNodeRevision["id"];
 			notebookId: Notebook["id"];
 		}) {
 			const res = await database
 				.select()
-				.from(baseNodes)
-				.leftJoin(concepts, eq(baseNodes.id, concepts.baseNodeId))
-				.where(and(eq(baseNodes.id, input.baseNodeId), eq(baseNodes.notebookId, input.notebookId)))
+				.from(baseNodeRevisions)
+				.leftJoin(concepts, eq(baseNodeRevisions.id, concepts.baseNodeId))
+				.where(
+					and(
+						eq(baseNodeRevisions.id, input.baseNodeId),
+						eq(baseNodeRevisions.notebookId, input.notebookId),
+					),
+				)
 				.limit(1);
 
 			return res[0];
@@ -23,9 +31,9 @@ export function createNodeRepository(database: DatabaseExecutor) {
 		async findForNotebookWithExtension(input: { notebookId: Notebook["id"] }) {
 			return await database
 				.select()
-				.from(baseNodes)
-				.leftJoin(concepts, eq(baseNodes.id, concepts.baseNodeId))
-				.where(eq(baseNodes.notebookId, input.notebookId));
+				.from(baseNodeRevisions)
+				.leftJoin(concepts, eq(baseNodeRevisions.id, concepts.baseNodeId))
+				.where(eq(baseNodeRevisions.notebookId, input.notebookId));
 		},
 	};
 }

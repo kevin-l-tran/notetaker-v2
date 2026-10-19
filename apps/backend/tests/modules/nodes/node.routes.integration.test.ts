@@ -4,8 +4,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { buildApp } from "../../../src/app.ts";
 import { db } from "../../../src/database/client.ts";
 import { appUsers } from "../../../src/database/schema/appUsers.ts";
-import { baseNodes } from "../../../src/database/schema/baseNodes.ts";
-import { concepts } from "../../../src/database/schema/concepts.ts";
+import { baseNodeRevisions } from "../../../src/database/schema/baseNodeRevisions.ts";
+import { concepts } from "../../../src/database/schema/conceptRevisions.ts";
 import { notebookMembers } from "../../../src/database/schema/notebookMembers.ts";
 import { notebooks } from "../../../src/database/schema/notebooks.ts";
 import { createNotebookRepository } from "../../../src/modules/notebooks/notebook.repository.ts";
@@ -39,7 +39,7 @@ describe("node routes", () => {
 	) {
 		return await db.transaction(async (tx) => {
 			const res = await tx
-				.insert(baseNodes)
+				.insert(baseNodeRevisions)
 				.values({
 					notebookId,
 					type: "concept",
@@ -293,8 +293,8 @@ describe("node routes", () => {
 
 			const [dbBaseNode] = await db
 				.select()
-				.from(baseNodes)
-				.where(eq(baseNodes.id, payloadNode.id));
+				.from(baseNodeRevisions)
+				.where(eq(baseNodeRevisions.id, payloadNode.id));
 			const [dbConcept] = await db
 				.select()
 				.from(concepts)
@@ -457,7 +457,10 @@ describe("node routes", () => {
 				descriptionSource: "Updated description.",
 			});
 
-			const [dbBaseNode] = await db.select().from(baseNodes).where(eq(baseNodes.id, concept.id));
+			const [dbBaseNode] = await db
+				.select()
+				.from(baseNodeRevisions)
+				.where(eq(baseNodeRevisions.id, concept.id));
 			const [dbConcept] = await db
 				.select()
 				.from(concepts)
@@ -620,7 +623,10 @@ describe("node routes", () => {
 			expect(response.statusCode).toBe(204);
 			expect(response.body).toBe("");
 
-			const dbBaseNode = await db.select().from(baseNodes).where(eq(baseNodes.id, concept.id));
+			const dbBaseNode = await db
+				.select()
+				.from(baseNodeRevisions)
+				.where(eq(baseNodeRevisions.id, concept.id));
 			const dbConcept = await db.select().from(concepts).where(eq(concepts.baseNodeId, concept.id));
 
 			expect(dbBaseNode).toHaveLength(0);
@@ -669,7 +675,10 @@ describe("node routes", () => {
 
 			expect(response.statusCode).toBe(404);
 
-			const remaining = await db.select().from(baseNodes).where(eq(baseNodes.id, concept.id));
+			const remaining = await db
+				.select()
+				.from(baseNodeRevisions)
+				.where(eq(baseNodeRevisions.id, concept.id));
 			expect(remaining).toHaveLength(1);
 		});
 
