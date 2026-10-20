@@ -3,7 +3,7 @@ import {
 	type BaseNodeRevision,
 	baseNodeRevisions,
 } from "../../database/schema/baseNodeRevisions.ts";
-import { concepts } from "../../database/schema/conceptRevisions.ts";
+import { conceptRevisions } from "../../database/schema/conceptRevisions.ts";
 import type { Notebook } from "../../database/schema/notebooks.ts";
 import type { DatabaseExecutor } from "../../database/types.ts";
 
@@ -16,7 +16,7 @@ export function createNodeRepository(database: DatabaseExecutor) {
 			const res = await database
 				.select()
 				.from(baseNodeRevisions)
-				.leftJoin(concepts, eq(baseNodeRevisions.id, concepts.baseNodeId))
+				.leftJoin(conceptRevisions, eq(baseNodeRevisions.id, conceptRevisions.baseNodeId))
 				.where(
 					and(
 						eq(baseNodeRevisions.id, input.baseNodeId),
@@ -32,7 +32,7 @@ export function createNodeRepository(database: DatabaseExecutor) {
 			return await database
 				.select()
 				.from(baseNodeRevisions)
-				.leftJoin(concepts, eq(baseNodeRevisions.id, concepts.baseNodeId))
+				.leftJoin(conceptRevisions, eq(baseNodeRevisions.id, conceptRevisions.baseNodeId))
 				.where(eq(baseNodeRevisions.notebookId, input.notebookId));
 		},
 	};

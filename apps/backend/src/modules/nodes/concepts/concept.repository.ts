@@ -1,6 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
 import type { BaseNodeRevision } from "../../../database/schema/baseNodeRevisions.ts";
-import { concepts } from "../../../database/schema/conceptRevisions.ts";
+import { conceptRevisions } from "../../../database/schema/conceptRevisions.ts";
 import type { DatabaseExecutor } from "../../../database/types.ts";
 
 export function createConceptRepository(database: DatabaseExecutor) {
@@ -8,8 +8,8 @@ export function createConceptRepository(database: DatabaseExecutor) {
 		async findByBaseNodeId(input: { baseNodeId: BaseNodeRevision["id"] }) {
 			const res = await database
 				.select()
-				.from(concepts)
-				.where(eq(concepts.baseNodeId, input.baseNodeId))
+				.from(conceptRevisions)
+				.where(eq(conceptRevisions.baseNodeId, input.baseNodeId))
 				.limit(1);
 
 			return res[0];
@@ -20,23 +20,23 @@ export function createConceptRepository(database: DatabaseExecutor) {
 
 			return await database
 				.select()
-				.from(concepts)
-				.where(inArray(concepts.baseNodeId, input.baseNodeIds));
+				.from(conceptRevisions)
+				.where(inArray(conceptRevisions.baseNodeId, input.baseNodeIds));
 		},
 
 		async findByBaseNodeIdForUpdate(input: { baseNodeId: BaseNodeRevision["id"] }) {
 			const res = await database
 				.select()
-				.from(concepts)
+				.from(conceptRevisions)
 				.for("update")
-				.where(eq(concepts.baseNodeId, input.baseNodeId))
+				.where(eq(conceptRevisions.baseNodeId, input.baseNodeId))
 				.limit(1);
 
 			return res[0];
 		},
 
 		async create(input: { baseNodeId: BaseNodeRevision["id"] }) {
-			const res = await database.insert(concepts).values(input).returning();
+			const res = await database.insert(conceptRevisions).values(input).returning();
 
 			const newConceptRevision = res[0];
 			if (!newConceptRevision) throw new Error("Concept revision creation failed.");

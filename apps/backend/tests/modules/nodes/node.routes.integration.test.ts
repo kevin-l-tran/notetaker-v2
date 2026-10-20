@@ -5,7 +5,7 @@ import { buildApp } from "../../../src/app.ts";
 import { db } from "../../../src/database/client.ts";
 import { appUsers } from "../../../src/database/schema/appUsers.ts";
 import { baseNodeRevisions } from "../../../src/database/schema/baseNodeRevisions.ts";
-import { concepts } from "../../../src/database/schema/conceptRevisions.ts";
+import { conceptRevisions } from "../../../src/database/schema/conceptRevisions.ts";
 import { notebookMembers } from "../../../src/database/schema/notebookMembers.ts";
 import { notebooks } from "../../../src/database/schema/notebooks.ts";
 import { createNotebookRepository } from "../../../src/modules/notebooks/notebook.repository.ts";
@@ -52,7 +52,7 @@ describe("node routes", () => {
 			const baseNode = res[0];
 			if (!baseNode) throw new Error("Failed to create test base node.");
 
-			await tx.insert(concepts).values({
+			await tx.insert(conceptRevisions).values({
 				baseNodeId: baseNode.id,
 				descriptionSource: input.descriptionSource ?? "Original description.",
 			});
@@ -297,8 +297,8 @@ describe("node routes", () => {
 				.where(eq(baseNodeRevisions.id, payloadNode.id));
 			const [dbConcept] = await db
 				.select()
-				.from(concepts)
-				.where(eq(concepts.baseNodeId, payloadNode.id));
+				.from(conceptRevisions)
+				.where(eq(conceptRevisions.baseNodeId, payloadNode.id));
 
 			expect(dbBaseNode).toMatchObject({
 				notebookId: notebook.id,
@@ -463,8 +463,8 @@ describe("node routes", () => {
 				.where(eq(baseNodeRevisions.id, concept.id));
 			const [dbConcept] = await db
 				.select()
-				.from(concepts)
-				.where(eq(concepts.baseNodeId, concept.id));
+				.from(conceptRevisions)
+				.where(eq(conceptRevisions.baseNodeId, concept.id));
 
 			expect(dbBaseNode).toMatchObject({
 				title: "Updated Title",
@@ -627,7 +627,10 @@ describe("node routes", () => {
 				.select()
 				.from(baseNodeRevisions)
 				.where(eq(baseNodeRevisions.id, concept.id));
-			const dbConcept = await db.select().from(concepts).where(eq(concepts.baseNodeId, concept.id));
+			const dbConcept = await db
+				.select()
+				.from(conceptRevisions)
+				.where(eq(conceptRevisions.baseNodeId, concept.id));
 
 			expect(dbBaseNode).toHaveLength(0);
 			expect(dbConcept).toHaveLength(0);
