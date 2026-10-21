@@ -1,17 +1,23 @@
-import { integer, snakeCase, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { check, integer, snakeCase, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 import { nodes } from "./node.ts";
 
 export const baseNodeRevisions = snakeCase.table(
 	"base_node_revisions",
 	{
 		id: uuid().defaultRandom().primaryKey(),
-		nodeId: uuid().references(() => nodes.id, { onDelete: "cascade" }),
+		nodeId: uuid()
+			.notNull()
+			.references(() => nodes.id, { onDelete: "cascade" }),
 		revisionNumber: integer("revision_number").notNull(),
-		title: varchar().notNull().default("New Node"),
-		aliases: varchar().array().notNull().default([]),
-		createdAt: timestamp({ precision: 6, withTimezone: true }).defaultNow().notNull(),
+		title: varchar().notNull(),
+		aliases: varchar().array().notNull(),
+		createdAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
 	},
-	(t) => [uniqueIndex("node_revision_number_idx").on(t.nodeId, t.revisionNumber)],
+	(t) => [
+		unique().on(t.nodeId, t.revisionNumber),
+		check("revision_number_positive", sql`${t.revisionNumber} > 0`),
+	],
 );
 
 export type BaseNodeRevision = typeof baseNodeRevisions.$inferSelect;

@@ -2,8 +2,8 @@ import type { AppUser } from "../../../database/schema/appUsers.ts";
 import type { Notebook } from "../../../database/schema/notebooks.ts";
 import type { ServiceContext } from "../../../shared/services/serviceContext.ts";
 import { requireEditPermissionsForShare } from "../../notebooks/notebook.access.ts";
-import { createBaseNodeRepository } from "../baseNode.repository.ts";
-import { createConceptRepository } from "./concept.repository.ts";
+import { createBaseNodeRepository } from "../baseNodeRevision.repository.ts";
+import { createConceptRepository } from "./conceptRevision.repository.ts";
 
 export function createConceptService(context: ServiceContext) {
 	return {

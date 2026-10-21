@@ -5,7 +5,7 @@ export const conceptRevisions = snakeCase.table("concept_revisions", {
 	baseNodeRevisionId: uuid()
 		.references(() => baseNodeRevisions.id, { onDelete: "cascade" })
 		.primaryKey(),
-	descriptionSource: text().notNull().default(""),
+	descriptionSource: text().notNull(),
 });
 
 export type ConceptRevision = typeof conceptRevisions.$inferSelect;

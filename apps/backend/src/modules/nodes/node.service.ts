@@ -4,9 +4,9 @@ import type { Notebook } from "../../database/schema/notebooks.ts";
 import { InvariantError, NotFoundError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { requireMembership } from "../notebooks/notebook.access.ts";
-import { requireNodeForUpdate } from "./baseNode.access.ts";
-import { createBaseNodeRepository } from "./baseNode.repository.ts";
-import { createConceptService } from "./concepts/concept.service.ts";
+import { requireNodeForUpdate } from "./baseNodeRevision.access.ts";
+import { createBaseNodeRepository } from "./baseNodeRevision.repository.ts";
+import { createConceptService } from "./conceptRevisions/conceptRevision.service.ts";
 import { createNodeRepository } from "./node.repository.ts";
 import type { CreateNodeData, NodeData, UpdateNodeData } from "./node.types.ts";
 

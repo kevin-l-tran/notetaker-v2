@@ -4,7 +4,7 @@ import type { Notebook } from "../../database/schema/notebooks.ts";
 import { NotFoundError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { requireEditPermissionsForShare, requireMembership } from "../notebooks/notebook.access.ts";
-import { createBaseNodeRepository } from "./baseNode.repository.ts";
+import { createBaseNodeRepository } from "./baseNodeRevision.repository.ts";
 
 export async function requireNode(
 	context: ServiceContext,
