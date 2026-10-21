@@ -1,17 +1,13 @@
 /** biome-ignore-all lint/performance/noBarrelFile: this is a package index file */
-export {
-	type BaseNode,
-	BaseNodeSchema,
-	type NodeType,
-	NodeTypeSchema,
-	NodeTypes,
-} from "./base_nodes/baseNode.ts";
-export { type Claim, ClaimSchema } from "./claims/claim.ts";
-export { type Concept, ConceptSchema } from "./concepts/concept.ts";
+
 export { type ApiErrorResponse, ApiErrorResponseSchema, ERROR_CODES } from "./errors/errors.ts";
 export {
+	type NodeDraftId,
+	NodeDraftIdSchema,
 	type NodeId,
 	NodeIdSchema,
+	type NodeRevisionId,
+	NodeRevisionIdSchema,
 	type NotebookId,
 	NotebookIdSchema,
 	type NotebookMemberId,
@@ -19,11 +15,21 @@ export {
 	type UserId,
 	UserIdSchema,
 } from "./ids.ts";
-export { type Node, NodeSchema } from "./nodes/node.ts";
+export { type ClaimContent, ClaimContentSchema } from "./node_drafts/content/claimContent.ts";
+export { type ConceptContent, ConceptContentSchema } from "./node_drafts/content/conceptContent.ts";
+export { type NodeDraft, NodeDraftSchema } from "./node_drafts/nodeDraft.ts";
 export {
-	type CreateNodeRequest,
-	CreateNodeRequestSchema,
-} from "./nodes/nodeRequests.ts";
+	type PublishDraftRequest,
+	PublishDraftRequestSchema,
+	type SaveDraftRequest,
+	SaveDraftRequestSchema,
+} from "./node_drafts/nodeDraftRequests.ts";
+export { type ClaimRevision, ClaimRevisionSchema } from "./node_revisions/claim.ts";
+export { type ConceptRevision, ConceptRevisionSchema } from "./node_revisions/concept.ts";
+export { type NodeRevision, NodeRevisionSchema } from "./node_revisions/node.ts";
+export { type Node, NodeSchema } from "./nodes/node.ts";
+export { type CreateNodeRequest, CreateNodeRequestSchema } from "./nodes/nodeRequests.ts";
+export { type NodeType, NodeTypeSchema, NodeTypes } from "./nodes/nodeTypes.ts";
 export type { NotebookMemberRole } from "./notebook_members/notebookMember.ts";
 export {
 	type NotebookMember,

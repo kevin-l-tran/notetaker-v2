@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bytea, check, integer, snakeCase, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bytea, check, integer, snakeCase, timestamp, uuid } from "drizzle-orm/pg-core";
 import { nodes } from "./node.ts";
 
 export const nodeDrafts = snakeCase.table(
@@ -12,14 +12,13 @@ export const nodeDrafts = snakeCase.table(
 			.references(() => nodes.id, { onDelete: "cascade" }),
 		yjsState: bytea().notNull(),
 		saveVersion: integer().notNull().default(0),
-		titlePreview: text().notNull().default(""), // Derived from Yjs for efficient sidebar display.
 		createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp({ withTimezone: true })
 			.notNull()
 			.defaultNow()
 			.$onUpdate(() => new Date()),
 	},
-	(t) => [check("save_version_nonnegative", sql`${t.saveVersion} >= 0`)],
+	(t) => [check("save_version_positive", sql`${t.saveVersion} > 0`)],
 );
 
 export type NodeDraft = typeof nodeDrafts.$inferSelect;

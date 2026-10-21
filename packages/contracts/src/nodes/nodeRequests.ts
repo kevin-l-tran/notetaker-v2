@@ -1,8 +1,10 @@
 import z from "zod";
-import { NodeTypeSchema } from "../base_nodes/baseNode.ts";
+import { NodeTypeSchema } from "./nodeTypes.ts";
 
 export type CreateNodeRequest = z.infer<typeof CreateNodeRequestSchema>;
 
-export const CreateNodeRequestSchema = z.object({
-	type: NodeTypeSchema,
-});
+export const CreateNodeRequestSchema = z.discriminatedUnion("type", [
+	z.object({
+		type: z.literal(NodeTypeSchema.enum.concept),
+	}),
+]);
