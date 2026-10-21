@@ -2,6 +2,7 @@ export * from "./appUsers.ts";
 export * from "./auth.ts";
 export * from "./authIdentities.ts";
 export * from "./baseNodeRevisions.ts";
+export * from "./claimRevisions.ts";
 export * from "./conceptRevisions.ts";
 export * from "./node.ts";
 export * from "./nodeDraft.ts";

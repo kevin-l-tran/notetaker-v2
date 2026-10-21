@@ -7,4 +7,7 @@ export const CreateNodeRequestSchema = z.discriminatedUnion("type", [
 	z.object({
 		type: z.literal(NodeTypeSchema.enum.concept),
 	}),
+	z.object({
+		type: z.literal(NodeTypeSchema.enum.claim),
+	}),
 ]);

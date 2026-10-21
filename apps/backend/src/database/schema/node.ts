@@ -1,7 +1,7 @@
 import { index, pgEnum, snakeCase, timestamp, uuid } from "drizzle-orm/pg-core";
 import { notebooks } from "./notebooks.ts";
 
-export const nodeType = pgEnum("node_type", ["concept"]);
+export const nodeType = pgEnum("node_type", ["concept", "claim"]);
 
 export const nodes = snakeCase.table(
 	"nodes",
