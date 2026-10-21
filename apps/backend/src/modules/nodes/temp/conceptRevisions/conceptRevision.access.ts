@@ -1,9 +1,9 @@
-import type { AppUser } from "../../../database/schema/appUsers.ts";
-import type { BaseNodeRevision } from "../../../database/schema/baseNodeRevisions.ts";
-import type { Notebook } from "../../../database/schema/notebooks.ts";
-import { InvariantError, NotFoundError } from "../../../shared/errors/appError.ts";
-import type { ServiceContext } from "../../../shared/services/serviceContext.ts";
-import { requireNode, requireNodeForUpdate } from "../baseNodeRevision.access.ts";
+import type { AppUser } from "../../../../database/schema/appUsers.ts";
+import type { BaseNodeRevision } from "../../../../database/schema/baseNodeRevisions.ts";
+import type { Notebook } from "../../../../database/schema/notebooks.ts";
+import { InvariantError, NotFoundError } from "../../../../shared/errors/appError.ts";
+import type { ServiceContext } from "../../../../shared/services/serviceContext.ts";
+import { requireNode, requireNodeForUpdate } from "../../baseNodeRevision.access.ts";
 import { createConceptRepository } from "./conceptRevision.repository.ts";
 
 export async function requireConcept(

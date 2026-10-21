@@ -6,9 +6,9 @@ import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { requireMembership } from "../notebooks/notebook.access.ts";
 import { requireNodeForUpdate } from "./baseNodeRevision.access.ts";
 import { createBaseNodeRepository } from "./baseNodeRevision.repository.ts";
-import { createConceptService } from "./conceptRevisions/conceptRevision.service.ts";
 import { createNodeRepository } from "./node.repository.ts";
 import type { CreateNodeData, NodeData, UpdateNodeData } from "./node.types.ts";
+import { createConceptService } from "./temp/conceptRevisions/conceptRevision.service.ts";
 
 export function createNodeService(context: ServiceContext) {
 	const nodeRepo = createNodeRepository(context.database);

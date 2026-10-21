@@ -4,8 +4,8 @@ import { baseNodeRevisions } from "../../../src/database/schema/baseNodeRevision
 import { notebookMembers } from "../../../src/database/schema/notebookMembers.ts";
 import { type Notebook, notebooks } from "../../../src/database/schema/notebooks.ts";
 import { createBaseNodeRepository } from "../../../src/modules/nodes/baseNodeRevision.repository.ts";
-import { createConceptRepository } from "../../../src/modules/nodes/conceptRevisions/conceptRevision.repository.ts";
 import { createNodeService } from "../../../src/modules/nodes/node.service.ts";
+import { createConceptRepository } from "../../../src/modules/nodes/temp/conceptRevisions/conceptRevision.repository.ts";
 import { createNotebookRepository } from "../../../src/modules/notebooks/notebook.repository.ts";
 import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
 import { createUserRepository } from "../../../src/modules/users/user.repository.ts";

@@ -11,7 +11,7 @@ export const nodeDrafts = snakeCase.table(
 			.unique()
 			.references(() => nodes.id, { onDelete: "cascade" }),
 		yjsState: bytea().notNull(),
-		saveVersion: integer().notNull().default(0),
+		saveVersion: integer().notNull().default(1),
 		createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp({ withTimezone: true })
 			.notNull()
