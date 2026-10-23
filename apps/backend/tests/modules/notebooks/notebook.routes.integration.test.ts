@@ -57,6 +57,7 @@ describe("notebook routes", () => {
 
 			for (const payloadNotebook of payloadNotebooks) {
 				expect(NotebookSummarySchema.safeParse(payloadNotebook).success).toEqual(true);
+				expect(payloadNotebook.publicationVersion).toEqual(1);
 			}
 		});
 
@@ -106,6 +107,7 @@ describe("notebook routes", () => {
 			const payloadNotebook = response.json();
 
 			expect(NotebookSummarySchema.safeParse(payloadNotebook).success).toEqual(true);
+			expect(payloadNotebook.publicationVersion).toEqual(1);
 
 			const dbNotebook = await notebookRepo.findById({ id: payloadNotebook.id });
 
@@ -130,6 +132,7 @@ describe("notebook routes", () => {
 			const payloadNotebook = response.json();
 
 			expect(NotebookSummarySchema.safeParse(payloadNotebook).success).toEqual(true);
+			expect(payloadNotebook.publicationVersion).toEqual(1);
 
 			const dbNotebook = await notebookRepo.findById({ id: payloadNotebook.id });
 
@@ -195,6 +198,7 @@ describe("notebook routes", () => {
 
 			expect(NotebookSummarySchema.safeParse(payloadNotebook).success).toEqual(true);
 			expect(payloadNotebook.id).toEqual(notebook.id);
+			expect(payloadNotebook.publicationVersion).toEqual(1);
 		});
 
 		it("returns 404 when the user is not a notebook member", async () => {
@@ -258,7 +262,7 @@ describe("notebook routes", () => {
 	});
 
 	describe("PATCH /notebooks/:notebookId", () => {
-		it("updates a notebook and returns 200", async () => {
+		it("updates notebook metadata without requiring or bumping publication version", async () => {
 			const { user, cookies } = await createAuthenticatedUser(app);
 
 			const notebook = await notebookRepo.create({ title: "Title", description: "Description" });
@@ -267,6 +271,11 @@ describe("notebook routes", () => {
 				appUserId: user.id,
 				notebookId: notebook.id,
 				role: "owner",
+			});
+
+			await notebookRepo.updatePublicationVersion({
+				id: notebook.id,
+				publicationVersion: notebook.publicationVersion,
 			});
 
 			const response = await app.inject({
@@ -287,12 +296,14 @@ describe("notebook routes", () => {
 			expect(payloadNotebook.id).toEqual(notebook.id);
 			expect(payloadNotebook.title).toEqual("New Title");
 			expect(payloadNotebook.description).toEqual("New description");
+			expect(payloadNotebook.publicationVersion).toEqual(2);
 
 			const dbNotebook = await notebookRepo.findById({ id: notebook.id });
 
 			expect(dbNotebook).toMatchObject({
 				title: "New Title",
 				description: "New description",
+				publicationVersion: 2,
 			});
 		});
 

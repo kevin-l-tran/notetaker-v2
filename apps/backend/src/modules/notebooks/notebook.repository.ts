@@ -74,8 +74,31 @@ export function createNotebookRepository(database: DatabaseExecutor) {
 		}) {
 			const res = await database
 				.update(notebooks)
-				.set({ title: input.title, description: input.description })
+				.set({
+					title: input.title,
+					description: input.description,
+				})
 				.where(eq(notebooks.id, input.id))
+				.returning();
+
+			return res[0];
+		},
+
+		async updatePublicationVersion(input: {
+			id: Notebook["id"];
+			publicationVersion: Notebook["publicationVersion"];
+		}) {
+			const res = await database
+				.update(notebooks)
+				.set({
+					publicationVersion: input.publicationVersion + 1,
+				})
+				.where(
+					and(
+						eq(notebooks.id, input.id),
+						eq(notebooks.publicationVersion, input.publicationVersion),
+					),
+				)
 				.returning();
 
 			return res[0];

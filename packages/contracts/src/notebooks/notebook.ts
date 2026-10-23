@@ -12,6 +12,7 @@ export const NotebookSchema = z.object({
 	id: NotebookIdSchema,
 	title: z.string(),
 	description: z.string().optional(),
+	publicationVersion: z.number().int().positive(),
 	settings: NotebookSettingsSchema,
 	createdAt: z.iso.datetime(),
 	updatedAt: z.iso.datetime(),

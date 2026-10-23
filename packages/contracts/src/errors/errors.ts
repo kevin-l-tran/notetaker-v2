@@ -12,6 +12,7 @@ export const ERROR_CODES = [
 
 	// notebook errors
 	"NOTEBOOK_NOT_FOUND",
+	"OUTDATED_NOTEBOOK_PUBLICATION_VERSION",
 
 	// notebook membership error
 	"NOTEBOOK_MEMBERSHIP_NOT_FOUND",

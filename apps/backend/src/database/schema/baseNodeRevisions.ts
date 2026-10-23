@@ -18,7 +18,7 @@ export const baseNodeRevisions = snakeCase.table(
 		nodeId: uuid()
 			.notNull()
 			.references(() => nodes.id, { onDelete: "cascade" }),
-		revisionNumber: integer("revision_number").notNull(),
+		revisionNumber: integer().notNull(),
 		title: varchar().notNull(),
 		aliases: jsonb().$type<{ text: string; mode: "auto" | "manual" }>().array().notNull(),
 		createdAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),

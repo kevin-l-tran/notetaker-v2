@@ -1,0 +1,1 @@
+ALTER TABLE "notebooks" ADD COLUMN "publication_version" integer DEFAULT 1 NOT NULL;

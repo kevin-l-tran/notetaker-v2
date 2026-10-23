@@ -7,7 +7,11 @@ import { createNotebookRepository } from "../../../src/modules/notebooks/noteboo
 import { createNotebookService } from "../../../src/modules/notebooks/notebook.service.ts";
 import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
 import { createUserRepository } from "../../../src/modules/users/user.repository.ts";
-import { ForbiddenError, NotFoundError } from "../../../src/shared/errors/appError.ts";
+import {
+	ConflictError,
+	ForbiddenError,
+	NotFoundError,
+} from "../../../src/shared/errors/appError.ts";
 import { createServiceContext } from "../../../src/shared/services/serviceContext.ts";
 
 describe("notebook service", () => {
@@ -197,6 +201,8 @@ describe("notebook service", () => {
 			expect(notebook?.title).toEqual("Title");
 			expect(notebook?.description).toEqual("Description");
 			expect(result.myRole).toEqual("owner");
+			expect(result.publicationVersion).toEqual(1);
+			expect(notebook?.publicationVersion).toEqual(1);
 		});
 
 		it('creates exactly one member for the creator with the "owner" role', async () => {
@@ -251,6 +257,7 @@ describe("notebook service", () => {
 			const updatedNotebook = await notebookRepo.findById({ id: result.id });
 
 			expect(updatedNotebook?.title).toEqual("New Title");
+			expect(updatedNotebook?.publicationVersion).toEqual(notebook.publicationVersion);
 		});
 
 		it("allows the owner to update the description", async () => {
@@ -381,6 +388,32 @@ describe("notebook service", () => {
 			}
 		});
 
+		it("updates metadata without checking or changing the publication version", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await service.bumpNotebookPublicationVersion({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				publicationVersion: notebook.publicationVersion,
+			});
+
+			const result = await service.updateNotebook({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				data: { title: "New Title" },
+			});
+
+			const updatedNotebook = await notebookRepo.findById({ id: notebook.id });
+			expect(result).toMatchObject({ title: "New Title", publicationVersion: 2 });
+			expect(updatedNotebook?.publicationVersion).toEqual(2);
+		});
+
 		it("returns a NOT_FOUND error when the notebook doesn't exist", async () => {
 			const user = await userRepo.create();
 			const nonexistentNotebookId = crypto.randomUUID();
@@ -390,6 +423,132 @@ describe("notebook service", () => {
 					appUserId: user.id,
 					notebookId: nonexistentNotebookId,
 					data: { title: "New Title" },
+				}),
+			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
+		});
+	});
+
+	describe("bumpNotebookPublicationVersion", () => {
+		it("allows owners and editors to bump the publication version", async () => {
+			for (const role of ["owner", "editor"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+				await notebookMemberRepo.create({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					role,
+				});
+
+				const result = await service.bumpNotebookPublicationVersion({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					publicationVersion: notebook.publicationVersion,
+				});
+
+				const updatedNotebook = await notebookRepo.findById({ id: notebook.id });
+
+				expect(result.publicationVersion).toEqual(2);
+				expect(result.myRole).toEqual(role);
+				expect(updatedNotebook?.publicationVersion).toEqual(2);
+				expect(updatedNotebook?.title).toEqual("Title");
+			}
+		});
+
+		it("rejects viewers and users without membership", async () => {
+			for (const role of ["viewer", "none"] as const) {
+				const user = await userRepo.create();
+				const notebook = await notebookRepo.create({ title: "Title" });
+
+				if (role !== "none")
+					await notebookMemberRepo.create({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						role,
+					});
+
+				await expect(
+					service.bumpNotebookPublicationVersion({
+						appUserId: user.id,
+						notebookId: notebook.id,
+						publicationVersion: notebook.publicationVersion,
+					}),
+				).rejects.toThrow(
+					role === "none"
+						? new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.")
+						: new ForbiddenError("Must have editor permissions to perform this operation."),
+				);
+
+				const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
+				expect(preservedNotebook?.publicationVersion).toEqual(1);
+			}
+		});
+
+		it("rejects stale publication versions", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+
+			await service.bumpNotebookPublicationVersion({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				publicationVersion: notebook.publicationVersion,
+			});
+
+			await expect(
+				service.bumpNotebookPublicationVersion({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					publicationVersion: notebook.publicationVersion,
+				}),
+			).rejects.toThrow(
+				new ConflictError(
+					"OUTDATED_NOTEBOOK_PUBLICATION_VERSION",
+					"Notebook publication version is outdated.",
+				),
+			);
+
+			const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
+			expect(preservedNotebook?.publicationVersion).toEqual(2);
+		});
+
+		it("rejects publication versions newer than the current version", async () => {
+			const user = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			await notebookMemberRepo.create({
+				appUserId: user.id,
+				notebookId: notebook.id,
+				role: "owner",
+			});
+
+			await expect(
+				service.bumpNotebookPublicationVersion({
+					appUserId: user.id,
+					notebookId: notebook.id,
+					publicationVersion: notebook.publicationVersion + 1,
+				}),
+			).rejects.toThrow(
+				new ConflictError(
+					"OUTDATED_NOTEBOOK_PUBLICATION_VERSION",
+					"Notebook publication version is outdated.",
+				),
+			);
+
+			const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
+			expect(preservedNotebook?.publicationVersion).toEqual(1);
+		});
+
+		it("returns NOT_FOUND when the notebook does not exist", async () => {
+			const user = await userRepo.create();
+
+			await expect(
+				service.bumpNotebookPublicationVersion({
+					appUserId: user.id,
+					notebookId: crypto.randomUUID(),
+					publicationVersion: 1,
 				}),
 			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
@@ -610,6 +769,37 @@ describe("notebook service", () => {
 			});
 
 			expect(preservedNotebook).toBeDefined();
+		});
+
+		it("rechecks edit permissions after waiting for the notebook lock before bumping publication version", async () => {
+			const editor = await userRepo.create();
+			const notebook = await notebookRepo.create({ title: "Title" });
+			const membership = await notebookMemberRepo.create({
+				appUserId: editor.id,
+				notebookId: notebook.id,
+				role: "editor",
+			});
+
+			const bumpPromise = runWhileNotebookLocked(
+				notebook.id,
+				() =>
+					service.bumpNotebookPublicationVersion({
+						appUserId: editor.id,
+						notebookId: notebook.id,
+						publicationVersion: notebook.publicationVersion,
+					}),
+				async (tx) => {
+					const repo = createNotebookMemberRepository(tx);
+					await repo.updateRole({ id: membership.id, role: "viewer" });
+				},
+			);
+
+			await expect(bumpPromise).rejects.toThrow(
+				new ForbiddenError("Must have editor permissions to perform this operation."),
+			);
+
+			const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
+			expect(preservedNotebook?.publicationVersion).toEqual(1);
 		});
 	});
 });

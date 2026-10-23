@@ -1,8 +1,12 @@
 import type { AppUser } from "../../database/schema/appUsers.ts";
 import type { NewNotebook, Notebook } from "../../database/schema/notebooks.ts";
-import { NotFoundError } from "../../shared/errors/appError.ts";
+import { ConflictError, NotFoundError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
-import { requireNotebookForUpdate, requireOwnership } from "./notebook.access.ts";
+import {
+	requireEditPermissionsForShare,
+	requireNotebookForUpdate,
+	requireOwnershipForShare,
+} from "./notebook.access.ts";
 import { createNotebookRepository } from "./notebook.repository.ts";
 import { createNotebookMemberRepository } from "./notebookMember.repository.ts";
 
@@ -45,14 +49,17 @@ export function createNotebookService(context: ServiceContext) {
 		async updateNotebook(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			data: { title?: NewNotebook["title"]; description?: NewNotebook["description"] };
+			data: {
+				title?: NewNotebook["title"];
+				description?: NewNotebook["description"];
+			};
 		}) {
 			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 
 				await requireNotebookForUpdate(transactionContext, input.notebookId);
 
-				const membership = await requireOwnership(
+				const membership = await requireOwnershipForShare(
 					transactionContext,
 					input.appUserId,
 					input.notebookId,
@@ -70,13 +77,44 @@ export function createNotebookService(context: ServiceContext) {
 			});
 		},
 
+		async bumpNotebookPublicationVersion(input: {
+			appUserId: AppUser["id"];
+			notebookId: Notebook["id"];
+			publicationVersion: Notebook["publicationVersion"];
+		}) {
+			return await context.transaction(async (transactionContext) => {
+				const txNotebookRepo = createNotebookRepository(transactionContext.database);
+
+				await requireNotebookForUpdate(transactionContext, input.notebookId);
+
+				const membership = await requireEditPermissionsForShare(
+					transactionContext,
+					input.appUserId,
+					input.notebookId,
+				);
+
+				const updatedNotebook = await txNotebookRepo.updatePublicationVersion({
+					id: input.notebookId,
+					publicationVersion: input.publicationVersion,
+				});
+
+				if (!updatedNotebook)
+					throw new ConflictError(
+						"OUTDATED_NOTEBOOK_PUBLICATION_VERSION",
+						"Notebook publication version is outdated.",
+					);
+
+				return { ...updatedNotebook, myRole: membership.role };
+			});
+		},
+
 		async deleteNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
 			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 
 				await requireNotebookForUpdate(transactionContext, input.notebookId);
 
-				const membership = await requireOwnership(
+				const membership = await requireOwnershipForShare(
 					transactionContext,
 					input.appUserId,
 					input.notebookId,

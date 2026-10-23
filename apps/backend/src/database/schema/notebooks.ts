@@ -1,10 +1,11 @@
 import type { NotebookSettings } from "@notetaker-v2/contracts";
-import { jsonb, snakeCase, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { integer, jsonb, snakeCase, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const notebooks = snakeCase.table("notebooks", {
 	id: uuid().defaultRandom().primaryKey(),
 	title: varchar().notNull(),
 	description: text(),
+	publicationVersion: integer().notNull().default(1),
 	settings: jsonb().$type<NotebookSettings>().default({}).notNull(),
 	createdAt: timestamp({ precision: 6, withTimezone: true }).defaultNow().notNull(),
 	updatedAt: timestamp({ precision: 6, withTimezone: true })
