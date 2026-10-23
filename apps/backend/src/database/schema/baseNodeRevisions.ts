@@ -1,5 +1,14 @@
 import { sql } from "drizzle-orm";
-import { check, integer, snakeCase, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
+import {
+	check,
+	integer,
+	jsonb,
+	snakeCase,
+	timestamp,
+	unique,
+	uuid,
+	varchar,
+} from "drizzle-orm/pg-core";
 import { nodes } from "./node.ts";
 
 export const baseNodeRevisions = snakeCase.table(
@@ -11,7 +20,7 @@ export const baseNodeRevisions = snakeCase.table(
 			.references(() => nodes.id, { onDelete: "cascade" }),
 		revisionNumber: integer("revision_number").notNull(),
 		title: varchar().notNull(),
-		aliases: varchar().array().notNull(),
+		aliases: jsonb().$type<{ text: string; mode: "auto" | "manual" }>().array().notNull(),
 		createdAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
 	},
 	(t) => [

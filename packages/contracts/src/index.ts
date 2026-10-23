@@ -23,6 +23,13 @@ export {
 	type SaveDraftRequest,
 	SaveDraftRequestSchema,
 } from "./node_drafts/nodeDraftRequests.ts";
+export {
+	type Alias,
+	type AliasMode,
+	aliasModeSchema,
+	aliasModes,
+	aliasSchema,
+} from "./node_revisions/alias.ts";
 export { type ClaimRevision, ClaimRevisionSchema } from "./node_revisions/claim.ts";
 export { type ConceptRevision, ConceptRevisionSchema } from "./node_revisions/concept.ts";
 export { type NodeRevision, NodeRevisionSchema } from "./node_revisions/node.ts";
