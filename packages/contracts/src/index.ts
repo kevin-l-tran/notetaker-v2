@@ -39,6 +39,8 @@ export {
 	aliasModeSchema,
 	aliasModes,
 	aliasSchema,
+	type ExcludedAlias,
+	excludedAliasSchema,
 } from "./node_revisions/alias.ts";
 export { type ClaimRevision, ClaimRevisionSchema } from "./node_revisions/claim.ts";
 export { type ConceptRevision, ConceptRevisionSchema } from "./node_revisions/concept.ts";

@@ -4,6 +4,7 @@ import {
 	DraftClaimContentSchema,
 	type DraftConceptContent,
 	DraftConceptContentSchema,
+	type ExcludedAlias,
 	type PublishableClaimContent,
 	PublishableClaimContentSchema,
 	type PublishableConceptContent,
@@ -50,6 +51,7 @@ export function createEmptyNodeDocument(type: NodeType, title = ""): Y.Doc {
 	doc.getMap("metadata").set("nodeType", type);
 	doc.getText("title").insert(0, title);
 	doc.getArray<Alias>("aliases");
+	doc.getArray<ExcludedAlias>("excludedAliases");
 
 	if (type === "concept") {
 		doc.getText("descriptionSource");
@@ -65,6 +67,7 @@ export function createEmptyNodeDocument(type: NodeType, title = ""): Y.Doc {
 export function createDocumentFromRevision(revision: PublishableNodeContent): Y.Doc {
 	const doc = createEmptyNodeDocument(revision.type, revision.title);
 	doc.getArray<Alias>("aliases").push(revision.aliases);
+	doc.getArray<ExcludedAlias>("excludedAliases").push(revision.excludedAliases);
 
 	if (revision.type === "concept") {
 		doc.getText("descriptionSource").insert(0, revision.descriptionSource);
@@ -83,6 +86,7 @@ export function extractPublishableContent(doc: Y.Doc, type: NodeType): Publishab
 	const base = {
 		title: doc.getText("title").toString(),
 		aliases: doc.getArray<Alias>("aliases").toArray(),
+		excludedAliases: doc.getArray<ExcludedAlias>("excludedAliases").toArray(),
 	};
 
 	if (type === "concept") {
@@ -112,6 +116,7 @@ export function extractDraftContent(doc: Y.Doc, type: NodeType): DraftNodeConten
 	const base = {
 		title: doc.getText("title").toString(),
 		aliases: doc.getArray<Alias>("aliases").toArray(),
+		excludedAliases: doc.getArray<ExcludedAlias>("excludedAliases").toArray(),
 	};
 
 	if (type === "concept") {

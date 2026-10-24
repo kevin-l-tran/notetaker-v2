@@ -90,6 +90,7 @@ export function createBaseNodeRevisionRepository(database: DatabaseExecutor) {
 			revisionNumber: NewBaseNodeRevision["revisionNumber"];
 			title: NewBaseNodeRevision["title"];
 			aliases: NewBaseNodeRevision["aliases"];
+			excludedAliases: NewBaseNodeRevision["excludedAliases"];
 		}) {
 			const res = await database.insert(baseNodeRevisions).values(input).returning();
 

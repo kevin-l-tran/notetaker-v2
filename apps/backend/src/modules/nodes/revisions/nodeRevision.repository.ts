@@ -75,6 +75,7 @@ function mapNodeRevision(
 	const base = {
 		title: baseRevision.title,
 		aliases: baseRevision.aliases,
+		excludedAliases: baseRevision.excludedAliases,
 	};
 
 	switch (nodeType) {

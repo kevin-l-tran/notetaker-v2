@@ -9,7 +9,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { nodes } from "./node.ts";
+import { type Node, nodes } from "./node.ts";
 
 export const baseNodeRevisions = snakeCase.table(
 	"base_node_revisions",
@@ -21,6 +21,10 @@ export const baseNodeRevisions = snakeCase.table(
 		revisionNumber: integer().notNull(),
 		title: varchar().notNull(),
 		aliases: jsonb().$type<{ text: string; mode: "auto" | "manual" }>().array().notNull(),
+		excludedAliases: jsonb()
+			.$type<{ nodeId: Node["id"]; text: string; mode: "auto" | "manual" }>()
+			.array()
+			.notNull(),
 		createdAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
 	},
 	(t) => [

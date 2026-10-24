@@ -1,0 +1,1 @@
+ALTER TABLE "base_node_revisions" ADD COLUMN "excluded_aliases" jsonb[] NOT NULL;
