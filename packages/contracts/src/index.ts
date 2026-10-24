@@ -14,8 +14,18 @@ export {
 	type UserId,
 	UserIdSchema,
 } from "./ids.ts";
-export { type ClaimContent, ClaimContentSchema } from "./node_drafts/content/claimContent.ts";
-export { type ConceptContent, ConceptContentSchema } from "./node_drafts/content/conceptContent.ts";
+export {
+	type DraftClaimContent,
+	DraftClaimContentSchema,
+	type PublishableClaimContent,
+	PublishableClaimContentSchema,
+} from "./node_drafts/content/claimContent.ts";
+export {
+	type DraftConceptContent,
+	DraftConceptContentSchema,
+	type PublishableConceptContent,
+	PublishableConceptContentSchema,
+} from "./node_drafts/content/conceptContent.ts";
 export { type NodeDraft, NodeDraftSchema } from "./node_drafts/nodeDraft.ts";
 export {
 	type PublishDraftRequest,

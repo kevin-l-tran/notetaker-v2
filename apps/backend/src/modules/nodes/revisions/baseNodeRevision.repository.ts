@@ -30,6 +30,24 @@ export function createBaseNodeRevisionRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
+		async findByNodeIdAndRevisionNumber(input: {
+			nodeId: BaseNodeRevision["nodeId"];
+			revisionNumber: BaseNodeRevision["revisionNumber"];
+		}) {
+			const res = await database
+				.select()
+				.from(baseNodeRevisions)
+				.where(
+					and(
+						eq(baseNodeRevisions.revisionNumber, input.revisionNumber),
+						eq(baseNodeRevisions.nodeId, input.nodeId),
+					),
+				)
+				.limit(1);
+
+			return res[0];
+		},
+
 		async findForNode(input: { nodeId: Node["id"] }) {
 			return await database
 				.select()

@@ -1,10 +1,19 @@
 import z from "zod";
 import { aliasSchema } from "../../node_revisions/alias.ts";
 
-export type ClaimContent = z.infer<typeof ClaimContentSchema>;
+export type PublishableClaimContent = z.infer<typeof PublishableClaimContentSchema>;
+export type DraftClaimContent = z.infer<typeof DraftClaimContentSchema>;
 
-export const ClaimContentSchema = z.object({
+export const PublishableClaimContentSchema = z.object({
 	title: z.string().trim().min(1),
+	aliases: z.array(aliasSchema),
+	predicateSource: z.string(),
+	resultSource: z.string(),
+	justificationSource: z.string(),
+});
+
+export const DraftClaimContentSchema = z.object({
+	title: z.string(),
 	aliases: z.array(aliasSchema),
 	predicateSource: z.string(),
 	resultSource: z.string(),

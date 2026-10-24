@@ -20,8 +20,16 @@ export const ERROR_CODES = [
 	"INVALID_MEMBERSHIP_ROLE",
 	"UPDATE_SELF_MEMBERSHIP",
 
-	// base node errors,
+	// node errors
 	"NODE_NOT_FOUND",
+
+	// node revision errors
+	"NODE_REVISION_NOT_FOUND",
+
+	// node draft errors
+	"NODE_DRAFT_NOT_FOUND",
+	"STALE_NODE_DRAFT",
+	"INVALID_DRAFT_CONTENT",
 ] as const;
 
 export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;

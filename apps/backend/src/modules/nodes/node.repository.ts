@@ -15,6 +15,28 @@ export function createNodeRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
+		async findByIdAndNotebookIdForShare(input: { id: Node["id"]; notebookId: Notebook["id"] }) {
+			const res = await database
+				.select()
+				.from(nodes)
+				.for("share")
+				.where(and(eq(nodes.id, input.id), eq(nodes.notebookId, input.notebookId)))
+				.limit(1);
+
+			return res[0];
+		},
+
+		async findByIdAndNotebookIdForUpdate(input: { id: Node["id"]; notebookId: Notebook["id"] }) {
+			const res = await database
+				.select()
+				.from(nodes)
+				.for("update")
+				.where(and(eq(nodes.id, input.id), eq(nodes.notebookId, input.notebookId)))
+				.limit(1);
+
+			return res[0];
+		},
+
 		async findForNotebook(input: { notebookId: Notebook["id"] }) {
 			return await database.select().from(nodes).where(eq(nodes.notebookId, input.notebookId));
 		},

@@ -1,10 +1,17 @@
 import z from "zod";
 import { aliasSchema } from "../../node_revisions/alias.ts";
 
-export type ConceptContent = z.infer<typeof ConceptContentSchema>;
+export type PublishableConceptContent = z.infer<typeof PublishableConceptContentSchema>;
+export type DraftConceptContent = z.infer<typeof DraftConceptContentSchema>;
 
-export const ConceptContentSchema = z.object({
+export const PublishableConceptContentSchema = z.object({
 	title: z.string().trim().min(1),
+	aliases: z.array(aliasSchema),
+	descriptionSource: z.string(),
+});
+
+export const DraftConceptContentSchema = z.object({
+	title: z.string(),
 	aliases: z.array(aliasSchema),
 	descriptionSource: z.string(),
 });

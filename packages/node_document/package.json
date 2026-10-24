@@ -1,0 +1,23 @@
+{
+	"name": "@notetaker-v2/node_document",
+	"version": "1.0.0",
+	"private": true,
+	"description": "",
+	"keywords": [],
+	"license": "MIT",
+	"author": "",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"dependencies": {
+		"@notetaker-v2/contracts": "workspace:*",
+		"yjs": "^13.6.33"
+	},
+	"devDependencies": {
+		"typescript": "^5.0.0"
+	}
+}
