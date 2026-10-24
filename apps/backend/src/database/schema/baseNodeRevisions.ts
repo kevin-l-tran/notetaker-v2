@@ -22,7 +22,7 @@ export const baseNodeRevisions = snakeCase.table(
 		title: varchar().notNull(),
 		aliases: jsonb().$type<{ text: string; mode: "auto" | "manual" }>().array().notNull(),
 		excludedAliases: jsonb()
-			.$type<{ nodeId: Node["id"]; text: string; mode: "auto" | "manual" }>()
+			.$type<{ nodeId: Node["id"]; text?: string | undefined; mode: "auto" | "manual" }>()
 			.array()
 			.notNull(),
 		createdAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),

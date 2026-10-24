@@ -15,5 +15,5 @@ export const aliasSchema = z.object({
 
 export const excludedAliasSchema = z.object({
 	nodeId: NodeIdSchema,
-	text: z.string().trim().min(1),
+	text: z.string().trim().min(1).optional(),
 });
