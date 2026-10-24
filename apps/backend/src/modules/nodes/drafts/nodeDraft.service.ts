@@ -6,7 +6,7 @@ import {
 } from "@notetaker-v2/node_document";
 import type * as Y from "yjs";
 import type { AppUser } from "../../../database/schema/appUsers.ts";
-import type { BaseNodeRevision } from "../../../database/schema/baseNodeRevisions.ts";
+import type { Node } from "../../../database/schema/node.ts";
 import type { NewNodeDraft, NodeDraft } from "../../../database/schema/nodeDraft.ts";
 import type { Notebook } from "../../../database/schema/notebooks.ts";
 import {
@@ -19,7 +19,7 @@ import type { ServiceContext } from "../../../shared/services/serviceContext.ts"
 import { requireNodeForEdit, requireNodeForShare, requireNodeForUpdate } from "../node.access.ts";
 import { createNodeRepository } from "../node.repository.ts";
 import { createBaseNodeRevisionRepository } from "../revisions/baseNodeRevision.repository.ts";
-import { getLatestNodeContent } from "../revisions/nodeRevision.reader.ts";
+import { createNodeRevisionRepository } from "../revisions/nodeRevision.repository.ts";
 import { createNodeDraftRepository } from "./nodeDraft.repository.ts";
 
 export function createNodeDraftService(context: ServiceContext) {
@@ -29,7 +29,7 @@ export function createNodeDraftService(context: ServiceContext) {
 		async getDraft(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			nodeId: BaseNodeRevision["nodeId"];
+			nodeId: Node["id"];
 		}) {
 			await requireNodeForEdit(context, input.appUserId, input.notebookId, input.nodeId);
 
@@ -43,10 +43,11 @@ export function createNodeDraftService(context: ServiceContext) {
 		async createDraft(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			nodeId: BaseNodeRevision["nodeId"];
+			nodeId: Node["id"];
 		}) {
 			return await context.transaction(async (transactionContext) => {
 				const txNodeDraftRepo = createNodeDraftRepository(transactionContext.database);
+				const txNodeRevisionRepo = createNodeRevisionRepository(transactionContext.database);
 
 				const node = await requireNodeForUpdate(
 					transactionContext,
@@ -59,11 +60,14 @@ export function createNodeDraftService(context: ServiceContext) {
 
 				if (existingDraft) return existingDraft;
 
-				const content = await getLatestNodeContent(transactionContext, node);
+				const revision = await txNodeRevisionRepo.findLatestForNode({
+					nodeId: node.id,
+					nodeType: node.type,
+				});
 
-				if (!content) throw new InvariantError("Node exists without a base revision or draft.");
+				if (!revision) throw new InvariantError("Node exists without a base revision or draft.");
 
-				const document = createDocumentFromRevision(content);
+				const document = createDocumentFromRevision(revision.content);
 
 				try {
 					return await txNodeDraftRepo.create({
@@ -79,7 +83,7 @@ export function createNodeDraftService(context: ServiceContext) {
 		async saveDraft(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			nodeId: BaseNodeRevision["nodeId"];
+			nodeId: Node["id"];
 			draftId: NodeDraft["id"];
 			yjsState: NewNodeDraft["yjsState"];
 			expectedSaveVersion: NodeDraft["saveVersion"];
@@ -140,7 +144,7 @@ export function createNodeDraftService(context: ServiceContext) {
 		async discardDraft(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			nodeId: BaseNodeRevision["nodeId"];
+			nodeId: Node["id"];
 			draftId: NodeDraft["id"];
 		}) {
 			return await context.transaction(async (transactionContext) => {

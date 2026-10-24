@@ -30,6 +30,7 @@ export const ERROR_CODES = [
 	"NODE_DRAFT_NOT_FOUND",
 	"STALE_NODE_DRAFT",
 	"INVALID_DRAFT_CONTENT",
+	"NODE_DRAFT_EXISTS",
 ] as const;
 
 export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;
