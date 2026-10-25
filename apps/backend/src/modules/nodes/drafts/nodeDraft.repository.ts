@@ -20,6 +20,17 @@ export function createNodeDraftRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
+		async findByNodeIdForUpdate(input: { nodeId: Node["id"] }) {
+			const res = await database
+				.select()
+				.from(nodeDrafts)
+				.for("update")
+				.where(eq(nodeDrafts.nodeId, input.nodeId))
+				.limit(1);
+
+			return res[0];
+		},
+
 		async findForNotebook(input: { notebookId: Notebook["id"] }) {
 			const rows = await database
 				.select({ draft: nodeDrafts })
