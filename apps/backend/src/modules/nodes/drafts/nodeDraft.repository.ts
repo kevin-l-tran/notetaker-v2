@@ -1,10 +1,11 @@
 import { and, eq, sql } from "drizzle-orm";
-import type { Node } from "../../../database/schema/node.ts";
+import { type Node, nodes } from "../../../database/schema/node.ts";
 import {
 	type NewNodeDraft,
 	type NodeDraft,
 	nodeDrafts,
 } from "../../../database/schema/nodeDraft.ts";
+import type { Notebook } from "../../../database/schema/notebooks.ts";
 import type { DatabaseExecutor } from "../../../database/types.ts";
 
 export function createNodeDraftRepository(database: DatabaseExecutor) {
@@ -17,6 +18,16 @@ export function createNodeDraftRepository(database: DatabaseExecutor) {
 				.limit(1);
 
 			return res[0];
+		},
+
+		async findForNotebook(input: { notebookId: Notebook["id"] }) {
+			const rows = await database
+				.select({ draft: nodeDrafts })
+				.from(nodeDrafts)
+				.innerJoin(nodes, eq(nodeDrafts.nodeId, nodes.id))
+				.where(eq(nodes.notebookId, input.notebookId));
+
+			return rows.map((row) => row.draft);
 		},
 
 		async create(input: { nodeId: Node["id"]; yjsState: NewNodeDraft["yjsState"] }) {

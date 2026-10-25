@@ -273,9 +273,8 @@ describe("notebook routes", () => {
 				role: "owner",
 			});
 
-			await notebookRepo.updatePublicationVersion({
+			await notebookRepo.incrementPublicationVersion({
 				id: notebook.id,
-				publicationVersion: notebook.publicationVersion,
 			});
 
 			const response = await app.inject({

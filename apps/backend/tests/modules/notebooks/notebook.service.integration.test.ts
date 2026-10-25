@@ -7,11 +7,7 @@ import { createNotebookRepository } from "../../../src/modules/notebooks/noteboo
 import { createNotebookService } from "../../../src/modules/notebooks/notebook.service.ts";
 import { createNotebookMemberRepository } from "../../../src/modules/notebooks/notebookMember.repository.ts";
 import { createUserRepository } from "../../../src/modules/users/user.repository.ts";
-import {
-	ConflictError,
-	ForbiddenError,
-	NotFoundError,
-} from "../../../src/shared/errors/appError.ts";
+import { ForbiddenError, NotFoundError } from "../../../src/shared/errors/appError.ts";
 import { createServiceContext } from "../../../src/shared/services/serviceContext.ts";
 
 describe("notebook service", () => {
@@ -400,7 +396,6 @@ describe("notebook service", () => {
 			await service.bumpNotebookPublicationVersion({
 				appUserId: user.id,
 				notebookId: notebook.id,
-				publicationVersion: notebook.publicationVersion,
 			});
 
 			const result = await service.updateNotebook({
@@ -442,7 +437,6 @@ describe("notebook service", () => {
 				const result = await service.bumpNotebookPublicationVersion({
 					appUserId: user.id,
 					notebookId: notebook.id,
-					publicationVersion: notebook.publicationVersion,
 				});
 
 				const updatedNotebook = await notebookRepo.findById({ id: notebook.id });
@@ -470,7 +464,6 @@ describe("notebook service", () => {
 					service.bumpNotebookPublicationVersion({
 						appUserId: user.id,
 						notebookId: notebook.id,
-						publicationVersion: notebook.publicationVersion,
 					}),
 				).rejects.toThrow(
 					role === "none"
@@ -483,64 +476,6 @@ describe("notebook service", () => {
 			}
 		});
 
-		it("rejects stale publication versions", async () => {
-			const user = await userRepo.create();
-			const notebook = await notebookRepo.create({ title: "Title" });
-			await notebookMemberRepo.create({
-				appUserId: user.id,
-				notebookId: notebook.id,
-				role: "editor",
-			});
-
-			await service.bumpNotebookPublicationVersion({
-				appUserId: user.id,
-				notebookId: notebook.id,
-				publicationVersion: notebook.publicationVersion,
-			});
-
-			await expect(
-				service.bumpNotebookPublicationVersion({
-					appUserId: user.id,
-					notebookId: notebook.id,
-					publicationVersion: notebook.publicationVersion,
-				}),
-			).rejects.toThrow(
-				new ConflictError(
-					"OUTDATED_NOTEBOOK_PUBLICATION_VERSION",
-					"Notebook publication version is outdated.",
-				),
-			);
-
-			const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
-			expect(preservedNotebook?.publicationVersion).toEqual(2);
-		});
-
-		it("rejects publication versions newer than the current version", async () => {
-			const user = await userRepo.create();
-			const notebook = await notebookRepo.create({ title: "Title" });
-			await notebookMemberRepo.create({
-				appUserId: user.id,
-				notebookId: notebook.id,
-				role: "owner",
-			});
-
-			await expect(
-				service.bumpNotebookPublicationVersion({
-					appUserId: user.id,
-					notebookId: notebook.id,
-					publicationVersion: notebook.publicationVersion + 1,
-				}),
-			).rejects.toThrow(
-				new ConflictError(
-					"OUTDATED_NOTEBOOK_PUBLICATION_VERSION",
-					"Notebook publication version is outdated.",
-				),
-			);
-
-			const preservedNotebook = await notebookRepo.findById({ id: notebook.id });
-			expect(preservedNotebook?.publicationVersion).toEqual(1);
-		});
-
 		it("returns NOT_FOUND when the notebook does not exist", async () => {
 			const user = await userRepo.create();
 
@@ -548,7 +483,6 @@ describe("notebook service", () => {
 				service.bumpNotebookPublicationVersion({
 					appUserId: user.id,
 					notebookId: crypto.randomUUID(),
-					publicationVersion: 1,
 				}),
 			).rejects.toThrow(new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook."));
 		});
@@ -786,7 +720,6 @@ describe("notebook service", () => {
 					service.bumpNotebookPublicationVersion({
 						appUserId: editor.id,
 						notebookId: notebook.id,
-						publicationVersion: notebook.publicationVersion,
 					}),
 				async (tx) => {
 					const repo = createNotebookMemberRepository(tx);

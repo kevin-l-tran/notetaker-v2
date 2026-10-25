@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import {
 	type BaseNodeRevision,
 	baseNodeRevisions,
@@ -8,7 +8,8 @@ import {
 	type ConceptRevision,
 	conceptRevisions,
 } from "../../../database/schema/conceptRevisions.ts";
-import type { Node } from "../../../database/schema/node.ts";
+import { type Node, nodes } from "../../../database/schema/node.ts";
+import type { Notebook } from "../../../database/schema/notebooks.ts";
 import type { DatabaseExecutor } from "../../../database/types.ts";
 import { InvariantError } from "../../../shared/errors/appError.ts";
 
@@ -39,6 +40,24 @@ export function createNodeRevisionRepository(database: DatabaseExecutor) {
 			if (!row[0]) return;
 
 			return mapNodeRevision(row[0], input.nodeType);
+		},
+
+		async findLatestForNotebook(input: { notebookId: Notebook["id"] }) {
+			const rows = await database
+				.selectDistinctOn([baseNodeRevisions.nodeId], {
+					nodeType: nodes.type,
+					baseRevision: baseNodeRevisions,
+					conceptRevision: conceptRevisions,
+					claimRevision: claimRevisions,
+				})
+				.from(baseNodeRevisions)
+				.innerJoin(nodes, eq(baseNodeRevisions.nodeId, nodes.id))
+				.leftJoin(conceptRevisions, eq(conceptRevisions.baseNodeRevisionId, baseNodeRevisions.id))
+				.leftJoin(claimRevisions, eq(claimRevisions.baseNodeRevisionId, baseNodeRevisions.id))
+				.where(eq(nodes.notebookId, input.notebookId))
+				.orderBy(asc(baseNodeRevisions.nodeId), desc(baseNodeRevisions.revisionNumber));
+
+			return rows.map((row) => mapNodeRevision(row, row.nodeType));
 		},
 
 		async findLatestForNode(input: { nodeId: Node["id"]; nodeType: Node["type"] }) {

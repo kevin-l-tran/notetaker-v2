@@ -1,4 +1,4 @@
-import { and, eq, getColumns } from "drizzle-orm";
+import { and, eq, getColumns, sql } from "drizzle-orm";
 import type { AppUser } from "../../database/schema/appUsers.ts";
 import { notebookMembers } from "../../database/schema/notebookMembers.ts";
 import { type NewNotebook, type Notebook, notebooks } from "../../database/schema/notebooks.ts";
@@ -84,21 +84,13 @@ export function createNotebookRepository(database: DatabaseExecutor) {
 			return res[0];
 		},
 
-		async updatePublicationVersion(input: {
-			id: Notebook["id"];
-			publicationVersion: Notebook["publicationVersion"];
-		}) {
+		async incrementPublicationVersion(input: { id: Notebook["id"] }) {
 			const res = await database
 				.update(notebooks)
 				.set({
-					publicationVersion: input.publicationVersion + 1,
+					publicationVersion: sql`${notebooks.publicationVersion} + 1`,
 				})
-				.where(
-					and(
-						eq(notebooks.id, input.id),
-						eq(notebooks.publicationVersion, input.publicationVersion),
-					),
-				)
+				.where(eq(notebooks.id, input.id))
 				.returning();
 
 			return res[0];

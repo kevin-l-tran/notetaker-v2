@@ -80,7 +80,6 @@ export function createNotebookService(context: ServiceContext) {
 		async bumpNotebookPublicationVersion(input: {
 			appUserId: AppUser["id"];
 			notebookId: Notebook["id"];
-			publicationVersion: Notebook["publicationVersion"];
 		}) {
 			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
@@ -93,9 +92,8 @@ export function createNotebookService(context: ServiceContext) {
 					input.notebookId,
 				);
 
-				const updatedNotebook = await txNotebookRepo.updatePublicationVersion({
+				const updatedNotebook = await txNotebookRepo.incrementPublicationVersion({
 					id: input.notebookId,
-					publicationVersion: input.publicationVersion,
 				});
 
 				if (!updatedNotebook)
