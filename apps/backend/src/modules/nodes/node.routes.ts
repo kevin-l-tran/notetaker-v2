@@ -1,18 +1,18 @@
 import type { ZodTypeProvider } from "@fastify/type-provider-zod";
 import {
 	CreateNodeRequestSchema,
+	NodeDraftSchema,
 	NodeIdSchema,
 	NodeSchema,
 	NotebookIdSchema,
-	UpdateNodeRequestSchema,
 } from "@notetaker-v2/contracts";
 import type { FastifyPluginCallback } from "fastify";
 import z from "zod";
 import { db } from "../../database/client.ts";
 import { createServiceContext } from "../../shared/services/serviceContext.ts";
 import { getAuthenticatedUser } from "../auth/authenticatedUser.ts";
-import { toNodeDTO } from "./node.mapper.ts";
 import { createNodeService } from "./node.service.ts";
+import { toNodeDraftDTO, toNodeDTO } from "./nodes.mapper.ts";
 
 const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 	const zodApp = app.withTypeProvider<ZodTypeProvider>();
@@ -38,31 +38,27 @@ const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 				notebookId,
 			});
 
-			return nodesData.map((nd) => toNodeDTO({ nodeData: nd }));
+			return nodesData.map((n) => toNodeDTO({ nodeContent: n }));
 		},
 	);
 
 	zodApp.get(
-		"/notebooks/:notebookId/nodes/:id",
+		"/notebooks/:notebookId/nodes/:nodeId",
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
 				response: { 200: NodeSchema },
-				params: z.object({ notebookId: NotebookIdSchema, id: NodeIdSchema }),
+				params: z.object({ notebookId: NotebookIdSchema, nodeId: NodeIdSchema }),
 			},
 		},
 		async (request, _reply) => {
-			const { notebookId, id } = request.params;
+			const { notebookId, nodeId } = request.params;
 
 			const appUser = getAuthenticatedUser(request);
 
-			const nodeData = await nodeService.getNode({
-				appUserId: appUser.id,
-				notebookId,
-				baseNodeId: id,
-			});
+			const nodeData = await nodeService.getNode({ appUserId: appUser.id, notebookId, nodeId });
 
-			return toNodeDTO({ nodeData });
+			return toNodeDTO({ nodeContent: nodeData });
 		},
 	);
 
@@ -71,9 +67,9 @@ const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				body: CreateNodeRequestSchema,
-				response: { 201: NodeSchema },
+				response: { 201: z.object({ node: NodeSchema, draft: NodeDraftSchema }) },
 				params: z.object({ notebookId: NotebookIdSchema }),
+				body: CreateNodeRequestSchema,
 			},
 		},
 		async (request, reply) => {
@@ -84,58 +80,33 @@ const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 			const nodeData = await nodeService.createNode({
 				appUserId: appUser.id,
 				notebookId,
-				data: request.body,
+				data: { type: request.body.type },
 			});
+
+			const node = toNodeDTO({
+				nodeContent: { ...nodeData, hasDraft: nodeData.draft !== undefined },
+			});
+			const draft = toNodeDraftDTO({ nodeDraft: nodeData.draft });
 
 			reply.code(201);
-			return toNodeDTO({ nodeData });
-		},
-	);
-
-	zodApp.patch(
-		"/notebooks/:notebookId/nodes/:id",
-		{
-			preHandler: app.requireAuthentication,
-			schema: {
-				body: UpdateNodeRequestSchema,
-				response: { 200: NodeSchema },
-				params: z.object({ notebookId: NotebookIdSchema, id: NodeIdSchema }),
-			},
-		},
-		async (request, _reply) => {
-			const { notebookId, id } = request.params;
-
-			const appUser = getAuthenticatedUser(request);
-
-			const nodeData = await nodeService.updateNode({
-				appUserId: appUser.id,
-				notebookId,
-				baseNodeId: id,
-				data: request.body,
-			});
-
-			return toNodeDTO({ nodeData });
+			return { node, draft };
 		},
 	);
 
 	zodApp.delete(
-		"/notebooks/:notebookId/nodes/:id",
+		"/notebooks/:notebookId/nodes/:nodeId",
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				params: z.object({ notebookId: NotebookIdSchema, id: NodeIdSchema }),
+				params: z.object({ notebookId: NotebookIdSchema, nodeId: NodeIdSchema }),
 			},
 		},
 		async (request, reply) => {
-			const { notebookId, id } = request.params;
+			const { notebookId, nodeId } = request.params;
 
 			const appUser = getAuthenticatedUser(request);
 
-			await nodeService.deleteNode({
-				appUserId: appUser.id,
-				notebookId,
-				baseNodeId: id,
-			});
+			await nodeService.deleteNode({ appUserId: appUser.id, notebookId, nodeId });
 
 			return reply.code(204).send();
 		},

@@ -6,6 +6,18 @@ import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { createNotebookRepository } from "./notebook.repository.ts";
 import { createNotebookMemberRepository } from "./notebookMember.repository.ts";
 
+export async function requireNotebookForKeyShare(
+	context: ServiceContext,
+	notebookId: Notebook["id"],
+) {
+	const notebookRepo = createNotebookRepository(context.database);
+	const notebook = await notebookRepo.findByIdForKeyShare({ id: notebookId });
+
+	if (!notebook) throw new NotFoundError("NOTEBOOK_NOT_FOUND", "Could not find target notebook.");
+
+	return notebook;
+}
+
 export async function requireNotebookForUpdate(
 	context: ServiceContext,
 	notebookId: Notebook["id"],

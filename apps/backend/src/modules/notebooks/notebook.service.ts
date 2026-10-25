@@ -4,6 +4,7 @@ import { ConflictError, NotFoundError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import {
 	requireEditPermissionsForShare,
+	requireNotebookForKeyShare,
 	requireNotebookForUpdate,
 	requireOwnershipForShare,
 } from "./notebook.access.ts";
@@ -84,7 +85,7 @@ export function createNotebookService(context: ServiceContext) {
 			return await context.transaction(async (transactionContext) => {
 				const txNotebookRepo = createNotebookRepository(transactionContext.database);
 
-				await requireNotebookForUpdate(transactionContext, input.notebookId);
+				await requireNotebookForKeyShare(transactionContext, input.notebookId);
 
 				const membership = await requireEditPermissionsForShare(
 					transactionContext,
