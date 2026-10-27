@@ -1,6 +1,8 @@
 import type { ZodTypeProvider } from "@fastify/type-provider-zod";
 import {
 	CreateNodeRequestSchema,
+	GetNodeResponseSchema,
+	GetNodesResponseSchema,
 	NodeDraftSchema,
 	NodeIdSchema,
 	NodeSchema,
@@ -12,7 +14,11 @@ import { db } from "../../database/client.ts";
 import { createServiceContext } from "../../shared/services/serviceContext.ts";
 import { getAuthenticatedUser } from "../auth/authenticatedUser.ts";
 import { createNodeService } from "./node.service.ts";
-import { toNodeDraftDTO, toNodeDTO } from "./nodes.mapper.ts";
+import {
+	toCreateNodeResponseDTO,
+	toGetNodeResponseDTO,
+	toGetNodesResponseDTO,
+} from "./nodes.mapper.ts";
 
 const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 	const zodApp = app.withTypeProvider<ZodTypeProvider>();
@@ -24,7 +30,7 @@ const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				response: { 200: z.array(NodeSchema) },
+				response: { 200: GetNodesResponseSchema },
 				params: z.object({ notebookId: NotebookIdSchema }),
 			},
 		},
@@ -33,12 +39,12 @@ const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 
 			const appUser = getAuthenticatedUser(request);
 
-			const nodesData = await nodeService.listNodesForNotebook({
+			const data = await nodeService.listNodesForNotebook({
 				appUserId: appUser.id,
 				notebookId,
 			});
 
-			return nodesData.map((n) => toNodeDTO({ nodeContent: n }));
+			return toGetNodesResponseDTO(data);
 		},
 	);
 
@@ -47,7 +53,7 @@ const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				response: { 200: NodeSchema },
+				response: { 200: GetNodeResponseSchema },
 				params: z.object({ notebookId: NotebookIdSchema, nodeId: NodeIdSchema }),
 			},
 		},
@@ -56,9 +62,9 @@ const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 
 			const appUser = getAuthenticatedUser(request);
 
-			const nodeData = await nodeService.getNode({ appUserId: appUser.id, notebookId, nodeId });
+			const nodeContent = await nodeService.getNode({ appUserId: appUser.id, notebookId, nodeId });
 
-			return toNodeDTO({ nodeContent: nodeData });
+			return toGetNodeResponseDTO({ nodeContent });
 		},
 	);
 
@@ -77,19 +83,14 @@ const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 
 			const appUser = getAuthenticatedUser(request);
 
-			const nodeData = await nodeService.createNode({
+			const { nodeContent, draft: draftContent } = await nodeService.createNode({
 				appUserId: appUser.id,
 				notebookId,
 				data: { type: request.body.type },
 			});
 
-			const node = toNodeDTO({
-				nodeContent: { ...nodeData, hasDraft: nodeData.draft !== undefined },
-			});
-			const draft = toNodeDraftDTO({ nodeDraft: nodeData.draft });
-
 			reply.code(201);
-			return { node, draft };
+			return toCreateNodeResponseDTO({ nodeContent, draftContent });
 		},
 	);
 

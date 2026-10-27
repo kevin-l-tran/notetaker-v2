@@ -132,7 +132,10 @@ describe("node service", () => {
 					notebookId: notebook.id,
 				});
 
-				expect(result).toEqual([{ node, hasDraft: true, revision: undefined }]);
+				expect(result).toEqual({
+					nodeContents: [{ node, hasDraft: true, revision: undefined }],
+					publicationVersion: 1,
+				});
 			}
 		});
 
@@ -160,8 +163,8 @@ describe("node service", () => {
 				notebookId: notebook.id,
 			});
 
-			expect(result).toHaveLength(3);
-			expect(result).toEqual(
+			expect(result.nodeContents).toHaveLength(3);
+			expect(result.nodeContents).toEqual(
 				expect.arrayContaining([
 					{ node: draftOnly, hasDraft: true, revision: undefined },
 					{
@@ -176,6 +179,7 @@ describe("node service", () => {
 					},
 				]),
 			);
+			expect(result.publicationVersion).toEqual(1);
 		});
 
 		it("excludes nodes from other notebooks and returns an empty array when there are none", async () => {
@@ -184,7 +188,7 @@ describe("node service", () => {
 
 			expect(
 				await service.listNodesForNotebook({ appUserId: user.id, notebookId: notebook.id }),
-			).toEqual([]);
+			).toEqual({ nodeContents: [], publicationVersion: 1 });
 
 			await insertNodeWithDraft(otherNotebook.id, conceptContent);
 			await nodeRepo.create({ notebookId: notebook.id, type: "concept" });
@@ -195,7 +199,10 @@ describe("node service", () => {
 				notebookId: notebook.id,
 			});
 
-			expect(result).toEqual([{ node, hasDraft: true, revision: undefined }]);
+			expect(result).toEqual({
+				nodeContents: [{ node, hasDraft: true, revision: undefined }],
+				publicationVersion: 1,
+			});
 		});
 
 		it("rejects users without notebook membership", async () => {
@@ -295,14 +302,19 @@ describe("node service", () => {
 					data: { type: "concept", title: "New Concept" },
 				});
 
-				expect(result.node).toMatchObject({ notebookId: notebook.id, type: "concept" });
-				expect(result.draft.nodeId).toEqual(result.node.id);
+				expect(result.nodeContent.node).toMatchObject({ notebookId: notebook.id, type: "concept" });
+				expect(result.draft.nodeId).toEqual(result.nodeContent.node.id);
 				expect(result.draft.saveVersion).toEqual(1);
-				expect(result.revision).toBeUndefined();
+				expect(result.nodeContent.revision).toBeUndefined();
 				expect(
-					await nodeRepo.findByIdAndNotebookId({ id: result.node.id, notebookId: notebook.id }),
-				).toEqual(result.node);
-				expect(await draftRepo.findByNodeId({ nodeId: result.node.id })).toEqual(result.draft);
+					await nodeRepo.findByIdAndNotebookId({
+						id: result.nodeContent.node.id,
+						notebookId: notebook.id,
+					}),
+				).toEqual(result.nodeContent.node);
+				expect(await draftRepo.findByNodeId({ nodeId: result.nodeContent.node.id })).toEqual(
+					result.draft,
+				);
 
 				expect(readYjsContent(result.draft.yjsState, "concept")).toEqual({
 					type: "concept",
@@ -332,10 +344,14 @@ describe("node service", () => {
 				resultSource: "",
 				justificationSource: "",
 			});
-			expect(result.node.type).toEqual("claim");
-			expect(result.revision).toBeUndefined();
-			expect(await baseRevisionRepo.findForNode({ nodeId: result.node.id })).toEqual([]);
-			expect(await draftRepo.findByNodeId({ nodeId: result.node.id })).toEqual(result.draft);
+			expect(result.nodeContent.node.type).toEqual("claim");
+			expect(result.nodeContent.revision).toBeUndefined();
+			expect(await baseRevisionRepo.findForNode({ nodeId: result.nodeContent.node.id })).toEqual(
+				[],
+			);
+			expect(await draftRepo.findByNodeId({ nodeId: result.nodeContent.node.id })).toEqual(
+				result.draft,
+			);
 		});
 
 		it("rejects viewers and non-members without creating a node or draft", async () => {
@@ -372,14 +388,17 @@ describe("node service", () => {
 			const deleted = await service.deleteNode({
 				appUserId: user.id,
 				notebookId: notebook.id,
-				nodeId: created.node.id,
+				nodeId: created.nodeContent.node.id,
 			});
 
-			expect(deleted).toEqual(created.node);
+			expect(deleted).toEqual(created.nodeContent.node);
 			expect(
-				await nodeRepo.findByIdAndNotebookId({ id: created.node.id, notebookId: notebook.id }),
+				await nodeRepo.findByIdAndNotebookId({
+					id: created.nodeContent.node.id,
+					notebookId: notebook.id,
+				}),
 			).toBeUndefined();
-			expect(await draftRepo.findByNodeId({ nodeId: created.node.id })).toBeUndefined();
+			expect(await draftRepo.findByNodeId({ nodeId: created.nodeContent.node.id })).toBeUndefined();
 			const updatedNotebook = await notebookRepo.findById({ id: notebook.id });
 			expect(updatedNotebook?.publicationVersion).toEqual(notebook.publicationVersion);
 		});

@@ -4,7 +4,6 @@ import {
 	type NodeId,
 	NodeSchema,
 	type NotebookId,
-	type UpdateNodeRequest,
 } from "@notetaker-v2/contracts";
 
 export async function fetchNodes({ notebookId }: { notebookId: NotebookId }): Promise<Node[]> {
@@ -49,30 +48,6 @@ export async function createNode({
 	});
 
 	if (!response.ok) throw new Error("Failed to create node");
-
-	const data = await response.json();
-
-	return NodeSchema.parse(data);
-}
-
-export async function updateNode({
-	notebookId,
-	nodeId,
-	input,
-}: {
-	notebookId: NotebookId;
-	nodeId: NodeId;
-	input: UpdateNodeRequest;
-}): Promise<Node> {
-	const response = await fetch(`/api/notebooks/${notebookId}/nodes/${nodeId}`, {
-		method: "PATCH",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify(input),
-	});
-
-	if (!response.ok) throw new Error("Failed to update node");
 
 	const data = await response.json();
 

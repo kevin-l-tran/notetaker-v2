@@ -2,7 +2,7 @@ import { createEmptyNodeDocument, encodeDocument } from "@notetaker-v2/node_docu
 import type { AppUser } from "../../database/schema/appUsers.ts";
 import type { Node } from "../../database/schema/node.ts";
 import type { Notebook } from "../../database/schema/notebooks.ts";
-import { NotFoundError } from "../../shared/errors/appError.ts";
+import { NotFoundError, SnapshotConflictError } from "../../shared/errors/appError.ts";
 import type { ServiceContext } from "../../shared/services/serviceContext.ts";
 import { requireEditPermissionsForShare, requireMembership } from "../notebooks/notebook.access.ts";
 import { createNotebookService } from "../notebooks/notebook.service.ts";
@@ -12,7 +12,10 @@ import { createNodeRepository } from "./node.repository.ts";
 import { createBaseNodeRevisionRepository } from "./revisions/baseNodeRevision.repository.ts";
 import { createNodeRevisionRepository } from "./revisions/nodeRevision.repository.ts";
 
+const MAX_SNAPSHOT_ATTEMPTS = 3;
+
 export function createNodeService(context: ServiceContext) {
+	const notebookService = createNotebookService(context);
 	const nodeRepo = createNodeRepository(context.database);
 	const draftRepo = createNodeDraftRepository(context.database);
 	const revisionRepo = createNodeRevisionRepository(context.database);
@@ -21,24 +24,45 @@ export function createNodeService(context: ServiceContext) {
 		async listNodesForNotebook(input: { appUserId: AppUser["id"]; notebookId: Notebook["id"] }) {
 			await requireMembership(context, input.appUserId, input.notebookId);
 
-			const [nodes, drafts, revisions] = await Promise.all([
-				nodeRepo.findForNotebook({ notebookId: input.notebookId }),
-				draftRepo.findForNotebook({ notebookId: input.notebookId }),
-				revisionRepo.findLatestForNotebook({ notebookId: input.notebookId }),
-			]);
+			for (let attempt = 0; attempt < MAX_SNAPSHOT_ATTEMPTS; attempt++) {
+				const before = await notebookService.getNotebook({
+					appUserId: input.appUserId,
+					notebookId: input.notebookId,
+				});
 
-			const draftsByNodeId = new Map(drafts.map((draft) => [draft.nodeId, draft]));
-			const revisionsByNodeId = new Map(
-				revisions.map((revision) => [revision.baseRevision.nodeId, revision]),
-			);
+				const [nodes, drafts, revisions] = await Promise.all([
+					nodeRepo.findForNotebook({ notebookId: input.notebookId }),
+					draftRepo.findForNotebook({ notebookId: input.notebookId }),
+					revisionRepo.findLatestForNotebook({ notebookId: input.notebookId }),
+				]);
 
-			return nodes
-				.map((node) => ({
-					node,
-					hasDraft: draftsByNodeId.get(node.id) !== undefined,
-					revision: revisionsByNodeId.get(node.id),
-				}))
-				.filter((n) => n.hasDraft || n.revision !== undefined);
+				const after = await notebookService.getNotebook({
+					appUserId: input.appUserId,
+					notebookId: input.notebookId,
+				});
+
+				if (before.publicationVersion !== after.publicationVersion) continue;
+
+				const draftsByNodeId = new Map(drafts.map((draft) => [draft.nodeId, draft]));
+				const revisionsByNodeId = new Map(
+					revisions.map((revision) => [revision.baseRevision.nodeId, revision]),
+				);
+
+				const nodeContents = nodes
+					.map((node) => ({
+						node,
+						hasDraft: draftsByNodeId.get(node.id) !== undefined,
+						revision: revisionsByNodeId.get(node.id),
+					}))
+					.filter((n) => n.hasDraft || n.revision !== undefined);
+
+				return {
+					publicationVersion: after.publicationVersion,
+					nodeContents,
+				};
+			}
+
+			throw new SnapshotConflictError();
 		},
 
 		async getNode(input: {
@@ -82,7 +106,10 @@ export function createNodeService(context: ServiceContext) {
 						yjsState: Buffer.from(encodeDocument(document)),
 					});
 
-					return { node, draft, revision: undefined };
+					return {
+						nodeContent: { node, hasDraft: draft !== undefined, revision: undefined },
+						draft,
+					};
 				} finally {
 					document.destroy();
 				}

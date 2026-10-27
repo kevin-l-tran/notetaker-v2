@@ -12,6 +12,10 @@ const errorHandler: FastifyPluginCallback = (app, _options, done) => {
 				details: error.details,
 			};
 
+			for (const [name, value] of Object.entries(error.headers ?? {})) {
+				reply.header(name, value);
+			}
+
 			return reply.status(error.statusCode).send(publicError);
 		}
 

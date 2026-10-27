@@ -26,7 +26,7 @@ export default function EditorSidebar({ notebookId, selectedNodeId }: EditorSide
 							node.id === selectedNodeId ? `${styles.node} ${styles.selected}` : styles.node
 						}
 					>
-						{node.title}
+						{node?.latestRevision?.title ?? "New draft"}
 					</NavLink>
 				))}
 			</div>

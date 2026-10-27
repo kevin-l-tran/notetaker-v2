@@ -1,4 +1,10 @@
-import { NodeDraftSchema, NodeSchema } from "@notetaker-v2/contracts";
+import {
+	CreateNodeResponseSchema,
+	GetNodeResponseSchema,
+	GetNodesResponseSchema,
+	NodeDraftSchema,
+	NodeSchema,
+} from "@notetaker-v2/contracts";
 import type { PublishableNodeContent } from "@notetaker-v2/node_document";
 import type { BaseNodeRevision } from "../../database/schema/baseNodeRevisions.ts";
 import type { Node as DbNode } from "../../database/schema/node.ts";
@@ -35,12 +41,40 @@ export function toNodeDTO(input: { nodeContent: NodeContent }) {
 }
 
 export function toNodeDraftDTO(input: { nodeDraft: NodeDraft }) {
-	const nodeDraft = {
-		...input.nodeDraft,
-		yjsState: input.nodeDraft.yjsState.toString("base64"),
-		createdAt: input.nodeDraft.createdAt.toISOString(),
-		updatedAt: input.nodeDraft.updatedAt.toISOString(),
-	};
+	const draft = input.nodeDraft;
 
-	return NodeDraftSchema.parse(nodeDraft);
+	return NodeDraftSchema.parse({
+		id: draft.id,
+		nodeId: draft.nodeId,
+		yjsState: draft.yjsState.toString("base64"),
+		saveVersion: draft.saveVersion,
+		createdAt: draft.createdAt.toISOString(),
+		updatedAt: draft.updatedAt.toISOString(),
+	});
+}
+
+export function toGetNodesResponseDTO(input: {
+	publicationVersion: number;
+	nodeContents: NodeContent[];
+}) {
+	return GetNodesResponseSchema.parse({
+		publicationVersion: input.publicationVersion,
+		nodes: input.nodeContents.map((n) => toNodeDTO({ nodeContent: n })),
+	});
+}
+
+export function toGetNodeResponseDTO(input: { nodeContent: NodeContent }) {
+	return GetNodeResponseSchema.parse({
+		node: toNodeDTO({ nodeContent: input.nodeContent }),
+	});
+}
+
+export function toCreateNodeResponseDTO(input: {
+	nodeContent: NodeContent;
+	draftContent: NodeDraft;
+}) {
+	return CreateNodeResponseSchema.parse({
+		node: toNodeDTO({ nodeContent: input.nodeContent }),
+		draft: toNodeDraftDTO({ nodeDraft: input.draftContent }),
+	});
 }

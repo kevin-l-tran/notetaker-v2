@@ -93,7 +93,9 @@ export default function NodeEditor({ notebookId, selectedNodeId }: NodeEditorPro
 		<div className={styles.page}>
 			<div className={styles.header}>
 				<div className={styles.nodeInfo}>
-					<div className={styles.nodeTitle}>{selectedNode.title}</div>
+					<div className={styles.nodeTitle}>
+						{selectedNode?.latestRevision?.title ?? "New draft"}
+					</div>
 					<div className={styles.publishStatus}>
 						<CheckIcon size={16} />
 						Published
@@ -120,7 +122,9 @@ export default function NodeEditor({ notebookId, selectedNodeId }: NodeEditorPro
 				</Tabs.List>
 				<Tabs.Panel value="content" className={styles.contentPanel}>
 					<NodeContentPanel
-						description={selectedNode.type === "concept" ? selectedNode.descriptionSource : ""}
+						description={
+							selectedNode.type === "concept" ? selectedNode?.latestRevision?.descriptionSource : ""
+						}
 					/>
 				</Tabs.Panel>
 				<Tabs.Panel value="links">Links</Tabs.Panel>

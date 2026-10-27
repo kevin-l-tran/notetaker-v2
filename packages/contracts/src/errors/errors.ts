@@ -6,6 +6,7 @@ export const ERROR_CODES = [
 	"UNAUTHORIZED",
 	"FORBIDDEN",
 	"INTERNAL_SERVER_ERROR",
+	"SNAPSHOT_CONFLICT",
 
 	// user errors
 	"USER_NOT_FOUND",

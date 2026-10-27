@@ -1,22 +1,28 @@
 import type { ERROR_CODES } from "@notetaker-v2/contracts";
 
+type AppErrorOptions = ErrorOptions & {
+	headers?: Record<string, string>;
+};
+
 export class AppError extends Error {
 	readonly code: (typeof ERROR_CODES)[number];
 	readonly statusCode: number;
 	readonly details: Record<string, unknown> | undefined;
+	readonly headers: Record<string, string> | undefined;
 
 	constructor(
 		code: (typeof ERROR_CODES)[number],
 		message: string,
 		statusCode: number,
 		details?: Record<string, unknown>,
-		options?: ErrorOptions,
+		options?: AppErrorOptions,
 	) {
 		super(message, options);
 
 		this.code = code;
 		this.statusCode = statusCode;
 		this.details = details;
+		this.headers = options?.headers;
 
 		this.name = new.target.name;
 	}
@@ -81,5 +87,15 @@ export class InvalidInputError extends AppError {
 export class InvariantError extends AppError {
 	constructor(message: string, details?: Record<string, unknown>, options?: ErrorOptions) {
 		super("INTERNAL_SERVER_ERROR", message, 500, details, options);
+	}
+}
+
+export class SnapshotConflictError extends AppError {
+	constructor() {
+		super("SNAPSHOT_CONFLICT", "Could not obtain a consistent data snapshot.", 503, undefined, {
+			headers: {
+				"Retry-After": "1",
+			},
+		});
 	}
 }

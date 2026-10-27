@@ -47,6 +47,16 @@ export { type ConceptRevision, ConceptRevisionSchema } from "./node_revisions/co
 export { type NodeRevision, NodeRevisionSchema } from "./node_revisions/node.ts";
 export { type Node, NodeSchema } from "./nodes/node.ts";
 export { type CreateNodeRequest, CreateNodeRequestSchema } from "./nodes/nodeRequests.ts";
+export {
+	type CreateNodeResponse,
+	CreateNodeResponseSchema,
+	type DeleteNodeResponse,
+	DeleteNodeResponseSchema,
+	type GetNodeResponse,
+	GetNodeResponseSchema,
+	type GetNodesResponse,
+	GetNodesResponseSchema,
+} from "./nodes/nodeResponses.ts";
 export { type NodeType, NodeTypeSchema, NodeTypes } from "./nodes/nodeTypes.ts";
 export type { NotebookMemberRole } from "./notebook_members/notebookMember.ts";
 export {
