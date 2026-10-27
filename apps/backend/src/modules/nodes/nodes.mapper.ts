@@ -2,13 +2,13 @@ import {
 	CreateNodeResponseSchema,
 	GetNodeResponseSchema,
 	GetNodesResponseSchema,
-	NodeDraftSchema,
 	NodeSchema,
 } from "@notetaker-v2/contracts";
 import type { PublishableNodeContent } from "@notetaker-v2/node_document";
 import type { BaseNodeRevision } from "../../database/schema/baseNodeRevisions.ts";
 import type { Node as DbNode } from "../../database/schema/node.ts";
 import type { NodeDraft } from "../../database/schema/nodeDraft.ts";
+import { toNodeDraftDTO } from "./drafts/nodeDraft.mapper.ts";
 
 type NodeContent = {
 	node: DbNode;
@@ -38,19 +38,6 @@ export function toNodeDTO(input: { nodeContent: NodeContent }) {
 	};
 
 	return NodeSchema.parse(node);
-}
-
-export function toNodeDraftDTO(input: { nodeDraft: NodeDraft }) {
-	const draft = input.nodeDraft;
-
-	return NodeDraftSchema.parse({
-		id: draft.id,
-		nodeId: draft.nodeId,
-		state: draft.yjsState.toString("base64"),
-		saveVersion: draft.saveVersion,
-		createdAt: draft.createdAt.toISOString(),
-		updatedAt: draft.updatedAt.toISOString(),
-	});
 }
 
 export function toGetNodesResponseDTO(input: {

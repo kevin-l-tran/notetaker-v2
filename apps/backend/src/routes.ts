@@ -4,6 +4,7 @@ import authRoutes from "./modules/auth/auth.routes.ts";
 import type { Auth } from "./modules/auth/createAuth.ts";
 import healthRoutes from "./modules/health/health.routes.ts";
 import nodeRoutes from "./modules/nodes/node.routes.ts";
+import nodeRevisionRoutes from "./modules/nodes/revisions/nodeRevision.routes.ts";
 import notebookRoutes from "./modules/notebooks/notebook.routes.ts";
 import userRoutes from "./modules/users/user.routes.ts";
 import type { ServiceContext } from "./shared/services/serviceContext.ts";
@@ -26,6 +27,7 @@ const routes: FastifyPluginCallback<RoutesOptions> = (app, options, done) => {
 	app.register(healthRoutes);
 	app.register(notebookRoutes);
 	app.register(nodeRoutes);
+	app.register(nodeRevisionRoutes);
 
 	done();
 };

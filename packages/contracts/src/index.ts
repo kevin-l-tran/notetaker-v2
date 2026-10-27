@@ -44,7 +44,12 @@ export {
 } from "./node_revisions/alias.ts";
 export { type ClaimRevision, ClaimRevisionSchema } from "./node_revisions/claim.ts";
 export { type ConceptRevision, ConceptRevisionSchema } from "./node_revisions/concept.ts";
-export { type NodeRevision, NodeRevisionSchema } from "./node_revisions/node.ts";
+export {
+	type NodeRevision,
+	NodeRevisionSchema,
+	type NodeRevisionSummary,
+	NodeRevisionSummarySchema,
+} from "./node_revisions/node.ts";
 export { type Node, NodeSchema } from "./nodes/node.ts";
 export { type CreateNodeRequest, CreateNodeRequestSchema } from "./nodes/nodeRequests.ts";
 export {
