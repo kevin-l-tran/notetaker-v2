@@ -46,7 +46,7 @@ export function toNodeDraftDTO(input: { nodeDraft: NodeDraft }) {
 	return NodeDraftSchema.parse({
 		id: draft.id,
 		nodeId: draft.nodeId,
-		yjsState: draft.yjsState.toString("base64"),
+		state: draft.yjsState.toString("base64"),
 		saveVersion: draft.saveVersion,
 		createdAt: draft.createdAt.toISOString(),
 		updatedAt: draft.updatedAt.toISOString(),

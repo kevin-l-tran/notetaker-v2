@@ -1,11 +1,10 @@
 import type { ZodTypeProvider } from "@fastify/type-provider-zod";
 import {
 	CreateNodeRequestSchema,
+	CreateNodeResponseSchema,
 	GetNodeResponseSchema,
 	GetNodesResponseSchema,
-	NodeDraftSchema,
 	NodeIdSchema,
-	NodeSchema,
 	NotebookIdSchema,
 } from "@notetaker-v2/contracts";
 import type { FastifyPluginCallback } from "fastify";
@@ -73,7 +72,7 @@ const nodeRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				response: { 201: z.object({ node: NodeSchema, draft: NodeDraftSchema }) },
+				response: { 201: CreateNodeResponseSchema },
 				params: z.object({ notebookId: NotebookIdSchema }),
 				body: CreateNodeRequestSchema,
 			},
