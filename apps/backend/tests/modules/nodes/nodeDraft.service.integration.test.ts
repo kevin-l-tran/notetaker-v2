@@ -203,12 +203,14 @@ describe("node draft service", () => {
 				nodeId: claim.id,
 			});
 
-			expect(readYjsContent(conceptDraft.yjsState, "concept")).toEqual(latestConcept);
-			expect(readYjsContent(claimDraft.yjsState, "claim")).toEqual(latestClaim);
-			expect(conceptDraft.saveVersion).toEqual(1);
-			expect(claimDraft.saveVersion).toEqual(1);
-			expect(await draftRepo.findByNodeId({ nodeId: concept.id })).toEqual(conceptDraft);
-			expect(await draftRepo.findByNodeId({ nodeId: claim.id })).toEqual(claimDraft);
+			expect(readYjsContent(conceptDraft.nodeDraft.yjsState, "concept")).toEqual(latestConcept);
+			expect(readYjsContent(claimDraft.nodeDraft.yjsState, "claim")).toEqual(latestClaim);
+			expect(conceptDraft.nodeDraft.saveVersion).toEqual(1);
+			expect(claimDraft.nodeDraft.saveVersion).toEqual(1);
+			expect(conceptDraft.existing).toEqual(false);
+			expect(claimDraft.existing).toEqual(false);
+			expect(await draftRepo.findByNodeId({ nodeId: concept.id })).toEqual(conceptDraft.nodeDraft);
+			expect(await draftRepo.findByNodeId({ nodeId: claim.id })).toEqual(claimDraft.nodeDraft);
 		});
 
 		it("returns an existing draft without replacing its content or ID", async () => {
@@ -226,7 +228,8 @@ describe("node draft service", () => {
 				nodeId: node.id,
 			});
 
-			expect(result).toEqual(existingDraft);
+			expect(result.nodeDraft).toEqual(existingDraft);
+			expect(result.existing).toEqual(true);
 			expect(await draftRepo.findByNodeId({ nodeId: node.id })).toEqual(existingDraft);
 		});
 

@@ -63,7 +63,7 @@ export function createNodeDraftService(context: ServiceContext) {
 
 				const existingDraft = await txNodeDraftRepo.findByNodeId({ nodeId: node.id });
 
-				if (existingDraft) return existingDraft;
+				if (existingDraft) return { nodeDraft: existingDraft, existing: true };
 
 				const revision = await txNodeRevisionRepo.findLatestForNode({
 					nodeId: node.id,
@@ -75,10 +75,12 @@ export function createNodeDraftService(context: ServiceContext) {
 				const document = createDocumentFromRevision(revision.content);
 
 				try {
-					return await txNodeDraftRepo.create({
+					const nodeDraft = await txNodeDraftRepo.create({
 						nodeId: node.id,
 						yjsState: Buffer.from(encodeDocument(document)),
 					});
+
+					return { nodeDraft, existing: false };
 				} finally {
 					document.destroy();
 				}
