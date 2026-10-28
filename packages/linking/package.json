@@ -16,8 +16,8 @@
 		"@notetaker-v2/markdown_extensions": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/mdast": "4.0.4",
-		"typescript": "^6.0.3",
-		"vitest": "^4.1.10"
+		"@types/mdast": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }

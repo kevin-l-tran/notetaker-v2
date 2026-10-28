@@ -3,7 +3,7 @@ import { afterAll, afterEach } from "vitest";
 import { server } from "./mocks/server";
 
 server.listen({
-	onUnhandledFrame: "error",
+	onUnhandledRequest: "error",
 });
 
 afterEach(() => {

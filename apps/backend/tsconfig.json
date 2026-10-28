@@ -17,8 +17,9 @@
 
 		// Other Outputs
 		"sourceMap": true,
-		"declaration": true,
-		"declarationMap": true,
+		"declaration": false,
+		"declarationMap": false,
+		"emitDeclarationOnly": false,
 
 		// Stricter Typechecking Options
 		"noUncheckedIndexedAccess": true,
@@ -39,7 +40,7 @@
 		"isolatedModules": true,
 		"noUncheckedSideEffectImports": true,
 		"allowImportingTsExtensions": true,
-		"emitDeclarationOnly": true,
+		"rewriteRelativeImportExtensions": true,
 		"moduleDetection": "force",
 		"skipLibCheck": true
 	}

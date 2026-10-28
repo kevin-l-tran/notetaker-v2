@@ -15,9 +15,9 @@
 	},
 	"dependencies": {
 		"@notetaker-v2/contracts": "workspace:*",
-		"yjs": "^13.6.33"
+		"yjs": "catalog:"
 	},
 	"devDependencies": {
-		"typescript": "^5.0.0"
+		"typescript": "catalog:"
 	}
 }
