@@ -3,7 +3,7 @@ import { type Notebook, UpdateNotebookRequestSchema } from "@notetaker-v2/contra
 import { useState } from "react";
 import z from "zod";
 import { ApiError, UnexpectedApiResponseError } from "../../../data/api/errors";
-import { useUpdateNotebook } from "../../../data/api/mutations/updateNotebook";
+import { useUpdateNotebook } from "../../../data/api/mutations/notebooks";
 import styles from "./UpdateNotebookDialog.module.css";
 
 type UpdateNotebookDialogProps = {

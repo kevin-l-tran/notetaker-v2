@@ -2,7 +2,7 @@ import { AlertDialog, Button } from "@base-ui/react";
 import type { Notebook } from "@notetaker-v2/contracts";
 import { useState } from "react";
 import { ApiError, UnexpectedApiResponseError } from "../../../data/api/errors";
-import { useDeleteNotebook } from "../../../data/api/mutations/deleteNotebook";
+import { useDeleteNotebook } from "../../../data/api/mutations/notebooks";
 import styles from "./DeleteNotebookDialog.module.css";
 
 type DeleteNotebookDialogProps = {

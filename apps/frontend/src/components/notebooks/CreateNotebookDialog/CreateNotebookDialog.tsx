@@ -3,7 +3,7 @@ import { CreateNotebookRequestSchema } from "@notetaker-v2/contracts";
 import { useState } from "react";
 import z from "zod";
 import { ApiError, UnexpectedApiResponseError } from "../../../data/api/errors";
-import { useCreateNotebook } from "../../../data/api/mutations/createNotebook";
+import { useCreateNotebook } from "../../../data/api/mutations/notebooks";
 import styles from "./CreateNotebookDialog.module.css";
 
 type CreateNotebookDialogProps = {
