@@ -1,7 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
+import { notebooksQueryKey } from "../keys/notebooks";
 import { fetchNotebooks } from "../notebooks";
-
-export const notebooksQueryKey = () => ["notebooks"] as const;
 
 export function notebooksQuery() {
 	return queryOptions({

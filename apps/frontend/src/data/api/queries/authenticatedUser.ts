@@ -1,18 +1,6 @@
-import { UserSchema } from "@notetaker-v2/contracts";
 import { queryOptions } from "@tanstack/react-query";
-
-export const authenticatedUserQueryKey = () => ["authenticatedUser"] as const;
-
-async function fetchAuthenticatedUser() {
-	const response = await fetch("/api/me");
-
-	if (!response.ok) {
-		throw new Error("Failed to fetch user.");
-	}
-
-	const data = await response.json();
-	return UserSchema.parse(data);
-}
+import { fetchAuthenticatedUser } from "../authenticatedUser";
+import { authenticatedUserQueryKey } from "../keys/authenticatedUser";
 
 export function authenticatedUserQuery() {
 	return queryOptions({

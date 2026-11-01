@@ -1,9 +1,7 @@
 import type { NotebookId } from "@notetaker-v2/contracts";
 import { queryOptions } from "@tanstack/react-query";
+import { nodesQueryKey } from "../keys/nodes";
 import { fetchNodes } from "../nodes";
-
-export const nodesQueryKey = (notebookId: NotebookId) =>
-	["notebooks", notebookId, "nodes"] as const;
 
 export function nodesQuery(notebookId: NotebookId) {
 	return queryOptions({
