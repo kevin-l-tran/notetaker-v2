@@ -1,12 +1,14 @@
 import type { ZodTypeProvider } from "@fastify/type-provider-zod";
 import {
+	CreateNodeDraftResponseSchema,
+	GetNodeDraftResponseSchema,
 	NodeDraftIdSchema,
-	NodeDraftSchema,
 	NodeIdSchema,
-	NodeRevisionSchema,
 	NotebookIdSchema,
 	PublishDraftRequestSchema,
+	PublishNodeDraftResponseSchema,
 	SaveDraftRequestSchema,
+	SaveNodeDraftResponseSchema,
 } from "@notetaker-v2/contracts";
 import type { FastifyPluginCallback } from "fastify";
 import z from "zod";
@@ -27,7 +29,7 @@ const nodeDraftRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				response: { 200: NodeDraftSchema },
+				response: { 200: GetNodeDraftResponseSchema },
 				params: z.object({ notebookId: NotebookIdSchema, nodeId: NodeIdSchema }),
 			},
 		},
@@ -51,7 +53,7 @@ const nodeDraftRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				response: { 200: NodeDraftSchema, 201: NodeDraftSchema },
+				response: { 200: CreateNodeDraftResponseSchema, 201: CreateNodeDraftResponseSchema },
 				params: z.object({ notebookId: NotebookIdSchema, nodeId: NodeIdSchema }),
 			},
 		},
@@ -79,10 +81,7 @@ const nodeDraftRoutes: FastifyPluginCallback = (app, _options, done) => {
 			preHandler: app.requireAuthentication,
 			schema: {
 				response: {
-					201: z.object({
-						publicationVersion: z.number().int().nonnegative(),
-						revision: NodeRevisionSchema,
-					}),
+					201: PublishNodeDraftResponseSchema,
 				},
 				params: z.object({
 					notebookId: NotebookIdSchema,
@@ -115,7 +114,7 @@ const nodeDraftRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				response: { 200: NodeDraftSchema },
+				response: { 200: SaveNodeDraftResponseSchema },
 				params: z.object({
 					notebookId: NotebookIdSchema,
 					nodeId: NodeIdSchema,

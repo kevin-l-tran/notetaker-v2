@@ -1,19 +1,20 @@
 import {
 	type CreateNodeRequest,
-	type Node,
+	CreateNodeResponseSchema,
+	GetNodeResponseSchema,
+	GetNodesResponseSchema,
 	type NodeId,
-	NodeSchema,
 	type NotebookId,
 } from "@notetaker-v2/contracts";
 
-export async function fetchNodes({ notebookId }: { notebookId: NotebookId }): Promise<Node[]> {
+export async function fetchNodes({ notebookId }: { notebookId: NotebookId }) {
 	const response = await fetch(`/api/notebooks/${notebookId}/nodes`);
 
 	if (!response.ok) throw new Error("Failed to fetch nodes");
 
 	const data = await response.json();
 
-	return data.map((item: unknown) => NodeSchema.parse(item));
+	return GetNodesResponseSchema.parse(data);
 }
 
 export async function fetchNode({
@@ -22,14 +23,14 @@ export async function fetchNode({
 }: {
 	notebookId: NotebookId;
 	nodeId: NodeId;
-}): Promise<Node> {
+}) {
 	const response = await fetch(`/api/notebooks/${notebookId}/nodes/${nodeId}`);
 
 	if (!response.ok) throw new Error("Failed to fetch node");
 
 	const data = await response.json();
 
-	return NodeSchema.parse(data);
+	return GetNodeResponseSchema.parse(data);
 }
 
 export async function createNode({
@@ -38,7 +39,7 @@ export async function createNode({
 }: {
 	notebookId: NotebookId;
 	input: CreateNodeRequest;
-}): Promise<Node> {
+}) {
 	const response = await fetch(`/api/notebooks/${notebookId}/nodes`, {
 		method: "POST",
 		headers: {
@@ -51,7 +52,7 @@ export async function createNode({
 
 	const data = await response.json();
 
-	return NodeSchema.parse(data);
+	return CreateNodeResponseSchema.parse(data);
 }
 
 export async function deleteNode({
@@ -60,7 +61,7 @@ export async function deleteNode({
 }: {
 	notebookId: NotebookId;
 	nodeId: NodeId;
-}): Promise<void> {
+}) {
 	const response = await fetch(`/api/notebooks/${notebookId}/nodes/${nodeId}`, {
 		method: "DELETE",
 	});

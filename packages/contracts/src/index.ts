@@ -34,6 +34,16 @@ export {
 	SaveDraftRequestSchema,
 } from "./node_drafts/nodeDraftRequests.ts";
 export {
+	type CreateNodeDraftResponse,
+	CreateNodeDraftResponseSchema,
+	type GetNodeDraftResponse,
+	GetNodeDraftResponseSchema,
+	type PublishNodeDraftResponse,
+	PublishNodeDraftResponseSchema,
+	type SaveNodeDraftResponse,
+	SaveNodeDraftResponseSchema,
+} from "./node_drafts/nodeDraftResponses.ts";
+export {
 	type Alias,
 	type AliasMode,
 	aliasModeSchema,
@@ -42,14 +52,25 @@ export {
 	type ExcludedAlias,
 	excludedAliasSchema,
 } from "./node_revisions/alias.ts";
-export { type ClaimRevision, ClaimRevisionSchema } from "./node_revisions/claim.ts";
-export { type ConceptRevision, ConceptRevisionSchema } from "./node_revisions/concept.ts";
+export {
+	type ClaimRevision,
+	ClaimRevisionSchema,
+} from "./node_revisions/claimRevisions.ts";
+export { type ConceptRevision, ConceptRevisionSchema } from "./node_revisions/conceptRevisions.ts";
+export {
+	type GetNodeRevisionResponse,
+	GetNodeRevisionResponseSchema,
+	type GetNodeRevisionsResponse,
+	GetNodeRevisionsResponseSchema,
+	type RestoreNodeRevisionResponse,
+	RestoreNodeRevisionResponseSchema,
+} from "./node_revisions/nodeRevisionResponses.ts";
 export {
 	type NodeRevision,
 	NodeRevisionSchema,
 	type NodeRevisionSummary,
 	NodeRevisionSummarySchema,
-} from "./node_revisions/node.ts";
+} from "./node_revisions/nodeRevisions.ts";
 export { type Node, NodeSchema } from "./nodes/node.ts";
 export { type CreateNodeRequest, CreateNodeRequestSchema } from "./nodes/nodeRequests.ts";
 export {

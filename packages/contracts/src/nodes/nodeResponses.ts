@@ -8,7 +8,7 @@ export type CreateNodeResponse = z.infer<typeof CreateNodeResponseSchema>;
 export type DeleteNodeResponse = z.infer<typeof DeleteNodeResponseSchema>;
 
 export const GetNodesResponseSchema = z.object({
-	publicationVersion: z.number().int().nonnegative(),
+	publicationVersion: z.number().int().positive(),
 	nodes: z.array(NodeSchema),
 });
 

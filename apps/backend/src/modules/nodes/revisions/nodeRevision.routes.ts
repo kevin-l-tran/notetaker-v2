@@ -1,10 +1,10 @@
 import type { ZodTypeProvider } from "@fastify/type-provider-zod";
 import {
-	NodeDraftSchema,
+	GetNodeRevisionResponseSchema,
+	GetNodeRevisionsResponseSchema,
 	NodeIdSchema,
-	NodeRevisionSchema,
-	NodeRevisionSummarySchema,
 	NotebookIdSchema,
+	RestoreNodeRevisionResponseSchema,
 } from "@notetaker-v2/contracts";
 import type { FastifyPluginCallback } from "fastify";
 import z from "zod";
@@ -25,7 +25,7 @@ const nodeRevisionRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				response: { 200: z.array(NodeRevisionSummarySchema) },
+				response: { 200: GetNodeRevisionsResponseSchema },
 				params: z.object({ notebookId: NotebookIdSchema, nodeId: NodeIdSchema }),
 			},
 		},
@@ -49,7 +49,7 @@ const nodeRevisionRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				response: { 200: NodeRevisionSchema },
+				response: { 200: GetNodeRevisionResponseSchema },
 				params: z.object({
 					notebookId: NotebookIdSchema,
 					nodeId: NodeIdSchema,
@@ -78,7 +78,7 @@ const nodeRevisionRoutes: FastifyPluginCallback = (app, _options, done) => {
 		{
 			preHandler: app.requireAuthentication,
 			schema: {
-				response: { 201: NodeDraftSchema },
+				response: { 201: RestoreNodeRevisionResponseSchema },
 				params: z.object({
 					notebookId: NotebookIdSchema,
 					nodeId: NodeIdSchema,

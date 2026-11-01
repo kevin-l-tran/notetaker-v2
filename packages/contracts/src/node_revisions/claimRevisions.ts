@@ -1,6 +1,6 @@
 import z from "zod";
 import { NodeTypeSchema } from "../nodes/nodeTypes.ts";
-import { BaseNodeRevisionSchema } from "./baseNode.ts";
+import { BaseNodeRevisionSchema } from "./baseNodeRevisions.ts";
 
 export type ClaimRevision = z.infer<typeof ClaimRevisionSchema>;
 

@@ -18,7 +18,7 @@ export default function EditorSidebar({ notebookId, selectedNodeId }: EditorSide
 			<Input className={styles.search} placeholder="Search nodes..." />
 
 			<div className={styles.nodeList}>
-				{data?.map((node) => (
+				{data?.nodes.map((node) => (
 					<NavLink
 						key={node.id}
 						to={`/notebooks/${notebookId}/edit/${node.id}`}

@@ -14,7 +14,7 @@ type NodeEditorProps = {
 
 export default function NodeEditor({ notebookId, selectedNodeId }: NodeEditorProps) {
 	const { isPending, data, refetch } = useQuery(nodesQuery(notebookId));
-	const selectedNode = data?.find((node) => node.id === selectedNodeId);
+	const selectedNode = data?.nodes.find((node) => node.id === selectedNodeId);
 
 	if (isPending)
 		return (
@@ -79,9 +79,11 @@ export default function NodeEditor({ notebookId, selectedNodeId }: NodeEditorPro
 						size={24}
 						aria-hidden="true"
 					/>
-					<h2 className={styles.stateTitle}>{data.length ? "Select a node" : "No nodes yet"}</h2>
+					<h2 className={styles.stateTitle}>
+						{data.nodes.length ? "Select a node" : "No nodes yet"}
+					</h2>
 					<p className={styles.stateDescription}>
-						{data.length
+						{data.nodes.length
 							? "Choose a node from the sidebar to start editing."
 							: "Create your first node to start writing."}
 					</p>

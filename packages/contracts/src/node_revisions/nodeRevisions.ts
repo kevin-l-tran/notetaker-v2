@@ -1,7 +1,7 @@
 import z from "zod";
 import { NodeIdSchema, NodeRevisionIdSchema } from "../ids.ts";
-import { ClaimRevisionSchema } from "./claim.ts";
-import { ConceptRevisionSchema } from "./concept.ts";
+import { ClaimRevisionSchema } from "./claimRevisions.ts";
+import { ConceptRevisionSchema } from "./conceptRevisions.ts";
 
 export type NodeRevision = z.infer<typeof NodeRevisionSchema>;
 export type NodeRevisionSummary = z.infer<typeof NodeRevisionSummarySchema>;

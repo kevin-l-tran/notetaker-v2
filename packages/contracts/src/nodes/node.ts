@@ -1,6 +1,6 @@
 import z from "zod";
-import { ClaimRevisionSchema } from "../node_revisions/claim.ts";
-import { ConceptRevisionSchema } from "../node_revisions/concept.ts";
+import { ClaimRevisionSchema } from "../node_revisions/claimRevisions.ts";
+import { ConceptRevisionSchema } from "../node_revisions/conceptRevisions.ts";
 import { BaseNodeSchema } from "./baseNode.ts";
 
 // Nodes are objects that have an independent place
