@@ -1,7 +1,7 @@
 import type { NotebookId, UpdateNotebookRequest } from "@notetaker-v2/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notebooksQueryKey } from "../keys/notebooks";
 import { updateNotebook } from "../notebooks";
-import { notebooksQueryKey } from "../queries/notebooks";
 
 export function useUpdateNotebook(notebookId: NotebookId) {
 	const queryClient = useQueryClient();

@@ -1,7 +1,7 @@
 import type { NotebookId } from "@notetaker-v2/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notebooksQueryKey } from "../keys/notebooks";
 import { deleteNotebook } from "../notebooks";
-import { notebooksQueryKey } from "../queries/notebooks";
 
 export function useDeleteNotebook(notebookId: NotebookId) {
 	const queryClient = useQueryClient();

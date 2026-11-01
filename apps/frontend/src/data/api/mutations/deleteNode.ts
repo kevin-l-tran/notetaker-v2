@@ -1,7 +1,7 @@
 import type { NodeId, NotebookId } from "@notetaker-v2/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { nodeKeys } from "../keys/nodes";
 import { deleteNode } from "../nodes";
-import { nodesQueryKey } from "../queries/nodes";
 
 export function useDeleteNode(notebookId: NotebookId, nodeId: NodeId) {
 	const queryClient = useQueryClient();
@@ -10,7 +10,7 @@ export function useDeleteNode(notebookId: NotebookId, nodeId: NodeId) {
 		mutationFn: () => deleteNode({ notebookId, nodeId }),
 		onSuccess: async () => {
 			return await queryClient.invalidateQueries({
-				queryKey: nodesQueryKey(notebookId),
+				queryKey: nodeKeys.nodes(notebookId),
 			});
 		},
 	});

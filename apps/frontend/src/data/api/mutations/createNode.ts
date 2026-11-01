@@ -1,7 +1,7 @@
 import type { CreateNodeRequest, NotebookId } from "@notetaker-v2/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { nodeKeys } from "../keys/nodes";
 import { createNode } from "../nodes";
-import { nodesQueryKey } from "../queries/nodes";
 
 export function useCreateNode(notebookId: NotebookId) {
 	const queryClient = useQueryClient();
@@ -10,7 +10,7 @@ export function useCreateNode(notebookId: NotebookId) {
 		mutationFn: (input: CreateNodeRequest) => createNode({ notebookId, input }),
 		onSuccess: async () => {
 			return await queryClient.invalidateQueries({
-				queryKey: nodesQueryKey(notebookId),
+				queryKey: nodeKeys.nodes(notebookId),
 			});
 		},
 	});
