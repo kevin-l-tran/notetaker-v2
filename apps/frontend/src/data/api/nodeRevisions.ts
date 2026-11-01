@@ -3,6 +3,7 @@ import {
 	GetNodeRevisionsResponseSchema,
 	type NodeId,
 	type NotebookId,
+	RestoreNodeRevisionResponseSchema,
 } from "@notetaker-v2/contracts";
 
 export async function fetchRevisions({
@@ -59,5 +60,5 @@ export async function restoreRevision({
 
 	const data = await response.json();
 
-	return GetNodeRevisionResponseSchema.parse(data);
+	return RestoreNodeRevisionResponseSchema.parse(data);
 }
