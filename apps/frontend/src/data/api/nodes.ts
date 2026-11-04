@@ -6,11 +6,12 @@ import {
 	type NodeId,
 	type NotebookId,
 } from "@notetaker-v2/contracts";
+import { parseApiError } from "./errors";
 
 export async function fetchNodes({ notebookId }: { notebookId: NotebookId }) {
 	const response = await fetch(`/api/notebooks/${notebookId}/nodes`);
 
-	if (!response.ok) throw new Error("Failed to fetch nodes");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -26,7 +27,7 @@ export async function fetchNode({
 }) {
 	const response = await fetch(`/api/notebooks/${notebookId}/nodes/${nodeId}`);
 
-	if (!response.ok) throw new Error("Failed to fetch node");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -48,7 +49,7 @@ export async function createNode({
 		body: JSON.stringify(input),
 	});
 
-	if (!response.ok) throw new Error("Failed to create node");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -66,7 +67,7 @@ export async function deleteNode({
 		method: "DELETE",
 	});
 
-	if (!response.ok) throw new Error("Failed to delete node");
+	if (!response.ok) throw await parseApiError(response);
 
 	return;
 }

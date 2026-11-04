@@ -9,6 +9,7 @@ import {
 	type SaveDraftRequest,
 	SaveNodeDraftResponseSchema,
 } from "@notetaker-v2/contracts";
+import { parseApiError } from "./errors";
 
 export async function fetchDraft({
 	notebookId,
@@ -19,7 +20,7 @@ export async function fetchDraft({
 }) {
 	const response = await fetch(`/api/notebooks/${notebookId}/nodes/${nodeId}/draft`);
 
-	if (!response.ok) throw new Error("Failed to fetch draft");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -37,7 +38,7 @@ export async function createDraft({
 		method: "POST",
 	});
 
-	if (!response.ok) throw new Error("Failed to create draft");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -66,7 +67,7 @@ export async function publishDraft({
 		},
 	);
 
-	if (!response.ok) throw new Error("Failed to publish draft");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -92,7 +93,7 @@ export async function saveDraft({
 		body: JSON.stringify(input),
 	});
 
-	if (!response.ok) throw new Error("Failed to save draft");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -112,7 +113,7 @@ export async function deleteDraft({
 		method: "DELETE",
 	});
 
-	if (!response.ok) throw new Error("Failed to delete node");
+	if (!response.ok) throw await parseApiError(response);
 
 	return;
 }

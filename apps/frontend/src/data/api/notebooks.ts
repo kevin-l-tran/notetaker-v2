@@ -5,11 +5,12 @@ import {
 	NotebookSummarySchema,
 	type UpdateNotebookRequest,
 } from "@notetaker-v2/contracts";
+import { parseApiError } from "./errors";
 
 export async function fetchNotebooks(): Promise<NotebookSummary[]> {
 	const response = await fetch("/api/notebooks");
 
-	if (!response.ok) throw new Error("Failed to fetch notebooks");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -25,7 +26,7 @@ export async function createNotebook(input: CreateNotebookRequest): Promise<Note
 		body: JSON.stringify(input),
 	});
 
-	if (!response.ok) throw new Error("Failed to create notebook");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -47,7 +48,7 @@ export async function updateNotebook({
 		body: JSON.stringify(input),
 	});
 
-	if (!response.ok) throw new Error("Failed to update notebook");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -57,7 +58,7 @@ export async function updateNotebook({
 export async function deleteNotebook({ notebookId }: { notebookId: NotebookId }): Promise<void> {
 	const response = await fetch(`/api/notebooks/${notebookId}`, { method: "DELETE" });
 
-	if (!response.ok) throw new Error("Failed to delete notebook");
+	if (!response.ok) throw await parseApiError(response);
 
 	return;
 }

@@ -5,6 +5,7 @@ import {
 	type NotebookId,
 	RestoreNodeRevisionResponseSchema,
 } from "@notetaker-v2/contracts";
+import { parseApiError } from "./errors";
 
 export async function fetchRevisions({
 	notebookId,
@@ -15,7 +16,7 @@ export async function fetchRevisions({
 }) {
 	const response = await fetch(`/api/notebooks/${notebookId}/nodes/${nodeId}/revisions`);
 
-	if (!response.ok) throw new Error("Failed to fetch draft");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -35,7 +36,7 @@ export async function fetchRevision({
 		`/api/notebooks/${notebookId}/nodes/${nodeId}/revisions/${revisionNumber}`,
 	);
 
-	if (!response.ok) throw new Error("Failed to fetch draft");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
@@ -56,7 +57,7 @@ export async function restoreRevision({
 		{ method: "POST" },
 	);
 
-	if (!response.ok) throw new Error("Failed to fetch draft");
+	if (!response.ok) throw await parseApiError(response);
 
 	const data = await response.json();
 
