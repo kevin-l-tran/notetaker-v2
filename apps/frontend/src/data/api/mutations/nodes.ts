@@ -1,7 +1,13 @@
-import type { CreateNodeRequest, NodeDraftId, NodeId, NotebookId } from "@notetaker-v2/contracts";
+import type {
+	CreateNodeRequest,
+	NodeDraftId,
+	NodeId,
+	NotebookId,
+	SaveDraftRequest,
+} from "@notetaker-v2/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { nodeKeys } from "../keys/nodes";
-import { createDraft, publishDraft } from "../nodeDrafts";
+import { createDraft, publishDraft, saveDraft } from "../nodeDrafts";
 import { restoreRevision } from "../nodeRevisions";
 import { createNode, deleteNode } from "../nodes";
 
@@ -41,6 +47,27 @@ export function useOpenDraft(notebookId: NotebookId, nodeId: NodeId) {
 			queryClient.setQueryData(nodeKeys.draft(notebookId, nodeId), draft);
 			queryClient.invalidateQueries({
 				queryKey: nodeKeys.node(notebookId, nodeId),
+			});
+		},
+	});
+}
+
+export function useSaveDraft(notebookId: NotebookId, nodeId: NodeId, draftId: NodeDraftId) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (input: SaveDraftRequest) =>
+			saveDraft({
+				notebookId,
+				nodeId,
+				draftId,
+				input,
+			}),
+
+		onSuccess: (draft) => {
+			queryClient.setQueryData(nodeKeys.draft(notebookId, nodeId), draft);
+			queryClient.invalidateQueries({
+				queryKey: nodeKeys.draft(notebookId, nodeId),
 			});
 		},
 	});

@@ -189,6 +189,9 @@ importers:
       '@notetaker-v2/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@notetaker-v2/node_document':
+        specifier: workspace:*
+        version: link:../../packages/node_document
       '@react-router/node':
         specifier: ^8.5.0
         version: 8.5.0(react-router@8.5.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(typescript@6.0.3)
@@ -234,6 +237,9 @@ importers:
       remark-math:
         specifier: ^6.0.0
         version: 6.0.0
+      yjs:
+        specifier: 'catalog:'
+        version: 13.6.33
       zod:
         specifier: 'catalog:'
         version: 4.6.7
