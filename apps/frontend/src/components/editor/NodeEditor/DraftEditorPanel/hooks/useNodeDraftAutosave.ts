@@ -2,7 +2,7 @@ import type { NodeDraftId, NodeId, NotebookId } from "@notetaker-v2/contracts";
 import { encodeDocument } from "@notetaker-v2/node_document";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type * as Y from "yjs";
-import { useSaveDraft } from "../../../../data/api/mutations/nodes";
+import { useSaveDraft } from "../../../../../data/api/mutations/nodes";
 
 type UseNodeDraftAutosaveProps = {
 	notebookId: NotebookId;

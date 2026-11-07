@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon, CheckIcon, FileIcon, FileQuestionIcon } from "lucide-react";
 import { nodesQuery } from "../../../data/api/queries/nodes";
 import LoadingIcon from "../../shared/LoadingIcon/LoadingIcon";
-import NodeContentPanel from "./NodeContentPanel/NodeContentPanel";
+import DraftEditorPanel from "./DraftEditorPanel/DraftEditorPanel";
 import styles from "./NodeEditor.module.css";
 
 type NodeEditorProps = {
@@ -123,7 +123,7 @@ export default function NodeEditor({ notebookId, selectedNodeId }: NodeEditorPro
 					</Tabs.Tab>
 				</Tabs.List>
 				<Tabs.Panel value="content" className={styles.contentPanel}>
-					<NodeContentPanel
+					<DraftEditorPanel
 						description={
 							selectedNode.type === "concept" ? selectedNode?.latestRevision?.descriptionSource : ""
 						}
