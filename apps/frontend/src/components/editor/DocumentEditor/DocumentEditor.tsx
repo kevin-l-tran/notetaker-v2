@@ -1,8 +1,11 @@
 import { indentWithTab } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
+import { Prec } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { basicSetup } from "codemirror";
 import { useEffect, useRef } from "react";
+import { yCollab, yUndoManagerKeymap } from "y-codemirror.next";
+import * as Y from "yjs";
 import styles from "./DocumentEditor.module.css";
 
 const theme = EditorView.theme({
@@ -19,42 +22,35 @@ const theme = EditorView.theme({
 });
 
 type DocumentEditorProps = {
-	initialValue: string;
-	onChange: (value: string) => void;
+	yText: Y.Text;
 };
 
-export default function DocumentEditor({ initialValue, onChange }: DocumentEditorProps) {
+export default function DocumentEditor({ yText }: DocumentEditorProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const onChangeRef = useRef(onChange);
-
-	useEffect(() => {
-		onChangeRef.current = onChange;
-	}, [onChange]);
 
 	useEffect(() => {
 		if (!containerRef.current) return;
 
+		const undoManager = new Y.UndoManager(yText);
 		const view = new EditorView({
 			parent: containerRef.current,
-			doc: initialValue,
+			doc: yText.toString(),
 			extensions: [
+				Prec.highest(keymap.of(yUndoManagerKeymap)),
 				basicSetup,
 				keymap.of([indentWithTab]),
 				markdown(),
 				EditorView.lineWrapping,
 				theme,
-				EditorView.updateListener.of((update) => {
-					if (!update.docChanged) return;
-
-					onChangeRef.current(update.state.doc.toString());
-				}),
+				yCollab(yText, null, { undoManager }),
 			],
 		});
 
 		return () => {
 			view.destroy();
+			undoManager.destroy();
 		};
-	}, [initialValue]);
+	}, [yText]);
 
 	return <div ref={containerRef} className={styles.editor} />;
 }

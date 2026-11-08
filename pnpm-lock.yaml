@@ -183,6 +183,9 @@ importers:
       '@codemirror/legacy-modes':
         specifier: ^6.5.5
         version: 6.5.5
+      '@codemirror/state':
+        specifier: ^6.7.6
+        version: 6.7.6
       '@codemirror/view':
         specifier: ^6.43.15
         version: 6.43.15
@@ -237,6 +240,9 @@ importers:
       remark-math:
         specifier: ^6.0.0
         version: 6.0.0
+      y-codemirror.next:
+        specifier: ^0.3.6
+        version: 0.3.6(@codemirror/state@6.7.6)(@codemirror/view@6.43.15)(yjs@13.6.33)
       yjs:
         specifier: 'catalog:'
         version: 13.6.33
@@ -3685,6 +3691,13 @@ packages:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
 
+  y-codemirror.next@0.3.6:
+    resolution: {integrity: sha512-GnmVXhTe+UtoFbbaSdwhq6gdAQZdIY9az0Xj6HR2J4PO6Yw4w3xaaSssU+6T72WhXAI0wf9FbuY2s0Ms+WrexA==}
+    peerDependencies:
+      '@codemirror/state': ^6.0.0
+      '@codemirror/view': ^6.0.0
+      yjs: ^13.5.6
+
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
@@ -6880,6 +6893,13 @@ snapshots:
   xmlchars@2.2.0: {}
 
   xtend@4.0.2: {}
+
+  y-codemirror.next@0.3.6(@codemirror/state@6.7.6)(@codemirror/view@6.43.15)(yjs@13.6.33):
+    dependencies:
+      '@codemirror/state': 6.7.6
+      '@codemirror/view': 6.43.15
+      lib0: 0.2.119
+      yjs: 13.6.33
 
   y18n@5.0.8: {}
 
