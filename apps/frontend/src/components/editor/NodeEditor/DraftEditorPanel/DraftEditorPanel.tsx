@@ -1,29 +1,33 @@
-import { useState } from "react";
-import DocumentEditor from "../../DocumentEditor/DocumentEditor";
-import DocumentRenderer from "../../DocumentRenderer/DocumentRenderer";
+import type { NodeId, NotebookId } from "@notetaker-v2/contracts";
+import { useDraftSession } from "../../../../hooks/useDraftSession";
+import ClaimEditor from "./claims/ClaimEditor";
+import ClaimViewer from "./claims/ClaimViewer";
+import ConceptEditor from "./concepts/ConceptEditor";
+import ConceptViewer from "./concepts/ConceptViewer";
 import styles from "./DraftEditorPanel.module.css";
 
-type NodeContentPanelProps = {
-	description?: string;
+type DraftEditorPanelProps = {
+	notebookId: NotebookId;
+	nodeId: NodeId;
+	nodeType: "concept" | "claim";
 };
 
-export default function DraftEditorPanel({ description = "" }: NodeContentPanelProps) {
-	const [source, setSource] = useState<string>(description);
+export default function DraftEditorPanel({ notebookId, nodeId, nodeType }: DraftEditorPanelProps) {
+	const { session } = useDraftSession(notebookId, nodeId);
+
+	if (!session) return <p>No draft is open. Select Edit to open one.</p>;
+
+	const Editor = nodeType === "concept" ? ConceptEditor : ClaimEditor;
+	const Viewer = nodeType === "concept" ? ConceptViewer : ClaimViewer;
 
 	return (
 		<div className={styles.content}>
 			<section className={styles.pane}>
-				<div className={styles.paneHeader}>Description</div>
-				<div className={styles.body}>
-					<DocumentEditor initialValue={description} onChange={setSource} />
-				</div>
+				<Editor doc={session.doc} />
 			</section>
 
 			<section className={styles.pane}>
-				<div className={styles.paneHeader}>Preview</div>
-				<div className={styles.body}>
-					<DocumentRenderer source={source} />
-				</div>
+				<Viewer doc={session.doc} />
 			</section>
 		</div>
 	);
