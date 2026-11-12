@@ -1,10 +1,17 @@
 import { type ReactNode, useEffect, useState } from "react";
+import { useDeleteDraft, useOpenDraft, useSaveDraft } from "../../data/api/mutations/nodes";
 import { DraftSessionRegistry } from "./DraftSessionRegistry";
 import { DraftSessionRegistryContext } from "./DraftSessionRegistryContext";
 import { sessionFactory } from "./draftSessionFactory";
 
 export function DraftSessionProvider({ children }: { children: ReactNode }) {
-	const [registry] = useState(() => new DraftSessionRegistry(sessionFactory));
+	const { mutateAsync: openDraft } = useOpenDraft();
+	const { mutateAsync: saveDraft } = useSaveDraft();
+	const { mutateAsync: deleteDraft } = useDeleteDraft();
+
+	const [registry] = useState(
+		() => new DraftSessionRegistry(sessionFactory(openDraft, saveDraft), deleteDraft),
+	);
 
 	useEffect(() => {
 		return () => {

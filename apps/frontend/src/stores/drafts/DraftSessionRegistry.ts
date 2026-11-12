@@ -1,19 +1,26 @@
 import type { NodeId, NotebookId } from "@notetaker-v2/contracts";
 import type { DraftSession } from "./DraftSession";
+import type { DeleteDraftOperation } from "./draftOperationTypes";
 
 type SessionFactory = (notebookId: NotebookId, nodeId: NodeId) => Promise<DraftSession>;
+type ClosingOperation = {
+	mode: "close" | "discard";
+	promise: Promise<void>;
+};
 
 export class DraftSessionRegistry {
 	private readonly sessions = new Map<string, DraftSession>();
 	private readonly opening = new Map<string, Promise<DraftSession>>();
-	private readonly closing = new Map<string, Promise<void>>();
+	private readonly closing = new Map<string, ClosingOperation>();
 	private readonly listeners = new Set<() => void>();
 	private readonly createSession: SessionFactory;
+	private readonly deleteDraft: DeleteDraftOperation;
 	private closeAllPromise: Promise<void> | null = null;
 	private snapshot: readonly DraftSession[] = [];
 
-	constructor(createSession: SessionFactory) {
+	constructor(createSession: SessionFactory, deleteDraft: DeleteDraftOperation) {
 		this.createSession = createSession;
+		this.deleteDraft = deleteDraft;
 	}
 
 	private notify = () => {
@@ -25,9 +32,55 @@ export class DraftSessionRegistry {
 		return JSON.stringify([notebookId, nodeId]);
 	};
 
+	private discardKey = async (key: string): Promise<void> => {
+		const pendingClose = this.closing.get(key);
+		if (pendingClose) {
+			if (pendingClose.mode !== "discard") {
+				throw new Error("Cannot close and discard the same draft concurrently");
+			}
+			return pendingClose.promise;
+		}
+
+		const closeSession = async () => {
+			const opening = this.opening.get(key);
+			if (opening) await opening;
+
+			const session = this.sessions.get(key);
+			if (!session) {
+				throw new Error("Cannot discard a draft without an open session");
+			}
+
+			await session.prepareDiscard();
+
+			try {
+				await this.deleteDraft({
+					notebookId: session.notebookId,
+					nodeId: session.nodeId,
+					draftId: session.draftId,
+				});
+			} catch (error) {
+				session.cancelDiscard();
+				throw error;
+			}
+			session.dispose({ discardChanges: true });
+
+			this.sessions.delete(key);
+			this.notify();
+		};
+
+		const promise = closeSession();
+		this.closing.set(key, { mode: "discard", promise });
+
+		try {
+			await promise;
+		} finally {
+			this.closing.delete(key);
+		}
+	};
+
 	private closeKey = async (key: string): Promise<void> => {
 		const pendingClose = this.closing.get(key);
-		if (pendingClose) return pendingClose;
+		if (pendingClose) return pendingClose.promise;
 
 		const closeSession = async () => {
 			const opening = this.opening.get(key);
@@ -44,10 +97,10 @@ export class DraftSessionRegistry {
 		};
 
 		const promise = closeSession();
-		this.closing.set(key, promise);
+		this.closing.set(key, { mode: "close", promise });
 
 		try {
-			return await promise;
+			await promise;
 		} finally {
 			this.closing.delete(key);
 		}
@@ -70,8 +123,8 @@ export class DraftSessionRegistry {
 		if (this.closeAllPromise !== null) await this.closeAllPromise;
 
 		const key = this.key(notebookId, nodeId);
-
-		if (this.closing.has(key)) await this.closing.get(key);
+		const closing = this.closing.get(key);
+		if (closing) await closing.promise;
 
 		const existing = this.get(notebookId, nodeId);
 		if (existing) return existing;
@@ -82,10 +135,8 @@ export class DraftSessionRegistry {
 		const startSession = async () => {
 			const session = await this.createSession(notebookId, nodeId);
 			session.start();
-
 			this.sessions.set(key, session);
 			this.notify();
-
 			return session;
 		};
 
@@ -103,6 +154,10 @@ export class DraftSessionRegistry {
 		return this.closeKey(this.key(notebookId, nodeId));
 	};
 
+	discard = (notebookId: NotebookId, nodeId: NodeId): Promise<void> => {
+		return this.discardKey(this.key(notebookId, nodeId));
+	};
+
 	closeAll = (): Promise<void> => {
 		if (this.closeAllPromise !== null) return this.closeAllPromise;
 
@@ -112,7 +167,6 @@ export class DraftSessionRegistry {
 			const errors = results.flatMap((result) =>
 				result.status === "rejected" ? [result.reason] : [],
 			);
-
 			if (errors.length) throw new AggregateError(errors, "Could not close all draft sessions");
 		};
 
@@ -120,7 +174,6 @@ export class DraftSessionRegistry {
 			this.closeAllPromise = null;
 		});
 		this.closeAllPromise = promise;
-
 		return promise;
 	};
 }
