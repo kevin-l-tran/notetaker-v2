@@ -124,9 +124,9 @@ export default function NodeEditor({ notebookId, selectedNodeId }: NodeEditorPro
 				</Tabs.List>
 				<Tabs.Panel value="content" className={styles.contentPanel}>
 					<DraftEditorPanel
-						description={
-							selectedNode.type === "concept" ? selectedNode?.latestRevision?.descriptionSource : ""
-						}
+						notebookId={notebookId}
+						nodeId={selectedNode.id}
+						nodeType={selectedNode.type}
 					/>
 				</Tabs.Panel>
 				<Tabs.Panel value="links">Links</Tabs.Panel>
