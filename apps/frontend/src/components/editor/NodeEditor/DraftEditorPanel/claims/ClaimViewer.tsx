@@ -1,7 +1,7 @@
 import type * as Y from "yjs";
+import { useYTextValue } from "../../../../../hooks/useYTextValue";
 import DocumentRenderer from "../../../DocumentRenderer/DocumentRenderer";
 import styles from "../DraftEditorPanel.module.css";
-import { useYTextValue } from "../hooks/useYTextValue";
 
 type ClaimViewerProps = {
 	doc: Y.Doc;
